@@ -105,15 +105,18 @@ Outputs:
         print >> sys.stderr, e
         sys.exit(1)
 
-    #doc_format = formatting.DocumentFormat() # XXX Add arguments to constructor call
+    doc_format = formatting.DocumentFormat(options.checked, options.unchecked,
+                                           options.fontfamily, options.fontsize,
+                                           options.tablepos, options.language)
+
     #alassca_report = reports.AlasscaReport(meta_json, report_json, doc_format)
     
     # Generate a string of latex code representing the report:
     #report_latex_string = alassca_report.make_latex()
 
     # Write the resulting latex string to a temporary output file:
-    (tmp_latex_file, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
-    pdb.set_trace()
+    (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
+    tmp_latex_file = open(tmp_latex_filename, 'w')
     #print >> tmp_latex_file, report_latex_string
     tmp_latex_file.close()
     
