@@ -109,10 +109,10 @@ Outputs:
                                            options.fontfamily, options.fontsize,
                                            options.tablepos, options.language)
 
-    #alassca_report = reports.AlasscaReport(meta_json, report_json, doc_format)
+    alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)
     
     # Generate a string of latex code representing the report:
-    #report_latex_string = alassca_report.make_latex()
+    #report_latex_string = alascca_report.make_latex()
 
     # Write the resulting latex string to a temporary output file:
     (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
