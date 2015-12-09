@@ -136,19 +136,19 @@ class AlasccaReport(GenomicReport):
                                               report_metadata.get_tumor_sample_date())
 
         self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
-        #self._msi_report = MsiReport(msi_status_string)
+        self._msi_report = MsiReport(msi_status_string)
         #self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
 
     def make_body_latex(self):
         title_latex = u'''\\section*{ClinSeq ALASCCA Analysrapport}\\label{clinseq-alascca-analysrapport}'''
         initial_comment_latex = self._initial_comment.make_latex(self._doc_format)
         pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
-        #msi_latex = self._msi_report.make_latex(self._doc_format)
+        msi_latex = self._msi_report.make_latex(self._doc_format)
         #other_info_latex = self._other_info.make_latex(self._doc_format)
         #clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
         #footer_latex = self._footer_info.make_latex(self._doc_format)
 
-        return title_latex + initial_comment_latex + pi3k_pathway_latex# + msi_latex + other_info_latex + clinical_genetics_latex + footer_latex
+        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex# + other_info_latex + clinical_genetics_latex + footer_latex
 
 
 class ReportFeature(object):
@@ -253,10 +253,51 @@ class MsiReport(ReportFeature):
     '''
     '''
 
-    VALID_STRINGS = ["MSS/MSI-L", "MSI-H", "Not determined"]
+    MSS = "MSS/MSI-L"
+    MSI = "MSI-H"
+    NOT_DETERMINED = "Not determined"
+    VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
     def __init__(self, msi_status_string):
         self._msi_status = msi_status_string
+
+    def make_title(self, doc_format):
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''Microsatellite instability (MSI)'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''Mikrosatellitinstabilitet (MSI)'''
+
+    def make_content_body(self, doc_format):
+        mss_box = doc_format.get_unchecked_checkbox()
+        msi_box = doc_format.get_unchecked_checkbox()
+        not_determined_box = doc_format.get_unchecked_checkbox()
+        if self._msi_status == self.MSS:
+            mss_box = doc_format.get_checked_checkbox()
+        if self._msi_status == self.MSI:
+            msi_box = doc_format.get_checked_checkbox()
+        if self._msi_status == self.NOT_DETERMINED:
+            not_determined_box = doc_format.get_checked_checkbox()
+
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''$\\begin{array}{ p{1cm} p{3cm} }
+  \\toprule
+  \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
+  \\includegraphics{%s} & MSI-H \\tabularnewline
+  \\includegraphics{%s} & Not determined \\tabularnewline
+  \\bottomrule
+\\end{array}$
+''' % (mss_box, msi_box, not_determined_box)
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''$\\begin{array}{ p{1cm} p{8cm} }
+  \\toprule
+  \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
+  \\includegraphics{%s} & MSI-H \\tabularnewline
+  \\includegraphics{%s} & Ej utförd \\tabularnewline
+  \\bottomrule
+\\end{array}$
+''' % (mss_box, msi_box, not_determined_box)
 
 
 class OtherMutationsReport(ReportFeature):

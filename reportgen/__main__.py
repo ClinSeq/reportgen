@@ -120,22 +120,23 @@ Outputs:
     report_latex_string = alascca_report.make_latex()
 
     # Write the resulting latex string to a temporary output file:
-    (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
+    (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "LatexCode", options.tmp_dir)
     tmp_latex_file = open(tmp_latex_filename, 'w')
     print >> sys.stderr, "Writing latex to output file:", tmp_latex_filename
     tmp_latex_file.write(report_latex_string.encode('utf8'))
     tmp_latex_file.close()
     
     # Convert latex to pdf by running pdflatex on the command line:
-    #call_result = subprocess.call(["pdflatex", tmp_latex_filename])
+    # -job-name=Report
+    call_result = subprocess.call(["pdflatex", "-jobname", "Report", tmp_latex_filename])
 
     # Delete the temporary latex file unless told to retain it in the command line options:
     #if not options.keep_latex:
     #    subprocess.call(["rm", tmp_latex_filename])
     
-    #if call_result != 0:
-    #    sys.stderr, "ERROR: pdflatex conversion failed."
-    #    sys.exit(1)
+    if call_result != 0:
+        sys.stderr, "ERROR: pdflatex conversion failed."
+        sys.exit(1)
 
 
 if __name__ == '__main__':
