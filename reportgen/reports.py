@@ -41,12 +41,15 @@ class ReportMetadata(object):
     def get_tumor_sample_date(self):
         return self._tumor_sample_date
 
-    def make_latex(self):
+    def make_latex(self, doc_format):
         '''
         Generate a table to display relevant metadata fields:
         '''
 
-        # XXX
+        return u'''$\\begin{array}{ p{11cm} p{7cm} }
+Pnr %s & %s \\tabularnewline
+Analys genomförd %s & %s \\tabularnewline
+\\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address)
 
 
 class GenomicReport(object):
@@ -75,6 +78,12 @@ class GenomicReport(object):
 
     def get_doc_format(self):
         return self._doc_format
+
+    def make_latex(self):
+        format_header = self._doc_format.make_latex()
+        metadata_header = self._metadata.make_latex(self._doc_format)
+        body = self.make_body_latex()
+        return format_header + '\n\\begin{document}\n\n\\pagenumbering{gobble}\n\n' + metadata_header + body + '\\end{document}'
 
 
 class AlasccaReport(GenomicReport):
@@ -127,11 +136,19 @@ class AlasccaReport(GenomicReport):
                                               report_metadata.get_tumor_sample_date())
 
         self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
-        self._msi_report = MsiReport(msi_status_string)
-        self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
+        #self._msi_report = MsiReport(msi_status_string)
+        #self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
 
-    def make_latex(self):
-        return self._initial_comment.make_latex(self._doc_format)
+    def make_body_latex(self):
+        title_latex = u'''\\section*{ClinSeq ALASCCA Analysrapport}\\label{clinseq-alascca-analysrapport}'''
+        initial_comment_latex = self._initial_comment.make_latex(self._doc_format)
+        pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
+        #msi_latex = self._msi_report.make_latex(self._doc_format)
+        #other_info_latex = self._other_info.make_latex(self._doc_format)
+        #clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
+        #footer_latex = self._footer_info.make_latex(self._doc_format)
+
+        return title_latex + initial_comment_latex + pi3k_pathway_latex# + msi_latex + other_info_latex + clinical_genetics_latex + footer_latex
 
 
 class ReportFeature(object):
@@ -144,7 +161,7 @@ class ReportFeature(object):
         '''
 
     def make_latex(self, doc_format):
-        return u"subsubsection*{" + self.make_title(doc_format) + "}\n" + self.make_content_body(doc_format)
+        return u"\\subsubsection*{" + self.make_title(doc_format) + "}\n\\vspace{6pt}\n" + self.make_content_body(doc_format)
 
     def make_content_body(self, doc_format):
         '''All implementing classes must implement a function for generating
@@ -167,11 +184,7 @@ class InitialComment(ReportFeature):
         self._tumor_sample_date = tumor_sample_date
 
     def make_title(self, doc_format):
-        if doc_format.get_language() == doc_format.ENGLISH:
-            return u'''Other information'''
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Övriga information'''
+        return u''''''
 
     def make_content_body(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
@@ -189,10 +202,51 @@ class Pi3kPathwayReport(ReportFeature):
     '''
     '''
 
-    VALID_STRINGS = ["Mutation class A", "Mutation class B", "No mutation"]
+    MUTN_CLASS_A = "Mutation class A"
+    MUTN_CLASS_B = "Mutation class B"
+    NO_MUTN = "No mutation"
+    VALID_STRINGS = [MUTN_CLASS_A, MUTN_CLASS_B, NO_MUTN]
 
     def __init__(self, pi3k_pathway_string):
         self._pi3k_pathway_status = pi3k_pathway_string
+
+    def make_title(self, doc_format):
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''PI3K signaling pathway'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''PI3K-signalväg'''
+
+    def make_content_body(self, doc_format):
+        class_a_box = doc_format.get_unchecked_checkbox()
+        class_b_box = doc_format.get_unchecked_checkbox()
+        no_mutations_box = doc_format.get_unchecked_checkbox()
+        if self._pi3k_pathway_status == self.MUTN_CLASS_A:
+            class_a_box = doc_format.get_checked_checkbox()
+        if self._pi3k_pathway_status == self.MUTN_CLASS_B:
+            class_b_box = doc_format.get_checked_checkbox()
+        if self._pi3k_pathway_status == self.NO_MUTN:
+            no_mutations_box = doc_format.get_checked_checkbox()
+
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''$\\begin{array}{ p{1cm} p{8cm} }
+  \\toprule
+  \\includegraphics{%s} & Mutation class A, patient can be randomised \\tabularnewline
+  \\includegraphics{%s} & Mutation klass B, patient can be randomised \\tabularnewline
+  \\includegraphics{%s} & Inga mutationer, patient can \emph{not} be randomised \\tabularnewline
+  \\bottomrule
+\\end{array}$
+''' % (class_a_box, class_b_box, no_mutations_box)
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''$\\begin{array}{ p{1cm} p{8cm} }
+  \\toprule
+  \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
+  \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
+  \\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\tabularnewline
+  \\bottomrule
+\\end{array}$
+''' % (class_a_box, class_b_box, no_mutations_box)
 
 
 class MsiReport(ReportFeature):
@@ -232,6 +286,13 @@ class FooterInfoAlasccaReport(ReportFeature):
         '''
         '''
 
+
+    def make_title(self, doc_format):
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''Other information'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''Övriga information'''
 
 
 

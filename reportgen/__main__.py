@@ -119,12 +119,11 @@ Outputs:
     # Generate a string of latex code representing the report:
     report_latex_string = alascca_report.make_latex()
 
-    print >> sys.stderr, report_latex_string
-
     # Write the resulting latex string to a temporary output file:
     (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
     tmp_latex_file = open(tmp_latex_filename, 'w')
-    #print >> tmp_latex_file, report_latex_string
+    print >> sys.stderr, "Writing latex to output file:", tmp_latex_filename
+    tmp_latex_file.write(report_latex_string.encode('utf8'))
     tmp_latex_file.close()
     
     # Convert latex to pdf by running pdflatex on the command line:

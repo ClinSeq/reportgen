@@ -43,7 +43,7 @@ class DocumentFormat(object):
     def get_checked_checkbox(self):
         return self._checked
 
-    def get_unchecked(self):
+    def get_unchecked_checkbox(self):
         return self._unchecked
 
     def get_fontfamily(self):
@@ -58,7 +58,13 @@ class DocumentFormat(object):
     def get_language(self):
         return self._language
 
-
+    def make_latex(self):
+        return '''\documentclass[%s]{article}
+\usepackage{booktabs}
+\usepackage[margin=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+''' % (self.get_fontsize())
 
 
 
