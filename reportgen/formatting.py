@@ -11,6 +11,8 @@ class DocumentFormat(object):
     of genomic report latex documents.
     '''
 
+    ENGLISH = "English"
+    SWEDISH = "Swedish"
 
     def __init__(self, checked, unchecked, fontfamily="Roman", fontsize="10pt",
                  tablepos="left", language="Swedish"):
@@ -36,7 +38,7 @@ class DocumentFormat(object):
         self._tablepos = tablepos
         if not language in ["Swedish", "English"]:
             raise ValueError("Invalid language for DocumenFormat: " + language)
-        self._tablepos = tablepos
+        self._language = language
 
     def get_checked_checkbox(self):
         return self._checked
@@ -53,6 +55,8 @@ class DocumentFormat(object):
     def get_table_pos(self):
         return self._tablepos
 
+    def get_language(self):
+        return self._language
 
 
 

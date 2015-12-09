@@ -19,5 +19,5 @@ Example file contents:
     "MSI_status": "MSS/MSI-L",
     "KRAS": ["Mutated", "G12D"],
     "BRAF": ["Not Mutated", null],
-    "NRAS": ["Undetermined", null]
+    "NRAS": ["Not determined", null]
 }
