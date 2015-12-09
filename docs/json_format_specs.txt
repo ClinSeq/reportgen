@@ -17,7 +17,7 @@ Example file contents:
 {
     "PI3K_pathway": "Mutation class A",
     "MSI_status": "MSS/MSI-L",
-    "KRAS": ("Mutated", "G12D"),
-    "BRAF": ("Not Mutated", null),
-    "NRAS": ("Undetermined", null),
+    "KRAS": ["Mutated", "G12D"],
+    "BRAF": ["Not Mutated", null],
+    "NRAS": ["Undetermined", null]
 }
