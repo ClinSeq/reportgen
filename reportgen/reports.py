@@ -6,7 +6,7 @@ Created on Dec 1, 2015
 @author: thowhi
 '''
 
-import collections
+import collections, pdb
 
 
 class ReportMetadata(object):
@@ -14,10 +14,32 @@ class ReportMetadata(object):
     metadata for a single sample analysis report
     '''
 
-    def __init__(self, metadataJSON):
+    def __init__(self, metadata_json):
         '''
         Extracts the metadata fields from an input JSON object.
         '''
+
+        # FIXME: Check the fields for validty and report ValueError if not valid.
+
+        self._personnummer = metadata_json["personnummer"]
+        self._blood_sample_id = metadata_json["blood_sample_id"]
+        self._tumor_sample_id = metadata_json["tumor_sample_id"]
+        self._blood_sample_date = metadata_json["blood_sample_date"]
+        self._tumor_sample_date = metadata_json["tumor_sample_date"]
+        self._doctor = metadata_json["doctor"]
+        self._doctor_address = metadata_json["doctor_address"]
+
+    def get_blood_sample_id(self):
+        return self._blood_sample_id
+
+    def get_tumor_sample_id(self):
+        return self._tumor_sample_id
+
+    def get_blood_sample_date(self):
+        return self._blood_sample_date
+
+    def get_tumor_sample_date(self):
+        return self._tumor_sample_date
 
     def make_latex(self):
         '''
@@ -37,7 +59,7 @@ class GenomicReport(object):
         self._report_json = report_json
 
         # Generate a representation of the report metadata:
-        self._metadata = metadata_json
+        self._metadata = ReportMetadata(metadata_json)
 
         # Store the document format object:
         self._doc_format = doc_format
@@ -61,7 +83,7 @@ class AlasccaReport(GenomicReport):
     '''
 
     def __init__(self, metadata_json, report_json, doc_format):
-        super(GenomicReport, self).__init__()
+        super(AlasccaReport, self).__init__(metadata_json, report_json, doc_format)
 
         # Retrieve all relevant items from the report json object, checking
         # values as we proceed...
@@ -85,24 +107,24 @@ class AlasccaReport(GenomicReport):
         other_mutation_statuses["BRAF"] = tuple(braf_status)
 
         kras_status = report_json["KRAS"]
-        if (not type(braf_status) is list) or (len(braf_status) != 2) or \
+        if (not type(braf_status) is list) or (len(kras_status) != 2) or \
             (not kras_status[0] in OtherMutationsReport.VALID_STRINGS):
-            raise ValueError("Invalid KRAS status: ", braf_status)
+            raise ValueError("Invalid KRAS status: ", kras_status)
         other_mutation_statuses["KRAS"] = tuple(kras_status)
 
         nras_status = report_json["NRAS"]
-        if (not type(braf_status) is list) or (len(braf_status) != 2) or \
+        if (not type(braf_status) is list) or (len(nras_status) != 2) or \
             (not nras_status[0] in OtherMutationsReport.VALID_STRINGS):
-            raise ValueError("Invalid NRAS status: ", braf_status)
+            raise ValueError("Invalid NRAS status: ", nras_status)
         other_mutation_statuses["NRAS"] = tuple(nras_status)
 
         # Instantiate the relevant report elements, derived from the
         # information retrieved above:
         report_metadata = self.get_metadata()
-        self._initial_comment = InitialComment(report_metadata.blood_sample_id,
-                                              report_metadata.tumor_sample_id,
-                                              report_metadata.blood_sample_date,
-                                              report_metadata.tumor_sample_date)
+        self._initial_comment = InitialComment(report_metadata.get_blood_sample_id(),
+                                              report_metadata.get_tumor_sample_id(),
+                                              report_metadata.get_blood_sample_date(),
+                                              report_metadata.get_tumor_sample_date())
 
         self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
         self._msi_report = MsiReport(msi_status_string)
@@ -138,7 +160,7 @@ class InitialComment(ReportFeature):
     '''
 
     def __init__(self, blood_sample_id, tumor_sample_id, blood_sample_date, tumor_sample_date):
-        super(ReportFeature).__init__()
+        super(InitialComment, self).__init__()
         self._blood_sample_id = blood_sample_id
         self._tumor_sample_id = tumor_sample_id
         self._blood_sample_date = blood_sample_date
@@ -187,7 +209,7 @@ class OtherMutationsReport(ReportFeature):
     '''
     '''
 
-    VALID_STRINGS = ["Mutation", "No mutation", "Not determined"]
+    VALID_STRINGS = ["Mutated", "Not mutated", "Not determined"]
 
     def __init__(self, mutation_statuses):
         self._mutation_statuses = mutation_statuses

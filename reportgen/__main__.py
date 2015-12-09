@@ -109,10 +109,17 @@ Outputs:
                                            options.fontfamily, options.fontsize,
                                            options.tablepos, options.language)
 
-    alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)
+    try:
+        alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)
+    except ValueError, e:
+        print >> sys.stderr, "ERROR: Invalid report."
+        print >> sys.stderr, e
+        sys.exit(1)
     
     # Generate a string of latex code representing the report:
-    #report_latex_string = alascca_report.make_latex()
+    report_latex_string = alascca_report.make_latex()
+
+    print >> sys.stderr, report_latex_string
 
     # Write the resulting latex string to a temporary output file:
     (_, tmp_latex_filename) = tempfile.mkstemp("tmp", "Metadata", options.tmp_dir)
