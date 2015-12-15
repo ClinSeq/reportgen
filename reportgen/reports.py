@@ -138,6 +138,8 @@ class AlasccaReport(GenomicReport):
         self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
         self._msi_report = MsiReport(msi_status_string)
         self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
+        self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
+        self._footer_info = FooterInfoAlasccaReport()
 
     def make_body_latex(self):
         title_latex = u'''\\section*{ClinSeq ALASCCA Analysrapport}\\label{clinseq-alascca-analysrapport}'''
@@ -145,10 +147,10 @@ class AlasccaReport(GenomicReport):
         pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
         msi_latex = self._msi_report.make_latex(self._doc_format)
         other_mutations_latex = self._other_mutations_report.make_latex(self._doc_format)
-        #clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
-        #footer_latex = self._footer_info.make_latex(self._doc_format)
+        clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
+        footer_latex = self._footer_info.make_latex(self._doc_format)
 
-        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex + other_mutations_latex# + clinical_genetics_latex + footer_latex
+        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex + other_mutations_latex + clinical_genetics_latex + footer_latex
 
 
 class ReportFeature(object):
@@ -233,7 +235,7 @@ class Pi3kPathwayReport(ReportFeature):
   \\toprule
   \\includegraphics{%s} & Mutation class A, patient can be randomised \\tabularnewline
   \\includegraphics{%s} & Mutation klass B, patient can be randomised \\tabularnewline
-  \\includegraphics{%s} & Inga mutationer, patient can \emph{not} be randomised \\tabularnewline
+  \\includegraphics{%s} & No mutations, patient can \emph{not} be randomised \\tabularnewline
   \\bottomrule
 \\end{array}$
 ''' % (class_a_box, class_b_box, no_mutations_box)
@@ -359,6 +361,7 @@ class OtherMutationsReport(ReportFeature):
 ''' % (gene, mut_box, no_mut_box, not_det_box, comments)
 
         body_string = body_string + u'''
+  \\bottomrule
 \\end{array}$
 '''
         return body_string
@@ -369,15 +372,40 @@ class ClinicalRecommendationsReport(ReportFeature):
     '''
 
     def __init__(self, braf_status, msi_status):
-        self._braf_status = braf_status
-        self._msi_status = msi_status
+        # FIXME: This is not nice: Need to come up with better engineering for
+        # where to check this information:
+        braf_not_mutated = not (braf_status[0] == OtherMutationsReport.MUT)
+        msi_high = msi_status == MsiReport.MSI
+        # FIXME: This seems weird having the logic here, I suspect we may
+        # need to rethink this at some point:
+        self._add_report = braf_not_mutated and msi_status
+
+    def make_title(self, doc_format):
+        if self._add_report:
+            if doc_format.get_language() == doc_format.ENGLISH:
+                return u'''Comments'''
+            else:
+                assert doc_format.get_language() == doc_format.SWEDISH
+                return u'''Kommentar'''
+        else:
+            return u''''''
+
+    def make_content_body(self, doc_format):
+        if self._add_report:
+            if doc_format.get_language() == doc_format.ENGLISH:
+                return u'''Patient has high instability in microsatellites (MSI-H) but no mutations in BRAF, therefore the patient should be referred to genetic counceling.'''
+            else:
+                assert doc_format.get_language() == doc_format.SWEDISH
+                return u'''Patienten har hög instabilitet i mikrosatelliter (MSI-H) men inte mutation i BRAF varför remiss till cancergenetisk mottagning rekommenderas.'''
+        else:
+            return u''''''
 
 
 class FooterInfoAlasccaReport(ReportFeature):
     '''
     '''
 
-    def __init__(self, metadataJSON):
+    def __init__(self):
         '''
         '''
 
@@ -389,6 +417,13 @@ class FooterInfoAlasccaReport(ReportFeature):
             assert doc_format.get_language() == doc_format.SWEDISH
             return u'''Övriga information'''
 
+    def make_content_body(self, doc_format):
+        # FIXME: Need to double-check these texts:
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''Mutations examined are BRAF codon 600, KRAS exon 2-4 and NRAS codons 12, 13, 59, 61, 117 and 146.'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
 
 
 
