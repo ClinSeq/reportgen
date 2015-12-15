@@ -137,18 +137,18 @@ class AlasccaReport(GenomicReport):
 
         self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
         self._msi_report = MsiReport(msi_status_string)
-        #self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
+        self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
 
     def make_body_latex(self):
         title_latex = u'''\\section*{ClinSeq ALASCCA Analysrapport}\\label{clinseq-alascca-analysrapport}'''
         initial_comment_latex = self._initial_comment.make_latex(self._doc_format)
         pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
         msi_latex = self._msi_report.make_latex(self._doc_format)
-        #other_info_latex = self._other_info.make_latex(self._doc_format)
+        other_mutations_latex = self._other_mutations_report.make_latex(self._doc_format)
         #clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
         #footer_latex = self._footer_info.make_latex(self._doc_format)
 
-        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex# + other_info_latex + clinical_genetics_latex + footer_latex
+        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex + other_mutations_latex# + clinical_genetics_latex + footer_latex
 
 
 class ReportFeature(object):
@@ -304,10 +304,64 @@ class OtherMutationsReport(ReportFeature):
     '''
     '''
 
-    VALID_STRINGS = ["Mutated", "Not mutated", "Not determined"]
+    MUT = "Mutated"
+    NO_MUT = "Not mutated"
+    NOT_DETERMINED = "Not determined"
+    VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
 
     def __init__(self, mutation_statuses):
+        # Precondition: Input argument must have the behaviour of an ordered
+        # dictionary, with items ordered in the order that they shall be
+        # reported in. Keys are gene names and values are tuples showing
+        # mutation info for the given gene:
         self._mutation_statuses = mutation_statuses
+
+    def make_title(self, doc_format):
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''Other mutations'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''Övriga mutationer'''
+
+    def make_content_body(self, doc_format):
+        body_string = u'''$\\begin{array}{ p{2cm} p{2cm} p{2cm} p{2cm} p{2cm} }
+  \\toprule
+  '''
+        if doc_format.get_language() == doc_format.ENGLISH:
+            body_string = body_string + u'''Gene & Mut. & No mut. & Not Det. & Comments \\tabularnewline
+  \\midrule
+'''
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            body_string = body_string + u'''Gene & Mut. & Ej mut. & Ej utförd & Kommentar \\tabularnewline
+  \\midrule
+'''
+        for gene in self._mutation_statuses.keys():
+            # Set up box image paths and comments string:
+            mut_box = doc_format.get_unchecked_checkbox()
+            no_mut_box = doc_format.get_unchecked_checkbox()
+            not_det_box = doc_format.get_unchecked_checkbox()
+            mutn_info_tuple = self._mutation_statuses[gene]
+            mutn_status = mutn_info_tuple[0]
+            comments = mutn_info_tuple[1]
+            if comments == None:
+                comments = ""
+
+            if mutn_status == self.MUT:
+                mut_box = doc_format.get_checked_checkbox()
+            if mutn_status == self.NO_MUT:
+                no_mut_box = doc_format.get_checked_checkbox()
+            if mutn_status == self.NOT_DETERMINED:
+                not_det_box = doc_format.get_checked_checkbox()
+
+            # Add a row for the current gene:
+            body_string = body_string + u'''%s & \\includegraphics{%s} & \\includegraphics{%s} & \\includegraphics{%s} & %s \\tabularnewline
+''' % (gene, mut_box, no_mut_box, not_det_box, comments)
+
+        body_string = body_string + u'''
+\\end{array}$
+'''
+        return body_string
 
 
 class ClinicalRecommendationsReport(ReportFeature):
