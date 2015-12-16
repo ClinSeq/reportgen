@@ -9,7 +9,9 @@ Example file contents:
     "blood_sample_date": "2016-04-29",
     "tumor_sample_date": "2016-05-20",
     "doctor": "Dr Namn Namnsson",
-    "doctor_address": "Onkologimottagningen\nStora Lasaretet\n123 45 Stadsby"
+    "doctor_address_line1": "Onkologimottagningen",
+    "doctor_address_line2": "Stora Lasaretet",
+    "doctor_address_line3": "123 45 Stadsby"
 }
 
 Genomic report JSON file:

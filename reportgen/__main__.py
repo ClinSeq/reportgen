@@ -35,9 +35,17 @@ Outputs:
                       default = "Roman",
                       help = "Font in which the report text will be " + \
                           "generated. One of Roman or SansSerif. Default=[%default]")
+    parser.add_option("--sansfont", dest = "sansfont",
+                      default = "phv",
+                      help = "Sans-Serif font to use. " + \
+                          "Default=[%default]")
     parser.add_option("--fontsize", dest = "fontsize",
                       default = "10pt",
                       help = "Font size for report text. " + \
+                          "Default=[%default]")
+    parser.add_option("--margin", dest = "margin",
+                      default = "3cm",
+                      help = "Margin size for report. " + \
                           "Default=[%default]")
     parser.add_option("--tablepos", dest = "tablepos",
                       default = "left",
@@ -107,7 +115,8 @@ Outputs:
 
     doc_format = formatting.DocumentFormat(options.checked, options.unchecked,
                                            options.fontfamily, options.fontsize,
-                                           options.tablepos, options.language)
+                                           options.tablepos, options.language,
+                                           options.margin, options.sansfont)
 
     try:
         alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)

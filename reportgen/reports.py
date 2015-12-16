@@ -27,7 +27,9 @@ class ReportMetadata(object):
         self._blood_sample_date = metadata_json["blood_sample_date"]
         self._tumor_sample_date = metadata_json["tumor_sample_date"]
         self._doctor = metadata_json["doctor"]
-        self._doctor_address = metadata_json["doctor_address"]
+        self._doctor_address_line1 = metadata_json["doctor_address_line1"]
+        self._doctor_address_line2 = metadata_json["doctor_address_line2"]
+        self._doctor_address_line3 = metadata_json["doctor_address_line3"]
 
     def get_blood_sample_id(self):
         return self._blood_sample_id
@@ -48,8 +50,8 @@ class ReportMetadata(object):
 
         return u'''$\\begin{array}{ p{11cm} p{7cm} }
 Pnr %s & %s \\tabularnewline
-Analys genomförd %s & %s \\tabularnewline
-\\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address)
+Analys genomförd %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
+\\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1, self._doctor_address_line2, self._doctor_address_line3)
 
 
 class GenomicReport(object):
@@ -83,7 +85,16 @@ class GenomicReport(object):
         format_header = self._doc_format.make_latex()
         metadata_header = self._metadata.make_latex(self._doc_format)
         body = self.make_body_latex()
-        return format_header + '\n\\begin{document}\n\n\\pagenumbering{gobble}\n\n' + metadata_header + body + '\\end{document}'
+        return format_header + u'''
+\\begin{document}
+
+\\pagenumbering{gobble}
+
+\\vspace*{0cm}
+
+%s
+%s
+\\end{document}''' % (metadata_header, body)
 
 
 class AlasccaReport(GenomicReport):
@@ -139,18 +150,37 @@ class AlasccaReport(GenomicReport):
         self._msi_report = MsiReport(msi_status_string)
         self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
         self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
-        self._footer_info = FooterInfoAlasccaReport()
+        self._final_comment = FinalCommentAlasccaReport()
 
     def make_body_latex(self):
-        title_latex = u'''\\section*{ClinSeq ALASCCA Analysrapport}\\label{clinseq-alascca-analysrapport}'''
+        title_latex = None
+        alascca_title_latex = None
+        clinseq_title_latex = None
+        if self._doc_format.get_language() == self._doc_format.ENGLISH:
+            title_latex = u'''\\section*{ClinSeq Analysis Report}\\label{clinseq-alascca-analysisreport}'''
+            alascca_title_latex = u'''\\subsection*{Report for ALASCCA study}\\label{alascca-report}'''
+            clinseq_title_latex = u'''\\subsection*{Other Information from ClinSeq Profile}\\label{clinseq-report}'''
+        else:
+            assert self._doc_format.get_language() == self._doc_format.SWEDISH
+            title_latex = u'''\\section*{ClinSeq Analysrapport}\\label{clinseq-alascca-analysisreport}'''
+            alascca_title_latex = u'''\\subsection*{Rapport för ALASCCA Studien}\\label{alascca-report}'''
+            clinseq_title_latex = u'''\\subsection*{Övriga Information Från ClinSeq-profilen}\\label{clinseq-report}'''
         initial_comment_latex = self._initial_comment.make_latex(self._doc_format)
         pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
         msi_latex = self._msi_report.make_latex(self._doc_format)
         other_mutations_latex = self._other_mutations_report.make_latex(self._doc_format)
         clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
-        footer_latex = self._footer_info.make_latex(self._doc_format)
+        final_comment_latex = self._final_comment.make_latex(self._doc_format)
 
-        return title_latex + initial_comment_latex + pi3k_pathway_latex + msi_latex + other_mutations_latex + clinical_genetics_latex + footer_latex
+        return title_latex + \
+               initial_comment_latex + \
+               alascca_title_latex + \
+               pi3k_pathway_latex + \
+               clinseq_title_latex + \
+               msi_latex + \
+               other_mutations_latex + \
+               clinical_genetics_latex + \
+               final_comment_latex
 
 
 class ReportFeature(object):
@@ -163,7 +193,12 @@ class ReportFeature(object):
         '''
 
     def make_latex(self, doc_format):
-        return u"\\subsubsection*{" + self.make_title(doc_format) + "}\n\\vspace{6pt}\n" + self.make_content_body(doc_format)
+        return u'''
+\\subsubsection*{%s}
+\\vspace{6pt}
+%s
+\\vspace{6pt}
+''' % (self.make_title(doc_format), self.make_content_body(doc_format))
 
     def make_content_body(self, doc_format):
         '''All implementing classes must implement a function for generating
@@ -292,7 +327,7 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''$\\begin{array}{ p{1cm} p{8cm} }
+            return u'''$\\begin{array}{ p{1cm} p{3cm} }
   \\toprule
   \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
   \\includegraphics{%s} & MSI-H \\tabularnewline
@@ -401,7 +436,7 @@ class ClinicalRecommendationsReport(ReportFeature):
             return u''''''
 
 
-class FooterInfoAlasccaReport(ReportFeature):
+class FinalCommentAlasccaReport(ReportFeature):
     '''
     '''
 
