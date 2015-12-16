@@ -47,8 +47,14 @@ class ReportMetadata(object):
         '''
         Generate a table to display relevant metadata fields:
         '''
-
-        return u'''$\\begin{array}{ p{11cm} p{7cm} }
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''$\\begin{array}{ p{11cm} p{7cm} }
+Pnr %s & %s \\tabularnewline
+Analysis performed %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
+\\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1, self._doctor_address_line2, self._doctor_address_line3)
+        else:
+            assert self._doc_format.get_language() == self._doc_format.SWEDISH
+            return u'''$\\begin{array}{ p{11cm} p{7cm} }
 Pnr %s & %s \\tabularnewline
 Analys genomförd %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
 \\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1, self._doctor_address_line2, self._doctor_address_line3)
@@ -195,7 +201,6 @@ class ReportFeature(object):
     def make_latex(self, doc_format):
         return u'''
 \\subsubsection*{%s}
-\\vspace{6pt}
 %s
 \\vspace{6pt}
 ''' % (self.make_title(doc_format), self.make_content_body(doc_format))
