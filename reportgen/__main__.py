@@ -55,6 +55,11 @@ Outputs:
                       default = os.path.abspath(os.path.dirname(__file__) + "/../rsz_checked_checkbox.png"),
                       help = "png file for checked checkbox. " + \
                           "Default=[%default]")
+    parser.add_option("--logos", dest = "logos",
+                      default = os.path.abspath(os.path.dirname(__file__) + "/../ki-logo_cmyk_5.png") + "," + \
+                          os.path.abspath(os.path.dirname(__file__) + "/../ALASCCA_logo.png"),
+                      help = "Comma-separated list of logos to include. " + \
+                          "Default=[%default]")
     parser.add_option("--unchecked_checkbox", dest = "unchecked",
                       default = os.path.abspath(os.path.dirname(__file__) + "/../rsz_unchecked_checkbox.png"),
                       help = "png file for checked checkbox. " + \
@@ -116,7 +121,8 @@ Outputs:
     doc_format = formatting.DocumentFormat(options.checked, options.unchecked,
                                            options.fontfamily, options.fontsize,
                                            options.tablepos, options.language,
-                                           options.margin, options.sansfont)
+                                           options.margin, options.sansfont,
+                                           options.logos)
 
     try:
         alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)

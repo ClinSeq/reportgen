@@ -47,17 +47,22 @@ class ReportMetadata(object):
         '''
         Generate a table to display relevant metadata fields:
         '''
+        table_latex = None
         if doc_format.get_language() == doc_format.ENGLISH:
-            return u'''$\\begin{array}{ p{11cm} p{7cm} }
+            table_latex = u'''$\\begin{array}{ p{11cm} p{7cm} }
 Pnr %s & %s \\tabularnewline
 Analysis performed %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
 \\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1, self._doctor_address_line2, self._doctor_address_line3)
         else:
-            assert self._doc_format.get_language() == self._doc_format.SWEDISH
-            return u'''$\\begin{array}{ p{11cm} p{7cm} }
+            assert doc_format.get_language() == doc_format.SWEDISH
+            table_latex = u'''$\\begin{array}{ p{11cm} p{7cm} }
 Pnr %s & %s \\tabularnewline
 Analys genomförd %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
 \\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1, self._doctor_address_line2, self._doctor_address_line3)
+        return u'''
+\\begin{adjustwidth}{0cm}{0cm}
+%s
+\\end{adjustwidth}''' % (table_latex)
 
 
 class GenomicReport(object):
@@ -91,8 +96,12 @@ class GenomicReport(object):
         format_header = self._doc_format.make_latex()
         metadata_header = self._metadata.make_latex(self._doc_format)
         body = self.make_body_latex()
-        return format_header + u'''
+        footer = self._doc_format.make_footer_latex()
+        return u'''
+%s
 \\begin{document}
+
+%s
 
 \\pagenumbering{gobble}
 
@@ -100,7 +109,7 @@ class GenomicReport(object):
 
 %s
 %s
-\\end{document}''' % (metadata_header, body)
+\\end{document}''' % (format_header, footer, metadata_header, body)
 
 
 class AlasccaReport(GenomicReport):
@@ -199,11 +208,16 @@ class ReportFeature(object):
         '''
 
     def make_latex(self, doc_format):
-        return u'''
-\\subsubsection*{%s}
-%s
-\\vspace{6pt}
-''' % (self.make_title(doc_format), self.make_content_body(doc_format))
+        title_latex = self.make_title(doc_format)
+        body_latex = self.make_content_body(doc_format)
+        feature_latex = u"\n"
+        # If title latex or body latex is generated as None by the concrete
+        # implementation, then don't generate latex for that part:
+        if not title_latex == None:
+            feature_latex = feature_latex + u"\\subsubsection*{%s}\n" % (title_latex)
+        if not body_latex == None:
+            feature_latex = feature_latex + body_latex + u"\\vspace{6pt}"
+        return feature_latex
 
     def make_content_body(self, doc_format):
         '''All implementing classes must implement a function for generating
@@ -226,7 +240,7 @@ class InitialComment(ReportFeature):
         self._tumor_sample_date = tumor_sample_date
 
     def make_title(self, doc_format):
-        return u''''''
+        return None
 
     def make_content_body(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:

@@ -4,6 +4,7 @@ Created on Dec 1, 2015
 @author: thowhi
 '''
 
+import pdb
 
 class DocumentFormat(object):
     '''
@@ -16,7 +17,7 @@ class DocumentFormat(object):
 
     def __init__(self, checked, unchecked, fontfamily="Roman", fontsize="10pt",
                  tablepos="left", language="Swedish", margin="4cm",
-                 sans_font_default="phv"):
+                 sans_font_default="phv", logos=""):
         '''
         Raises a ValueError if any of the specified option values are invalid.
 
@@ -28,6 +29,7 @@ class DocumentFormat(object):
         language: Swedish/English
         margin: latex margin size specifier string
         sans_font_default: latex string indicating default sans serif font
+        logos: string containing a comma-separated list of logos to include
         '''
 
         self._checked = checked
@@ -48,6 +50,7 @@ class DocumentFormat(object):
         self._language = language
         self._margin = margin
         self._sans_font_default = sans_font_default
+        self._logo_files = logos.split(",")
 
     def get_checked_checkbox(self):
         return self._checked
@@ -73,18 +76,38 @@ class DocumentFormat(object):
     def get_sans_font_default(self):
         return self._sans_font_default
 
+    def get_logo_files(self):
+        return self._logo_files
+
     def make_latex(self):
         return u'''\\documentclass[%s]{article}
 \\usepackage{booktabs}
 \\usepackage[margin=%s]{geometry}
 \\usepackage[utf8]{inputenc}
 \\usepackage{graphicx}
+\\usepackage{changepage}
+\\usepackage{fancyhdr}
+
+\\pagestyle{fancy}
+
 \\renewcommand*{\\familydefault}{%s}
 \\renewcommand{\sfdefault}{%s}
 ''' % (self.get_fontsize(), self.get_margin(), self.get_fontfamily(), self.get_sans_font_default())
 
-
-
+    def make_footer_latex(self):
+        '''\includegraphics[width=50mm]{/Users/thowhi/reportgen/ki-logo_cmyk_5.png} & \includegraphics[width=50mm]{/Users/thowhi/reportgen/ALASCCA_logo.png}'''
+        format_string = " c " * len(self.get_logo_files())
+        toks = ["\includegraphics[width=50mm]{" + filename + "}" for filename in self.get_logo_files()]
+        contents_string = " & ".join(toks)
+        return u'''
+\\fancyhf{}
+\\renewcommand{\headrulewidth}{0pt}
+\\fancyfoot[C]{
+  \\begin{tabular}[t]{ %s }
+    %s \\tabularnewline
+  \\end{tabular}
+}
+''' % (format_string, contents_string)
 
 
 
