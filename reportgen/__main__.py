@@ -52,16 +52,16 @@ Outputs:
                       help = "Position of tables in the document. " + \
                           "One of left or center. Default=[%default]")
     parser.add_option("--checked_checkbox", dest = "checked",
-                      default = os.path.abspath(os.path.dirname(__file__) + "/../rsz_checked_checkbox.png"),
+                      default = os.path.abspath(os.path.dirname(__file__) + "/rsz_checked_checkbox.png"),
                       help = "png file for checked checkbox. " + \
                           "Default=[%default]")
     parser.add_option("--logos", dest = "logos",
-                      default = os.path.abspath(os.path.dirname(__file__) + "/../ki-logo_cmyk_5.png") + "," + \
-                          os.path.abspath(os.path.dirname(__file__) + "/../ALASCCA_logo.png"),
+                      default = os.path.abspath(os.path.dirname(__file__) + "/ki-logo_cmyk_5.png") + "," + \
+                          os.path.abspath(os.path.dirname(__file__) + "/ALASCCA_logo.png"),
                       help = "Comma-separated list of logos to include. " + \
                           "Default=[%default]")
     parser.add_option("--unchecked_checkbox", dest = "unchecked",
-                      default = os.path.abspath(os.path.dirname(__file__) + "/../rsz_unchecked_checkbox.png"),
+                      default = os.path.abspath(os.path.dirname(__file__) + "/rsz_unchecked_checkbox.png"),
                       help = "png file for checked checkbox. " + \
                           "Default=[%default]")
     parser.add_option("--tmp_dir", dest = "tmp_dir",

@@ -12,9 +12,8 @@ pip install ./reportgen
 ## Run
 
 ~~~bash
-#reportgen --metadata metadata.json --report report.json --pdf output.pdf
+
 # Example execution with some dummy input files:
-FIXME: Improve this to adhere to the above interface instead:
 cat << EOF > meta.json
 {
     "personnummer": "19501010-1234",
@@ -37,7 +36,7 @@ cat << EOF > report.json
 }
 EOF
 
-python <pathToReportGen>/reportgen/reportgen/__main__.py meta.json report.json
+reportgen meta.json report.json
 ~~~
 
 ## Contact
