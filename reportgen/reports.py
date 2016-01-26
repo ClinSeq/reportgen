@@ -288,7 +288,7 @@ class Pi3kPathwayReport(ReportFeature):
             return u'''$\\begin{array}{ p{1cm} p{8cm} }
   \\toprule
   \\includegraphics{%s} & Mutation class A, patient can be randomised \\tabularnewline
-  \\includegraphics{%s} & Mutation klass B, patient can be randomised \\tabularnewline
+  \\includegraphics{%s} & Mutation class B, patient can be randomised \\tabularnewline
   \\includegraphics{%s} & No mutations, patient can \emph{not} be randomised \\tabularnewline
   \\bottomrule
 \\end{array}$
@@ -356,6 +356,7 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
 
 
+# NOTE: Call the "rule" SimpleSomaticMutations instead.
 class OtherMutationsReport(ReportFeature):
     '''
     '''
@@ -364,6 +365,23 @@ class OtherMutationsReport(ReportFeature):
     NO_MUT = "Not mutated"
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
+    TEXT = {'ENG': {
+        "NRAS_COMMON_MUT" : "blaha",
+        "NRAS_UNCOMMON_MUT" : "qwerty"
+    },
+    'SWE': {
+        "NRAS_COMMON_MUT" : "blaha",
+        "NRAS_UNCOMMON_MUT" : "qwerty"
+    }}
+
+    # Adapt these strings here:
+    stringsToIncludeAbove = """This mutation differs from the most common mutation found in BRAF (V600E, which in KRAS wild type tumors has been assicoated with lack of response to anti-EGFR antibody therapy).
+This is the most commonly found BRAF mutation in colorectal cancer, which in KRAS wild type tumors has been assicoated with lack of response to anti-EGFR antibody therapy.
+This mutation differs from the most common mutations found in KRAS (which have been assicoated with lack of response to anti-EGFR antibody therapy).
+This mutation is at one of the commonly mutated amino acid residues of KRAS, which have been assicoated with lack of response to anti-EGFR antibody therapy.
+This mutation differs from the most common mutations found in NRAS (which have been assicoated with lack of response to anti-EGFR antibody therapy).
+This mutation is at one of the most commonly mutated amino acid residues of NRAS, which have been assicoated with lack of response to anti-EGFR antibody therapy."""
+
 
     def __init__(self, mutation_statuses):
         # Precondition: Input argument must have the behaviour of an ordered
