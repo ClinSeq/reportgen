@@ -46,7 +46,7 @@ reportgen meta.json report.json
 XXX
 
 # Genomic report:
-<genomicFeatures> ::= {[<featureNameAndValues>]*}
+<genomicFeatures> ::= {[<featureNameAndValues>,]*} # NOTE: I mean a comma-separated list, zero or more elements
 <featureNameAndValues> ::=  "msiReport" : <msiReportValues> |
                             "alasscaReport" : <alasscaReportValues> |
                             "simpleSomaticMutationsReport" : <simpleSomaticMutationsReportValues>
@@ -55,12 +55,14 @@ XXX
 <alasscaReportValues> ::= {<alasscaClass>}
 <alasscaClass> ::= "A" | "B" | <noMutations>
 <notDetermined> ::= "NotDetermined"
-<noMutations> ::= "NoMutations"
+<notMutated> ::= "NotMutated"
+<mutated> ::= "Mutated"
 <simpleSomaticMutationsReportValues> ::= {<ENSEMBLgeneID> : <mutationInfo>}
 <ENSEMBLgeneID> ::= "ENSG"[0-9]{11}
-<mutationInfo> ::= <noMutations> | <notDetermined> | <mutationsSet>
-<mutationsSet> ::= {[<alteration>,]*<alteration> : <alterationFlag>]+} # Maybe better to have array of tuples?
-<alterationFlag> ::= # Not defined exactly yet. Some e.g.s: "KRAS_COMMON", "KRAS_UNCOMMON", "BRAF_COMMON"
+<mutationInfo> ::= [<notMutated> | <notDetermined> | <mutated>, <mutationSet>]
+<mutationSet> ::= {[<mutation> : <mutationFlag>,]*} # NOTE: I mean a comma-separated list, zero or more elements
+<mutationFlag> ::= # Not defined exactly yet. Some e.g.s: "KRAS_COMMON", "KRAS_UNCOMMON", "BRAF_COMMON"
+<mutation> ::= [A-Z][0-9]+[A-Z] | [0-9]+
 
 ## Contact
 
