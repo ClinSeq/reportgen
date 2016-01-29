@@ -6,7 +6,7 @@ Created on Dec 1, 2015
 @author: thowhi
 '''
 
-import collections, pdb
+import collections, genomics, pdb
 
 
 class ReportMetadata(object):
@@ -498,7 +498,103 @@ class FinalCommentAlasccaReport(ReportFeature):
             return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
 
 
+class SimpleSomaticMutationsRule:
+    '''A rule for generating summary (intended to be printed as a table) of
+    mutations in a set of genes, with the set of genes and mutation flagging
+    determined by an excel spreadsheet.
 
+    The idea here is that someone can update the spreadsheet defining mutations
+    of interest and how they should be flagged, and these rules then get applied
+    to a set of gene mutations by an instance of this class.'''
+
+    def __init__(self, excel_spreadsheet, symbol2gene):
+        # FIXME: Somewhere, we need to have an exact specification of the structure
+        # of the excel spreadsheet specifying rules. Writing this down here for
+        # the time being.
+
+        # Excel spreadsheet must contain a set of rows, each containin the
+        # following columns:
+        # - Consequence (comma separated list of one or more sequence ontology
+        # terms)
+        # - Symbol (exactly one HUGO gene name)
+        # - Gene (exactly one Ensembl gene ID, must match the Symbol)
+        # - Transcript (Optional (zero or one) Ensembl transcript ID). This
+        # must be specified if the consequence types pertain to transcript
+        # annotations, such as amino acid substitutions.
+        # - Amino acid changes (comma separated list of codon position
+        # strings). Each codon position string must match one of the following
+        # patterns:
+        # <positionOnly> ::= [0-9]+
+        # <residueChange> ::= [A-Z]{1}[0-9]+[A-Z]{1}
+        # <positionRange> ::= [0-9]+:[0-9]+
+        # - Flag (string)
+
+        # This data structure is ugly but I think it should work; it will
+        # facilitate matching mutations to rules:
+        self.gene_symbol2alteration_classifications = {}
+
+        # Break each row up and add it to the above dictionary of gene
+        # decisions:
+********* for row in input:
+********** Extract consequence set, symbol, geneID, transcriptID, amino acid change set, and flag from the current row
+********** currClassification = new AlterationClassification(consequences, transcriptID, amino acid change set, flag)
+********** if not self.geneSymbol2alterationClassifications.has_key(geneSymbol):
+*********** self.geneSymbol2alterationClassifications[geneSymbol] = []
+********** self.geneSymbol2alterationClassifications[geneSymbol].append(currClassification)
+******** self.symbol2gene = symbol2gene
+****** apply():
+******* Output:
+******** A new SimpleSomaticMutationsReport object, summarising all somatic mutations of interest observed in the specified gene mutations.
+******* Algorithm:
+******** report = new SimpleSomaticMutationsReport()
+******** For gene_symbol in self.gene_rules.keys():
+********* gene_rules = self.gene_rules[gene_symbol]
+********* report.addGene(gene_symbol)
+********* # Find all mutations matching this gene's rules:
+********* gene = self.symbol2gene[gene_symbol]
+********* for alteration in gene.getAlterations():
+********** Apply all rules to this alteration, in order of precedence (in this way, later matched rules will overwrite any preceding flag result):
+********** for rule in gene_rules:
+*********** flag = None
+*********** if rule.match(alteration):
+************ flag = rule.getFlag()
+********** else:
+*********** report.addMutation(gene, mutation, flag)
+******** return report
+
+
+class ReportCompiler:
+    '''Compiles a genomic report given input genomic features and rules. Can then
+    output a JSON formatted representation of the report. NOTE: There is no
+    ALASSCA report subtype: The particular type of report is determined by
+    the composition of rules the compiler is using to generate corresponding
+    report features.'''
+
+    def __init__(self, rules):
+        self.rules = rules
+
+        # This will contain the report features once they have been generated
+        # by applying the rules:
+        self.name2feature = {}
+
+    def extractFeatures(self):
+        # Apply each rule, generating a corresponding report feature, which is
+        # then stored in this object:
+        for currRule in self.rules:
+            currFeature = currRule.applyRule()
+
+            # Store the current feature under this feature's name:
+            self.name2feature[currFeature.getName()] = currFeature
+
+    def toJSON(self):
+        # Generate the output JSON file of the extracted features...
+
+        # XXX FIXME: Implement by doing the following:
+        # Just convert self.name2feature to a dictionary of dictionaries by calling
+        # toDict() on each feature, and then return that final dictionary as a JSON
+        # string.
+
+        # return report_json_string
 
 
 

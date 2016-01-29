@@ -66,14 +66,19 @@ of this file's format.
     msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
     msiRule = reports.MsiStatusRule(msiInfo)
 
-    reportCompiler = reports.ReportCompiler([msiRule, mutationsRule, alasscaRule])
-    reportCompiler.extractFeatures()
+    report_compiler = reports.ReportCompiler([msiRule, mutationsRule, alasscaRule])
+    report_compiler.extractFeatures()
 
     # Set output file according to options:
-    jsonOutputFile = open(options.outputFileLoc)
+    json_output_file = open(options.outputFileLoc)
 
     # Write the genomic report to output in JSON format:
-    reportCompiler.writeJSON(jsonOutputFile)
+    output_json = report_compiler.toJSON()
+    print >> json_output_file, output_json
+    json_output_file.close()
+
+    # FIXME: Perhaps need to implement some kind of progress reporting. I normally do this with
+    # print statements to sys.stderr, but perhaps we want to write to log files instead?
 
 
 def main():
