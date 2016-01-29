@@ -498,6 +498,38 @@ class FinalCommentAlasccaReport(ReportFeature):
             return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
 
 
+class MsiStatusRule:
+    '''A rule for generating an MSI status class.'''
+
+    # FIXME: Still need to generate exact algorithm for the constructor and
+    # the apply() method. It should be fairly straightforward now though. See
+    # SimpleSomaticMutationsRule as a template.
+
+    # FIXME: We need to agree on the format of the input file and parameter file.
+
+    def __init__(self, excel_spreadsheet, symbol2gene):
+        XXX
+
+    def apply(self, excel_spreadsheet):
+        XXX
+
+
+class AlasscaClassRule:
+    '''A rule for generating an ALASSCA class (A/B/None) summarising PI3K
+    pathway mutational status. The rule parameters are specified in an
+    input excel spreadsheet.'''
+
+    # FIXME: Still need to generate exact algorithm for the constructor and
+    # the apply() method. It should be fairly straightforward now though. See
+    # SimpleSomaticMutationsRule as a template.
+
+    def __init__(self, excel_spreadsheet, symbol2gene):
+        XXX
+
+    def apply(self, excel_spreadsheet):
+        XXX
+
+
 class SimpleSomaticMutationsRule:
     '''A rule for generating summary (intended to be printed as a table) of
     mutations in a set of genes, with the set of genes and mutation flagging
@@ -531,36 +563,68 @@ class SimpleSomaticMutationsRule:
 
         # This data structure is ugly but I think it should work; it will
         # facilitate matching mutations to rules:
-        self.gene_symbol2alteration_classifications = {}
+        self.gene_symbol2classifications = {}
 
         # Break each row up and add it to the above dictionary of gene
         # decisions:
-********* for row in input:
-********** Extract consequence set, symbol, geneID, transcriptID, amino acid change set, and flag from the current row
-********** currClassification = new AlterationClassification(consequences, transcriptID, amino acid change set, flag)
-********** if not self.geneSymbol2alterationClassifications.has_key(geneSymbol):
-*********** self.geneSymbol2alterationClassifications[geneSymbol] = []
-********** self.geneSymbol2alterationClassifications[geneSymbol].append(currClassification)
-******** self.symbol2gene = symbol2gene
-****** apply():
-******* Output:
-******** A new SimpleSomaticMutationsReport object, summarising all somatic mutations of interest observed in the specified gene mutations.
-******* Algorithm:
-******** report = new SimpleSomaticMutationsReport()
-******** For gene_symbol in self.gene_rules.keys():
-********* gene_rules = self.gene_rules[gene_symbol]
-********* report.addGene(gene_symbol)
-********* # Find all mutations matching this gene's rules:
-********* gene = self.symbol2gene[gene_symbol]
-********* for alteration in gene.getAlterations():
-********** Apply all rules to this alteration, in order of precedence (in this way, later matched rules will overwrite any preceding flag result):
-********** for rule in gene_rules:
-*********** flag = None
-*********** if rule.match(alteration):
-************ flag = rule.getFlag()
-********** else:
-*********** report.addMutation(gene, mutation, flag)
-******** return report
+        # Use openpyxl to parse the input file. FIXME: Have to figure out exactly
+        # how to do this. Here is some example code that extracts a sheet and some cells
+        # from a specified xl file:
+        #wb = load_workbook(filename = '/Users/thowhi/reportgen/COLORECTAL_MUTATION_TABLE.xlsx')
+        #x = wb.get_sheet_by_name("Alascca table of mutation class")
+        #x.rows[0][0].value
+        #x.rows[3][0].value
+
+        for row in input_sheet: # FIXME: input_sheet is an iterator over rows in the excel spreadsheet
+            # Extract consequence set, symbol, geneID, transcriptID, amino
+            # acid change set, and flag from the current row:
+            # FIXME: Grab the relevant fields of the cells:
+            consequences = None
+            symbol = None
+            transcript_ID = None
+            amino_acid_changes = None
+            flag = None
+
+            curr_classification = \
+                new AlterationClassification(consequences, transcript_ID,
+                                             amino_acid_changes, flag)
+
+            if not self.gene_symbol2classifications.has_key(symbol):
+                self.gene_symbol2classifications[symbol] = []
+
+            self.gene_symbol2classifications[symbol].append(curr_classification)
+
+        # The input gene annotations that this rule will be applied to:
+        self.symbol2gene = symbol2gene
+
+    def apply(self):
+        '''Output:
+        A new SimpleSomaticMutationsReport object, summarising all somatic
+        mutations of interest observed in the specified gene mutations.'''
+
+        report = new SimpleSomaticMutationsReport()
+
+        for symbol in self.gene_symbol2classifications.keys():
+            # Retrieve all the classifications for the current gene:
+            gene_classifications = self.gene_symbol2classifications[symbol]
+
+            report.addGene(symbol)
+
+            # Find all mutations matching this gene's rules:
+            gene = self.symbol2gene[symbol]
+
+            for alteration in gene.getAlterations():
+                # Apply all rules to this alteration, in order of precedence.
+                # In this way, later matched rules will overwrite any preceding
+                # flag result:
+                for classification in gene_classifications:
+                    flag = None
+                    if classification.matches(alteration):
+                        flag = rule.getFlag()
+                    else:
+                        report.addMutation(gene, alteration, flag)
+
+        return report
 
 
 class ReportCompiler:
