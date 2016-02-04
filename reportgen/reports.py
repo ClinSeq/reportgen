@@ -254,6 +254,51 @@ class InitialComment(ReportFeature):
                 self._tumor_sample_id, self._tumor_sample_date)
 
 
+COMMENT = """MERGE THESE CHANGES IN BELOW:
+* AlterationClassification:
+** Constructor(consequences, transcriptID, positionInformationStrings, outputFlag):
+*** self._consequences = consequences
+*** self._transcript_ID = transcriptID
+*** self._position_strings = positionInformationStrings
+*** self._output_flag = outputFlag
+** match(alteration):
+*** match = True
+*** if not alteration.getConsequence() in self.getConsequences():
+**** match = False
+*** if not alteration.getTranscriptID() == self.getTranscriptID():
+**** match = False
+*** if len(self.getPositionInformation()) > 0:
+**** positionMatches = self.matchesPositions(alteration)
+**** if not positionMatches:
+***** match = False
+*** return match
+** matchesPositions(alteration):
+*** Returns true if the specified alteration's positional information "matches" the specified positions for this alteration classification. Returns false otherwise.
+*** matchObserved = False
+*** for position_string in self._position_strings:
+**** if AlterationClassification.matchesPosition(position_string, alteration.getPositionString())
+** Static method matchesPosition(classificationPositionString, alterationPositionString):
+*** POTENTIAL PROBLEMS:
+**** The aleration position string may not always denote a single exact integer position. E.g. what if it denotes a range? Also, what about complex substitutions? Need to figure out how to deal with these. E.g. what if there are two ranges (alteration range and classification range) and they partially overlap?
+*** if classificationPositionString matches [A-Z][0-9]+[A-Z]:
+**** Only matches if there is an exact match with the alteration position string:
+**** return classificationPositionString == alterationPositionString
+*** else:
+**** # The match depends on the position of the alteration, disregarding the residue information:
+**** alterationIntegerPosition = XXX # Extract integer position from alterationPositionString
+**** if classificationPositionString matches [0-9]+:
+***** Matches if the integer information in the alteration matches the classification position string:
+****** return int(classificationPositionString) == alterationIntegerPositionString
+**** else:
+***** This classification position string must be an integer range:
+****** assert classificationPositionString matches [0-9]+:[0-9]+
+****** Extract start and end positions of the range: XXX
+****** classificationRangeStart = XXX
+****** classificationRangeEnd = XXX
+***** Matches if the alteration position intersects the classification position range at all:
+***** return alterationPositionInt >= classificationRangeStart and alterationPositionInt >= classificationRangeEnd
+"""
+
 class Pi3kPathwayReport(ReportFeature):
     '''
     '''
@@ -355,6 +400,29 @@ class MsiReport(ReportFeature):
 \\end{array}$
 ''' % (mss_box, msi_box, not_determined_box)
 
+
+COMMENT = """MERGE THESE CHANGES IN BELOW:
+* SimpleSomaticMutationsReport:
+** Adapt from the existing mutations report feature class, "OtherMutationsReport".
+** Constructor:
+*** Sets empty dictionary of geneSymbol->(mutationStatus, mutationList) key value pairs, where mutationStatus is a string of restricted values, and mutationList is an array of tuples each containing an alteration and an associated alteration flag. Note that mutationList can only be non-null if mutationStatus is "mutated".:
+*** self.symbol2mutationStatus = {}
+** addGene():
+*** Adds a gene to self.geneSymbol2mutationStatus, with mutationStatus as "NoMutation" and mutationList as empty by default.
+** addMutation(geneSymbol, mutation, flag):
+*** assert geneSymbol in self.symbol2mutationStatus
+*** self.symbol2mutationStatus[geneSymbol][0] = MUTATED
+*** self.symbol2mutationStatus[geneSymbol][1].append((mutation, flag))
+** toDict():
+*** outputDict = {}
+*** for symbol in self.symbol2mutationStatus.keys():
+**** mutnStatusString = self.symbol2mutationStatus[symbol][0]
+**** mutn = self.symbol2mutationStatus[symbol][1]
+**** outputDict[symbol] = [mutnStatusString, mutn.toDict()]
+*** return outputDict
+** fromDict(inputDict):
+*** self.symbol2mutationStatus = inputDict
+"""
 
 # NOTE: Call the "rule" SimpleSomaticMutations instead.
 class OtherMutationsReport(ReportFeature):
