@@ -10,6 +10,77 @@ import reports
 import formatting
 
 
+def compileGenomicReport():
+    # Parse the command-line arguments...
+    # FIXME: Need to add msi file input too once we've decided on the format for this information.
+    # FIXME: ADD MORE PRECISE DESCRIPTION of CNV file ONCE WE HAVE AGREED ON THE FILE FORMAT
+    description = """usage: %prog [options] <vcfFile> <cnvFile> <crcMutationRules> <alasscaMutationRules>\n
+Inputs:
+- VCF file specifying somatic mutations
+- Text file specifying CNVs.
+- Excel spreadsheet specifying rules regarding how to report colorectal cancer mutations
+- Excel spreadsheet specifying rules regarding how to report ALASSCA class
+
+Outputs:
+- A JSON file specifying the contents of the genomic status report. FIXME: Link to precise description
+of this file's format.
+"""
+
+    parser = OptionParser(usage = description)
+    parser.add_option("--debug", action="store_true", dest="debug",
+                      help = "Debug the program using pdb.")
+    (options, args) = parser.parse_args()
+
+    # Parse the input parameters...
+
+    if (options.debug):
+        pdb.set_trace()
+
+    # Make sure the required input arguments exist:
+    if (len(args) != 4):
+        print >> sys.stderr, "WRONG # ARGS: ", len(args)
+        parser.add_option("--output", dest = "oututFileLoc",
+                          default = "GenomicReport.json",
+                          help = "Output location. Default=[%default]")
+        parser.print_help()
+        sys.exit(1)
+
+    # FIXME: Currently I have no error checking on the opening of the input and output
+    # files. Need to implement this.
+    vcf_file = open(args[0])
+    cnv_file = open(args[1])
+
+    # Generate a dictionary of Gene objects from the input files:
+    alteration_extractor = reports.AlterationExtractor(vcfFile, cnvFile)
+    symbol2alteredGene = alteration_extractor.compileAlterations()
+
+    crc_mutations_spreadsheet = args[2]
+    alassca_class_spreadsheet = args[3]
+
+    # Extract rules from the input excel spreadsheets (zero or one spreadsheet
+    # per rule object):
+    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet, symbol2alteredGene)
+    alasscaRule = reports.AlasscaClassRule(alassca_class_spreadsheet, symbol2alteredGene)
+
+    # Extract msiInfo from an input file too:
+    msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
+    msiRule = reports.MsiStatusRule(msiInfo)
+
+    report_compiler = reports.ReportCompiler([msiRule, mutationsRule, alasscaRule])
+    report_compiler.extractFeatures()
+
+    # Set output file according to options:
+    json_output_file = open(options.outputFileLoc)
+
+    # Write the genomic report to output in JSON format:
+    output_json = report_compiler.toJSON()
+    print >> json_output_file, output_json
+    json_output_file.close()
+
+    # FIXME: Perhaps need to implement some kind of progress reporting. I normally do this with
+    # print statements to sys.stderr, but perhaps we want to write to log files instead?
+
+
 def main():
     # Parse the command-line arguments...
     description = """usage: %prog [options] <metadataJSONfile> <reportJSONfile>\n
@@ -24,9 +95,6 @@ Outputs:
 """
 
     parser = OptionParser(usage = description)
-    parser.add_option("--boolFlag", action="store_true", dest="boolFlag",
-                      default = False,
-                      help = "")
     parser.add_option("--language", dest = "language",
                       default = "Swedish",
                       help = "Language in which the report text will be " + \

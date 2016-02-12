@@ -26,6 +26,7 @@ cat << EOF > meta.json
 }
 EOF
 
+FIXME: THIS EXAMPLE IS WRONG; CONFORM WITH DEFINITION
 cat << EOF > report.json
 {
     "PI3K_pathway": "Mutation class A",
@@ -39,7 +40,72 @@ EOF
 reportgen meta.json report.json
 ~~~
 
+## BNF definition of metadata and genomic report JSON files:
+
+# Metadata:
+XXX
+
+# Genomic report:
+<genomicFeatures> ::= {[<featureNameAndValues>,]*} # NOTE: I mean a comma-separated list, zero or more elements
+<featureNameAndValues> ::=  "msiReport" : <msiReportValues> |
+                            "alasscaReport" : <alasscaReportValues> |
+                            "simpleSomaticMutationsReport" : <simpleSomaticMutationsReportValues>
+<msiReportValues> ::= {<msiStatus>}
+<msiStatus> ::= "MSS/MSI-L" | "MSI-H" | <notDetermined>
+<alasscaReportValues> ::= {<alasscaClass>}
+<alasscaClass> ::= "A" | "B" | <noMutations>
+<notDetermined> ::= "NotDetermined"
+<notMutated> ::= "NotMutated"
+<mutated> ::= "Mutated"
+<simpleSomaticMutationsReportValues> ::= {<ENSEMBLgeneID> : <mutationInfo>}
+<ENSEMBLgeneID> ::= "ENSG"[0-9]{11}
+<mutationInfo> ::= [<notMutated> | <notDetermined> | <mutated>, <mutationSet>]
+<mutationSet> ::= {[<mutation> : <mutationFlag>,]*} # NOTE: I mean a comma-separated list, zero or more elements
+<mutationFlag> ::= # Not defined exactly yet. Some e.g.s: "KRAS_COMMON", "KRAS_UNCOMMON", "BRAF_COMMON"
+<mutation> ::= [A-Z][0-9]+[A-Z] | [0-9]+
+
 ## Contact
 
 * Tom Whitington
 * Daniel Klevebring
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
