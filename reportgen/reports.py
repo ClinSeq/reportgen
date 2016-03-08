@@ -254,50 +254,78 @@ class InitialComment(ReportFeature):
                 self._tumor_sample_id, self._tumor_sample_date)
 
 
-COMMENT = """MERGE THESE CHANGES IN BELOW:
-* AlterationClassification:
-** Constructor(consequences, transcriptID, positionInformationStrings, outputFlag):
-*** self._consequences = consequences
-*** self._transcript_ID = transcriptID
-*** self._position_strings = positionInformationStrings
-*** self._output_flag = outputFlag
-** match(alteration):
-*** match = True
-*** if not alteration.getConsequence() in self.getConsequences():
-**** match = False
-*** if not alteration.getTranscriptID() == self.getTranscriptID():
-**** match = False
-*** if len(self.getPositionInformation()) > 0:
-**** positionMatches = self.matchesPositions(alteration)
-**** if not positionMatches:
-***** match = False
-*** return match
-** matchesPositions(alteration):
-*** Returns true if the specified alteration's positional information "matches" the specified positions for this alteration classification. Returns false otherwise.
-*** matchObserved = False
-*** for position_string in self._position_strings:
-**** if AlterationClassification.matchesPosition(position_string, alteration.getPositionString())
-** Static method matchesPosition(classificationPositionString, alterationPositionString):
-*** POTENTIAL PROBLEMS:
-**** The aleration position string may not always denote a single exact integer position. E.g. what if it denotes a range? Also, what about complex substitutions? Need to figure out how to deal with these. E.g. what if there are two ranges (alteration range and classification range) and they partially overlap?
-*** if classificationPositionString matches [A-Z][0-9]+[A-Z]:
-**** Only matches if there is an exact match with the alteration position string:
-**** return classificationPositionString == alterationPositionString
-*** else:
-**** # The match depends on the position of the alteration, disregarding the residue information:
-**** alterationIntegerPosition = XXX # Extract integer position from alterationPositionString
-**** if classificationPositionString matches [0-9]+:
-***** Matches if the integer information in the alteration matches the classification position string:
-****** return int(classificationPositionString) == alterationIntegerPositionString
-**** else:
-***** This classification position string must be an integer range:
-****** assert classificationPositionString matches [0-9]+:[0-9]+
-****** Extract start and end positions of the range: XXX
-****** classificationRangeStart = XXX
-****** classificationRangeEnd = XXX
-***** Matches if the alteration position intersects the classification position range at all:
-***** return alterationPositionInt >= classificationRangeStart and alterationPositionInt >= classificationRangeEnd
-"""
+class AlterationClassification:
+    '''This class is used to assign a particular classification to input
+    genetic alterations, if a match occurs.'''
+
+    def __init__(self, consequences, transcriptID, positionInformationStrings, outputFlag):
+        self._consequences = consequences
+        self._transcript_ID = transcriptID
+        self._position_strings = positionInformationStrings
+        self._output_flag = outputFlag
+
+    def match(self, alteration):
+        match = True
+        if not alteration.getConsequence() in self.getConsequences():
+            match = False
+        if not alteration.getTranscriptID() == self.getTranscriptID():
+            match = False
+        if len(self.getPositionInformation()) > 0:
+            positionMatches = self.matchesPositions(alteration)
+        if not positionMatches:
+            match = False
+        return match
+
+    def matchesPositions(self, alteration):
+        '''Returns true if the specified alteration's positional information
+        "matches" the specified positions for this alteration classification.
+        Returns false otherwise.'''
+
+        matchObserved = False
+
+        for position_string in self._position_strings:
+            if AlterationClassification.matchesPosition(position_string, alteration.getPositionString()):
+                matchObserved = True
+
+        return matchObserved
+
+    def matchesPosition(self, classificationPositionString, alterationPositionString):
+        # XXX POTENTIAL PROBLEMS:
+        # The alteration position string may not always denote a single exact integer position.
+        # E.g. what if it denotes a range? Also, what about complex substitutions? Need to
+        # figure out how to deal with these. E.g. what if there are two ranges (alteration
+        # range and classification range) and they partially overlap?
+
+        if re.match("[A-Z][0-9]+[A-Z]", classificationPositionString) != None:
+            # The position string denotes a specific amino acid substitution
+            # => Only match if the alteration matches that substitution
+            # exactly:
+            return classificationPositionString == alterationPositionString
+        else:
+            # The match depends soley on the position of the alteration,
+            # disregarding the residue information...
+
+            # Extract integer position from alterationPositionString:
+            alterationIntegerPosition = int(re.search("[0-9]+", alterationPositionString).group())
+
+            if re.match("[0-9]+", classificationPositionString) != None:
+                # The classification position string is an exact integer position =>
+                # There is a match if the integer information in the alteration
+                # matches the classification position string exactly:
+                return int(classificationPositionString) == alterationIntegerPosition
+
+            else:
+                # This classification position string must be an integer range:
+                assert re.match("[0-9]+:[0-9]+", classificationPositionString) != None
+
+                # Extract the start and end positions of the range:
+                classificationRangeStart = classificationPositionString.split(":")[0]
+                classificationRangeEnd = classificationPositionString.split(":")[1]
+
+                # There is a match if the alteration position intersects the classification position range at all:
+                return alterationIntegerPosition >= classificationRangeStart \
+                       and alterationIntegerPosition >= classificationRangeEnd
+
 
 class Pi3kPathwayReport(ReportFeature):
     '''
@@ -670,7 +698,7 @@ class SimpleSomaticMutationsRule:
         A new SimpleSomaticMutationsReport object, summarising all somatic
         mutations of interest observed in the specified gene mutations.'''
 
-        report = new SimpleSomaticMutationsReport()
+        report = SimpleSomaticMutationsReport()
 
         for symbol in self.gene_symbol2classifications.keys():
             # Retrieve all the classifications for the current gene:
