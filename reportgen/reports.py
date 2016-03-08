@@ -452,8 +452,7 @@ COMMENT = """MERGE THESE CHANGES IN BELOW:
 *** self.symbol2mutationStatus = inputDict
 """
 
-# NOTE: Call the "rule" SimpleSomaticMutations instead.
-class OtherMutationsReport(ReportFeature):
+class SimpleSomaticMutationsReport(ReportFeature):
     '''
     '''
 
