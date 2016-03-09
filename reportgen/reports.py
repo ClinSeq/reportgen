@@ -7,7 +7,7 @@ Created on Dec 1, 2015
 '''
 
 import collections, genomics, pdb
-
+import openpyxl
 
 class ReportMetadata(object):
     '''
@@ -271,12 +271,15 @@ class AlterationClassification:
         if not alteration.getTranscriptID() == self.getTranscriptID():
             match = False
         if len(self.getPositionInformation()) > 0:
-            positionMatches = self.matchesPositions(alteration)
+            positionMatches = self.matches_positions(alteration)
         if not positionMatches:
             match = False
         return match
 
-    def matchesPositions(self, alteration):
+    def get_flag(self):
+        return self._output_flag
+
+    def matches_positions(self, alteration):
         '''Returns true if the specified alteration's positional information
         "matches" the specified positions for this alteration classification.
         Returns false otherwise.'''
@@ -284,12 +287,12 @@ class AlterationClassification:
         matchObserved = False
 
         for position_string in self._position_strings:
-            if AlterationClassification.matchesPosition(position_string, alteration.getPositionString()):
+            if AlterationClassification.matches_position(position_string, alteration.getPositionString()):
                 matchObserved = True
 
         return matchObserved
 
-    def matchesPosition(self, classificationPositionString, alterationPositionString):
+    def matches_position(self, classificationPositionString, alterationPositionString):
         # XXX POTENTIAL PROBLEMS:
         # The alteration position string may not always denote a single exact integer position.
         # E.g. what if it denotes a range? Also, what about complex substitutions? Need to
@@ -429,37 +432,18 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
 
 
-COMMENT = """MERGE THESE CHANGES IN BELOW:
-* SimpleSomaticMutationsReport:
-** Adapt from the existing mutations report feature class, "OtherMutationsReport".
-** Constructor:
-*** Sets empty dictionary of geneSymbol->(mutationStatus, mutationList) key value pairs, where mutationStatus is a string of restricted values, and mutationList is an array of tuples each containing an alteration and an associated alteration flag. Note that mutationList can only be non-null if mutationStatus is "mutated".:
-*** self.symbol2mutationStatus = {}
-** addGene():
-*** Adds a gene to self.geneSymbol2mutationStatus, with mutationStatus as "NoMutation" and mutationList as empty by default.
-** addMutation(geneSymbol, mutation, flag):
-*** assert geneSymbol in self.symbol2mutationStatus
-*** self.symbol2mutationStatus[geneSymbol][0] = MUTATED
-*** self.symbol2mutationStatus[geneSymbol][1].append((mutation, flag))
-** toDict():
-*** outputDict = {}
-*** for symbol in self.symbol2mutationStatus.keys():
-**** mutnStatusString = self.symbol2mutationStatus[symbol][0]
-**** mutn = self.symbol2mutationStatus[symbol][1]
-**** outputDict[symbol] = [mutnStatusString, mutn.toDict()]
-*** return outputDict
-** fromDict(inputDict):
-*** self.symbol2mutationStatus = inputDict
-"""
-
 class SimpleSomaticMutationsReport(ReportFeature):
-    '''
+    '''A report on mutation status of selected genes.
     '''
 
     MUT = "Mutated"
     NO_MUT = "Not mutated"
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
+
+    # XXX ADAPT THIS - NOT SURE HOW YET. BASED ON MARKUS' RECENT MEETING WITH THE ALASSCA BOARD,
+    # IT SEEMS WE WILL NOT INCLUDE THIS TEXT, AS THE TEXT WILL BE THE SAME FOR EVERY REPORT:
+    '''
     TEXT = {'ENG': {
         "NRAS_COMMON_MUT" : "blaha",
         "NRAS_UNCOMMON_MUT" : "qwerty"
@@ -467,24 +451,46 @@ class SimpleSomaticMutationsReport(ReportFeature):
     'SWE': {
         "NRAS_COMMON_MUT" : "blaha",
         "NRAS_UNCOMMON_MUT" : "qwerty"
-    }}
-
-    # Adapt these strings here:
-    stringsToIncludeAbove = """This mutation differs from the most common mutation found in BRAF (V600E, which in KRAS wild type tumors has been assicoated with lack of response to anti-EGFR antibody therapy).
-This is the most commonly found BRAF mutation in colorectal cancer, which in KRAS wild type tumors has been assicoated with lack of response to anti-EGFR antibody therapy.
-This mutation differs from the most common mutations found in KRAS (which have been assicoated with lack of response to anti-EGFR antibody therapy).
-This mutation is at one of the commonly mutated amino acid residues of KRAS, which have been assicoated with lack of response to anti-EGFR antibody therapy.
-This mutation differs from the most common mutations found in NRAS (which have been assicoated with lack of response to anti-EGFR antibody therapy).
-This mutation is at one of the most commonly mutated amino acid residues of NRAS, which have been assicoated with lack of response to anti-EGFR antibody therapy."""
+    }}'''
 
 
-    def __init__(self, mutation_statuses):
-        # Precondition: Input argument must have the behaviour of an ordered
-        # dictionary, with items ordered in the order that they shall be
-        # reported in. Keys are gene names and values are tuples showing
-        # mutation info for the given gene:
-        self._mutation_statuses = mutation_statuses
+    def __init__(self):
+        # Sets up an empty dictionary of geneSymbol->(mutationStatus, mutationList)
+        # key value pairs, where mutationStatus is a string of restricted
+        # values, and mutationList is an array of tuples each containing an
+        # alteration and an associated alteration flag. Note that mutationList
+        # can only be non-null if mutationStatus is "mutated":
+        self._symbol2mutation_status = {}
 
+    def add_gene(self, gene_name):
+        # Adds a gene, with mutationStatus as "NoMutation" and mutationList as
+        # empty by default:
+        self._symbol2mutation_status[gene_name] = (NO_MUT, [])
+
+    def add_mutation(self, gene_symbol, mutation, flag):
+        assert self._symbol2mutation_status.has_key(gene_symbol)
+        self._symbol2mutation_status[gene_symbol][0] = MUTATED
+
+        # XXX Is this correct? Should we be recording a "flag", since there is
+        # no longer any footnote text?:
+        self._symbol2mutation_status[gene_symbol][1].append((mutation, flag))
+
+    def to_dict(self):
+        return self._symbol2mutation_status
+        #output_dict = {}
+        #for symbol in self._symbol2mutation_status.keys():
+        #    # XXX Problem: This doesn't seem to deal with multiple mutations:
+        #    mutn_status_string = self._symbol2mutation_status[symbol][0]
+        #    mutn = self._symbol2mutation_status[symbol][1]
+        #    outputDict[symbol] = [mutnStatusString, mutn.toDict()]
+        #
+        #return outputDict
+
+    def from_dict(self, input_dict):
+        self._symbol2mutation_status = input_dict
+
+    # XXX UPDATE THIS METHOD TO MAKE IT WORK WITH THE UPDATED _SYMBOL2MUTATIONSTATUS
+    # ATTRIBUTE:
     def make_title(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''Other mutations'''
@@ -505,12 +511,12 @@ This mutation is at one of the most commonly mutated amino acid residues of NRAS
             body_string = body_string + u'''Gene & Mut. & Ej mut. & Ej utförd & Kommentar \\tabularnewline
   \\midrule
 '''
-        for gene in self._mutation_statuses.keys():
+        for gene in self._symbol2mutationStatus.keys():
             # Set up box image paths and comments string:
             mut_box = doc_format.get_unchecked_checkbox()
             no_mut_box = doc_format.get_unchecked_checkbox()
             not_det_box = doc_format.get_unchecked_checkbox()
-            mutn_info_tuple = self._mutation_statuses[gene]
+            mutn_info_tuple = self._symbol2mutationStatus[gene]
             mutn_status = mutn_info_tuple[0]
             comments = mutn_info_tuple[1]
             if comments == None:
@@ -658,55 +664,62 @@ class SimpleSomaticMutationsRule:
 
         # This data structure is ugly but I think it should work; it will
         # facilitate matching mutations to rules:
-        self.gene_symbol2classifications = {}
+        self._gene_symbol2classifications = {}
 
         # Break each row up and add it to the above dictionary of gene
-        # decisions:
-        # Use openpyxl to parse the input file. FIXME: Have to figure out exactly
-        # how to do this. Here is some example code that extracts a sheet and some cells
-        # from a specified xl file:
-        #wb = load_workbook(filename = '/Users/thowhi/reportgen/COLORECTAL_MUTATION_TABLE.xlsx')
-        #x = wb.get_sheet_by_name("Alascca table of mutation class")
-        #x.rows[0][0].value
-        #x.rows[3][0].value
+        # decisions...
 
-        for row in input_sheet: # FIXME: input_sheet is an iterator over rows in the excel spreadsheet
+        # Use openpyxl to parse the input file:
+        workbook = openpyxl.load_workbook(filename = '/Users/thowhi/reportgen/COLORECTAL_MUTATION_TABLE.xlsx') #excel_spreadsheet
+        mutation_table = workbook.get_sheet_by_name("MutationTable")
+
+        # Get the initial rows containing data...
+        rows_of_interest = []
+        row_iter = mutation_table.iter_rows()
+        # Skip over the first header row:
+        curr_row = row_iter.next()
+        curr_row = row_iter.next()
+        while curr_row != None:
+            rows.append(curr_row)
+            curr_row = row_iter.next()
+
+        for row in rows_of_interest:
             # Extract consequence set, symbol, geneID, transcriptID, amino
             # acid change set, and flag from the current row:
-            # FIXME: Grab the relevant fields of the cells:
-            consequences = None
-            symbol = None
-            transcript_ID = None
-            amino_acid_changes = None
-            flag = None
+            consequences = row[0]
+            symbol = row[1]
+            gene_ID = row[2] # Not currently used.
+            transcript_ID = row[3]
+            amino_acid_changes = row[4]
+            flag = row[5]
 
             curr_classification = \
                 new AlterationClassification(consequences, transcript_ID,
                                              amino_acid_changes, flag)
 
-            if not self.gene_symbol2classifications.has_key(symbol):
-                self.gene_symbol2classifications[symbol] = []
+            if not self._gene_symbol2classifications.has_key(symbol):
+                self._gene_symbol2classifications[symbol] = []
 
-            self.gene_symbol2classifications[symbol].append(curr_classification)
+            self._gene_symbol2classifications[symbol].append(curr_classification)
 
         # The input gene annotations that this rule will be applied to:
-        self.symbol2gene = symbol2gene
+        self._symbol2gene = symbol2gene
 
     def apply(self):
-        '''Output:
-        A new SimpleSomaticMutationsReport object, summarising all somatic
-        mutations of interest observed in the specified gene mutations.'''
+        '''Generates a new SimpleSomaticMutationsReport object, summarising all
+        somatic mutations of interest observed in the specified gene
+        mutations.'''
 
         report = SimpleSomaticMutationsReport()
 
-        for symbol in self.gene_symbol2classifications.keys():
+        for symbol in self._gene_symbol2classifications.keys():
             # Retrieve all the classifications for the current gene:
-            gene_classifications = self.gene_symbol2classifications[symbol]
+            gene_classifications = self._gene_symbol2classifications[symbol]
 
-            report.addGene(symbol)
+            report.add_gene(symbol)
 
             # Find all mutations matching this gene's rules:
-            gene = self.symbol2gene[symbol]
+            gene = self._symbol2gene[symbol]
 
             for alteration in gene.getAlterations():
                 # Apply all rules to this alteration, in order of precedence.
@@ -715,9 +728,9 @@ class SimpleSomaticMutationsRule:
                 for classification in gene_classifications:
                     flag = None
                     if classification.matches(alteration):
-                        flag = rule.getFlag()
+                        flag = classification.get_flag()
                     else:
-                        report.addMutation(gene, alteration, flag)
+                        report.add_mutation(gene, alteration, flag)
 
         return report
 
