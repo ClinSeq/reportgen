@@ -1,5 +1,3 @@
-import sys
-
 class Gene:
     def __init__(self, gene_ID):
         self._symbol = symbol
@@ -8,6 +6,7 @@ class Gene:
 
     def addAlteration(alteration):
         self._alterations.append(alteration)
+
 
 class Alteration:
     '''NOTE: This single concrete class will currently be used to represent
@@ -27,14 +26,6 @@ class Alteration:
         else:
             return self.sequence_ontology_term
 
-    def positionInformationMatches(self, positionInformationString):
-        '''Returns true if the specified string matches this position
-        information, or false otherwise.'''
-
-        # FIXME: IMPLEMENT THIS:
-#**** If it's an exact match then return true
-#**** If the position information string is an integer and nothing more then this will be matched against this position information's integer value, taking nothing else into consideration:
-#***** NOTE: I think this is valid, especially since the
 
 class AlterationExtractor:
     def __init__(self, vcfFile, cnvFile):
