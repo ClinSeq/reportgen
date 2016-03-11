@@ -6,6 +6,7 @@ Created on Dec 1, 2015
 
 import json, os, pdb, subprocess, sys, tempfile
 from optparse import OptionParser
+import genomics
 import reports
 import formatting
 
@@ -51,16 +52,16 @@ of this file's format.
     cnv_file = open(args[1])
 
     # Generate a dictionary of Gene objects from the input files:
-    alteration_extractor = reports.AlterationExtractor(vcfFile, cnvFile)
-    symbol2alteredGene = alteration_extractor.compileAlterations()
+    alteration_extractor = genomics.AlterationExtractor(vcf_file, cnv_file)
+    symbol2altered_gene = alteration_extractor.to_dict()
 
     crc_mutations_spreadsheet = args[2]
     alassca_class_spreadsheet = args[3]
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet, symbol2alteredGene)
-    alasscaRule = reports.AlasscaClassRule(alassca_class_spreadsheet, symbol2alteredGene)
+    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet, symbol2altered_gene)
+    alasscaRule = reports.AlasscaClassRule(alassca_class_spreadsheet, symbol2altered_gene)
 
     # Extract msiInfo from an input file too:
     msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
