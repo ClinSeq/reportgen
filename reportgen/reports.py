@@ -227,6 +227,8 @@ class ReportFeature(object):
         '''All implementing classes must implement a function for generating
         a string containing latex code for a title.'''
 
+    # Concrete classes must implement toDict() and fromDict()
+
 
 class InitialComment(ReportFeature):
     '''
@@ -599,6 +601,7 @@ class FinalCommentAlasccaReport(ReportFeature):
             return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
 
 
+# XXX IMPLEMENT THIS:
 class MsiStatusRule:
     '''A rule for generating an MSI status class.'''
 
@@ -609,12 +612,13 @@ class MsiStatusRule:
     # FIXME: We need to agree on the format of the input file and parameter file.
 
     def __init__(self, excel_spreadsheet, symbol2gene):
-        XXX
+        pass
 
     def apply(self, excel_spreadsheet):
-        XXX
+        pass
 
 
+# XXX IMPLEMENT THIS:
 class AlasscaClassRule:
     '''A rule for generating an ALASSCA class (A/B/None) summarising PI3K
     pathway mutational status. The rule parameters are specified in an
@@ -625,10 +629,10 @@ class AlasscaClassRule:
     # SimpleSomaticMutationsRule as a template.
 
     def __init__(self, excel_spreadsheet, symbol2gene):
-        XXX
+        pass
 
     def apply(self, excel_spreadsheet):
-        XXX
+        pass
 
 
 class SimpleSomaticMutationsRule:
@@ -680,7 +684,7 @@ class SimpleSomaticMutationsRule:
         curr_row = row_iter.next()
         curr_row = row_iter.next()
         while curr_row != None:
-            rows.append(curr_row)
+            rows_of_interest.append(curr_row)
             curr_row = row_iter.next()
 
         for row in rows_of_interest:
@@ -694,8 +698,8 @@ class SimpleSomaticMutationsRule:
             flag = row[5]
 
             curr_classification = \
-                new AlterationClassification(consequences, transcript_ID,
-                                             amino_acid_changes, flag)
+                AlterationClassification(consequences, transcript_ID,
+                                         amino_acid_changes, flag)
 
             if not self._gene_symbol2classifications.has_key(symbol):
                 self._gene_symbol2classifications[symbol] = []
