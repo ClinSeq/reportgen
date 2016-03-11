@@ -1,10 +1,12 @@
+import vcf
+
 class Gene:
-    def __init__(self, gene_ID):
+    def __init__(self, symbol, gene_ID):
         self._symbol = symbol
         self._gene_ID = gene_ID
         self._alterations = []
 
-    def addAlteration(alteration):
+    def addAlteration(self, alteration):
         self._alterations.append(alteration)
 
 
@@ -14,40 +16,50 @@ class Alteration:
     alteration will be specified by self._sequence_ontology_term, which must
     contain a valid sequence ontology string.'''
 
-    def __init__(self, transcriptID, alterationType, positionalString):
+    def __init__(self, gene, transcriptID, alterationType, positionalString):
         self._gene = gene
         self._sequence_ontology_term = alterationType
         self._transcript_ID = transcriptID
         self._position_string = positionalString
 
-    def toDict():
-        if self._position_string != null:
-            return self._position_string + "_" + self.sequence_ontology_term
+    # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:
+    def to_dict(self):
+        if self._position_string != None:
+            return self._position_string + "_" + self._sequence_ontology_term
         else:
-            return self.sequence_ontology_term
+            return self._sequence_ontology_term
 
 
 class AlterationExtractor:
     def __init__(self, vcfFile, cnvFile):
-        self.symbol2mutation = extractMutations(vcfFile)
-        self.symbol2cnv = extractCNVs(cnvFile) # FIXME: DO WE NEED TO SPECIFY GENE ANNOTATIONS HERE TOO?
+        self.symbol2gene = {}
+        self.extract_mutations(vcfFile)
+        self.extractCNVs(cnvFile) # FIXME: DO WE NEED TO SPECIFY GENE ANNOTATIONS HERE TOO?
 
-    def extractMutations(self, vcfFile):
-        # FIXME: IMPLEMENT THIS:
-#******* symbol2gene = {}
-#******* parse vcf using pyvcf
-#******* For each alteration:
-#******** Extract all resulting identified protein sequence alterations as identified by VEP
-#******** For each protein alteration:
-#********* Extract gene symbol, ID, transcript_ID (is this optional?), alteration position (optional I think?) and alteration type (sequence ontology term)
-#********* Format the alteration position into the required position string structure.
-#********* if not symbol2gene.has_key[symbol]:
-#********** currGene = Gene(symbol, geneID)
-#********** symbol2gene[symbol] = currGene
-#********* currGene = symbol2gene[symbol]
-#********* currAlteration = Alteration(gene, transcriptID, alterationType, positionString)
-#********* currGene.addAlteration(currAlteration)
-#******* return symbol2gene
+    def extract_mutations(self, vcfFile):
+        vcf_reader = vcf.Reader(open("/Users/thowhi/Desktop/Dropbox (KI)/ClinSeq/AlasscaReport/36-nras-braf-kras-variants.vcf", "r"))
+        for mutation in vcf_reader:
+            vep_annotations = mutation.INFO['CSQ']
+
+            for annotation in vep_annotations:
+                # Extract gene symbol, ID, transcript_ID, alteration position and alteration type:
+                fields = annotation.split("|")
+                symbol = fields[25]
+                gene_id = fields[1]
+                transcript_id = fields[2]
+                alteration_type = fields[4].split("&")[0]
+                aa_position = fields[35].split(".")[-1]
+
+                # Add this gene if it has not already been added:
+                if not self.symbol2gene.has_key(symbol):
+                    curr_gene = Gene(symbol, gene_id)
+                    self.symbol2gene[symbol] = curr_gene
+
+                curr_gene = self.symbol2gene[symbol]
+
+                # Record the current alteration:
+                curr_alteration = Alteration(curr_gene, transcript_id, alteration_type, aa_position)
+                curr_gene.add_alteration(curr_alteration)
 
     def extractCNVs(self, cnvFile):
         # FIXME: Not sure about the format of the input file: Need to discuss this
@@ -55,14 +67,9 @@ class AlterationExtractor:
         # It's a dictionary with gene symbols as keys and Gene objects as keys, with
         # the Gene objects containing Alteration objects representing the CNVs using
         # appropriate sequence ontology terms.
-        # FIXME: NOT SURE ABOUT THIS:
-        # return symbol2gene
+        # FIXME: NOT SURE ABOUT THIS.
 
-    def combineMutationAndCopyNumber(self):
-        # FIXME: Implement this:
-        # Add all of the cnv alterations to the genes listed in the mutation
-        # alterations, and return the resulting symbol2gene dictionary.
+        pass
 
-    def compileAlterations(self):
-        # FIXME: Not sure about this:
-        return self.combineMutationAndCopyNumber()
+    def to_dict(self):
+        return self.symbol2gene
