@@ -52,7 +52,9 @@ of this file's format.
     cnv_file = open(args[1])
 
     # Generate a dictionary of Gene objects from the input files:
-    alteration_extractor = genomics.AlterationExtractor(vcf_file, cnv_file)
+    alteration_extractor = genomics.AlterationExtractor()
+    alteration_extractor.extract_mutations(vcf_file)
+    alteration_extractor.extract_cnvs(cnv_file)
     symbol2altered_gene = alteration_extractor.to_dict()
 
     crc_mutations_spreadsheet = args[2]
