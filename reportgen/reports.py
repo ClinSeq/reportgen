@@ -6,7 +6,7 @@ Created on Dec 1, 2015
 @author: thowhi
 '''
 
-import collections, genomics, pdb
+import collections, genomics, pdb, re
 import openpyxl
 
 class ReportMetadata(object):
@@ -266,15 +266,27 @@ class AlterationClassification:
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
 
+    def get_position_information(self):
+        return self._position_strings
+
+    def get_transcript_ID(self):
+        return self._transcript_ID
+
+    def get_consequences(self):
+        return self._consequences
+
+    def get_output_flag(self):
+        return self._output_flag
+
     def match(self, alteration):
         match = True
-        if not alteration.getConsequence() in self.getConsequences():
+        if not alteration.get_sequence_ontology() in self.get_consequences():
             match = False
-        if not alteration.getTranscriptID() == self.getTranscriptID():
+        if not alteration.get_transcript_ID() == self.get_transcript_ID():
             match = False
-        if len(self.getPositionInformation()) > 0:
-            positionMatches = self.matches_positions(alteration)
-        if not positionMatches:
+        if len(self.get_position_information()) > 0:
+            position_matches = self.matches_positions(alteration)
+        if not position_matches:
             match = False
         return match
 
@@ -289,7 +301,7 @@ class AlterationClassification:
         matchObserved = False
 
         for position_string in self._position_strings:
-            if AlterationClassification.matches_position(position_string, alteration.getPositionString()):
+            if self.matches_position(position_string, alteration.get_position_string()):
                 matchObserved = True
 
         return matchObserved
@@ -763,6 +775,7 @@ class ReportCompiler:
             self.name2feature[currFeature.getName()] = currFeature
 
     def toJSON(self):
+        pass
         # Generate the output JSON file of the extracted features...
 
         # XXX FIXME: Implement by doing the following:

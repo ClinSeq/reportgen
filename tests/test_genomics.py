@@ -21,17 +21,17 @@ class TestAlterationExtractor(unittest.TestCase):
     def setUp(self):
         self._extractor = genomics.AlterationExtractor()
 
+        self.addTypeEqualityFunc(genomics.Gene, compareGenes)
+
         self._nras_gene = genomics.Gene("NRAS", "ENSG00000213281")
         test_alteration1 = genomics.Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "Gln61His")
         self._nras_gene.add_alteration(test_alteration1)
-        self.addTypeEqualityFunc(genomics.Gene, compareGenes)
 
         self._kras_gene = genomics.Gene("KRAS", "ENSG00000133703")
         test_alteration2 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
         self._kras_gene.add_alteration(test_alteration2)
         test_alteration3 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys117Asn")
         self._kras_gene.add_alteration(test_alteration3)
-        self.addTypeEqualityFunc(genomics.Gene, compareGenes)
 
     def test_extract_mutations_simple_input(self):
         self._extractor.extract_mutations(open("tests/simple_variant_input.vcf"))
