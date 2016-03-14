@@ -1,13 +1,41 @@
 import vcf
 
+
 class Gene:
     def __init__(self, symbol, gene_ID):
         self._symbol = symbol
         self._gene_ID = gene_ID
         self._alterations = []
 
-    def addAlteration(self, alteration):
+    def add_alteration(self, alteration):
         self._alterations.append(alteration)
+
+    def get_ID(self):
+        return self._gene_ID
+
+    def get_symbol(self):
+        return self._symbol
+
+    def get_alterations(self):
+        return self._alterations
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if not self.get_ID() == other.get_ID():
+            return False
+        if not self.get_symbol() == other.get_symbol():
+            return False
+        for alteration in self.get_alterations():
+            if not alteration in other.get_alterations():
+                return False
+        for alteration in other.get_alterations():
+            if not alteration in self.get_alterations():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class Alteration:
@@ -29,15 +57,39 @@ class Alteration:
         else:
             return self._sequence_ontology_term
 
+    def get_sequence_ontology(self):
+        return self._sequence_ontology_term
+
+    def get_transcript_ID(self):
+        return self._transcript_ID
+
+    def get_position_string(self):
+        return self._position_string
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        # Problem: Can't test that the Gene is equal, because this will result
+        # in an infinite call stack. Not sure how to deal with this "properly".
+        # In general, this does not feel elegant.
+        if not self.get_sequence_ontology() == other.get_sequence_ontology():
+            return False
+        if not self.get_transcript_ID() == other.get_transcript_ID():
+            return False
+        if not self.get_position_string() == other.get_position_string():
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class AlterationExtractor:
-    def __init__(self, vcfFile, cnvFile):
+    def __init__(self):
         self.symbol2gene = {}
-        self.extract_mutations(vcfFile)
-        self.extractCNVs(cnvFile) # FIXME: DO WE NEED TO SPECIFY GENE ANNOTATIONS HERE TOO?
 
-    def extract_mutations(self, vcfFile):
-        vcf_reader = vcf.Reader(open("/Users/thowhi/Desktop/Dropbox (KI)/ClinSeq/AlasscaReport/36-nras-braf-kras-variants.vcf", "r"))
+    def extract_mutations(self, vcf_file):
+        vcf_reader = vcf.Reader(vcf_file)
         for mutation in vcf_reader:
             vep_annotations = mutation.INFO['CSQ']
 
@@ -61,7 +113,7 @@ class AlterationExtractor:
                 curr_alteration = Alteration(curr_gene, transcript_id, alteration_type, aa_position)
                 curr_gene.add_alteration(curr_alteration)
 
-    def extractCNVs(self, cnvFile):
+    def extract_cnvs(self, cnvFile):
         # FIXME: Not sure about the format of the input file: Need to discuss this
         # with Daniel in more detail. However, the output of this function is clear:
         # It's a dictionary with gene symbols as keys and Gene objects as keys, with
@@ -73,3 +125,9 @@ class AlterationExtractor:
 
     def to_dict(self):
         return self.symbol2gene
+
+
+
+
+
+
