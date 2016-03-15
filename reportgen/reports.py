@@ -266,6 +266,22 @@ class AlterationClassification:
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if not self.get_consequences() == other.get_consequences():
+            return False
+        if not self.get_transcript_ID() == other.get_transcript_ID():
+            return False
+        if not self.get_position_information() == other.get_position_information():
+            return False
+        if not self.get_output_flag() == other.get_output_flag():
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def get_position_information(self):
         return self._position_strings
 
@@ -286,12 +302,9 @@ class AlterationClassification:
             match = False
         if len(self.get_position_information()) > 0:
             position_matches = self.matches_positions(alteration)
-        if not position_matches:
-            match = False
+            if not position_matches:
+                match = False
         return match
-
-    def get_flag(self):
-        return self._output_flag
 
     def matches_positions(self, alteration):
         '''Returns true if the specified alteration's positional information
@@ -307,13 +320,13 @@ class AlterationClassification:
         return matchObserved
 
     def matches_position(self, classificationPositionString, alterationPositionString):
-        # XXX POTENTIAL PROBLEMS:
+        # FIXME: POTENTIAL PROBLEMS:
         # The alteration position string may not always denote a single exact integer position.
         # E.g. what if it denotes a range? Also, what about complex substitutions? Need to
         # figure out how to deal with these. E.g. what if there are two ranges (alteration
         # range and classification range) and they partially overlap?
 
-        if re.match("[A-Z][0-9]+[A-Z]", classificationPositionString) != None:
+        if re.match("[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}", classificationPositionString) != None:
             # The position string denotes a specific amino acid substitution
             # => Only match if the alteration matches that substitution
             # exactly:
@@ -656,7 +669,7 @@ class SimpleSomaticMutationsRule:
     of interest and how they should be flagged, and these rules then get applied
     to a set of gene mutations by an instance of this class.'''
 
-    def __init__(self, excel_spreadsheet, symbol2gene):
+    def __init__(self, excel_spreadsheet):
         # FIXME: Somewhere, we need to have an exact specification of the structure
         # of the excel spreadsheet specifying rules. Writing this down here for
         # the time being.
@@ -692,12 +705,11 @@ class SimpleSomaticMutationsRule:
         # Get the initial rows containing data...
         rows_of_interest = []
         row_iter = mutation_table.iter_rows()
+
         # Skip over the first header row:
         curr_row = row_iter.next()
-        curr_row = row_iter.next()
-        while curr_row != None:
+        for curr_row in row_iter:
             rows_of_interest.append(curr_row)
-            curr_row = row_iter.next()
 
         for row in rows_of_interest:
             # Extract consequence set, symbol, geneID, transcriptID, amino
@@ -718,10 +730,7 @@ class SimpleSomaticMutationsRule:
 
             self._gene_symbol2classifications[symbol].append(curr_classification)
 
-        # The input gene annotations that this rule will be applied to:
-        self._symbol2gene = symbol2gene
-
-    def apply(self):
+    def apply(self, symbol2gene):
         '''Generates a new SimpleSomaticMutationsReport object, summarising all
         somatic mutations of interest observed in the specified gene
         mutations.'''
@@ -735,7 +744,7 @@ class SimpleSomaticMutationsRule:
             report.add_gene(symbol)
 
             # Find all mutations matching this gene's rules:
-            gene = self._symbol2gene[symbol]
+            gene = symbol2gene[symbol]
 
             for alteration in gene.getAlterations():
                 # Apply all rules to this alteration, in order of precedence.
