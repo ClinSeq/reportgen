@@ -6,7 +6,7 @@ Created on Dec 1, 2015
 @author: thowhi
 '''
 
-import collections, genomics, pdb, re
+import collections, genomics, pdb, re, sys
 import openpyxl
 
 class ReportMetadata(object):
@@ -706,20 +706,22 @@ class SimpleSomaticMutationsRule:
         rows_of_interest = []
         row_iter = mutation_table.iter_rows()
 
+        # FIXME: This excel spreadsheet parsing may not be robust enough...
         # Skip over the first header row:
         curr_row = row_iter.next()
         for curr_row in row_iter:
-            rows_of_interest.append(curr_row)
+            if curr_row[0].value != None:
+                rows_of_interest.append(curr_row)
 
         for row in rows_of_interest:
             # Extract consequence set, symbol, geneID, transcriptID, amino
             # acid change set, and flag from the current row:
-            consequences = row[0]
-            symbol = row[1]
-            gene_ID = row[2] # Not currently used.
-            transcript_ID = row[3]
-            amino_acid_changes = row[4]
-            flag = row[5]
+            consequences = row[0].value.split(",")
+            symbol = row[1].value
+            gene_ID = row[2].value # Not currently used.
+            transcript_ID = row[3].value
+            amino_acid_changes = row[4].value.split(",")
+            flag = row[5].value
 
             curr_classification = \
                 AlterationClassification(consequences, transcript_ID,
