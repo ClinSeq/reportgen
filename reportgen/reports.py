@@ -114,8 +114,7 @@ class GenomicReport(object):
 
 class AlasccaReport(GenomicReport):
     '''An ALASCCA project sample genomic status report. Can be used to generate
-    a latex document displaying the report.
-    '''
+    a latex document displaying the report.'''
 
     def __init__(self, metadata_json, report_json, doc_format):
         super(AlasccaReport, self).__init__(metadata_json, report_json, doc_format)
@@ -124,8 +123,8 @@ class AlasccaReport(GenomicReport):
         # values as we proceed...
 
         # Pi3k pathway status string:
-        pi3k_pathway_string = report_json["PI3K_pathway"]
-        if not pi3k_pathway_string in Pi3kPathwayReport.VALID_STRINGS:
+        pi3k_pathway_string = report_json[AlasccaClassReport.NAME]
+        if not pi3k_pathway_string in AlasccaClassReport.VALID_STRINGS:
             raise ValueError("Invalid PI3K pathway string: " + pi3k_pathway_string)
 
         # MSI status string:
@@ -161,7 +160,7 @@ class AlasccaReport(GenomicReport):
                                               report_metadata.get_blood_sample_date(),
                                               report_metadata.get_tumor_sample_date())
 
-        self._pi3k_pathway_report = Pi3kPathwayReport(pi3k_pathway_string)
+        self._pi3k_pathway_report = AlasccaClassReport(pi3k_pathway_string)
         self._msi_report = MsiReport(msi_status_string)
         self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
         self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
@@ -326,7 +325,7 @@ class AlterationClassification:
         # figure out how to deal with these. E.g. what if there are two ranges (alteration
         # range and classification range) and they partially overlap?
 
-        if re.match("[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}", classificationPositionString) != None:
+        if re.match("^[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}$", classificationPositionString) != None:
             # The position string denotes a specific amino acid substitution
             # => Only match if the alteration matches that substitution
             # exactly:
@@ -338,7 +337,7 @@ class AlterationClassification:
             # Extract integer position from alterationPositionString:
             alterationIntegerPosition = int(re.search("[0-9]+", alterationPositionString).group())
 
-            if re.match("[0-9]+", classificationPositionString) != None:
+            if re.match("^[0-9]+$", classificationPositionString) != None:
                 # The classification position string is an exact integer position =>
                 # There is a match if the integer information in the alteration
                 # matches the classification position string exactly:
@@ -346,28 +345,37 @@ class AlterationClassification:
 
             else:
                 # This classification position string must be an integer range:
-                assert re.match("[0-9]+:[0-9]+", classificationPositionString) != None
+                assert re.match("^[0-9]+:[0-9]+$", classificationPositionString) != None
 
                 # Extract the start and end positions of the range:
-                classificationRangeStart = classificationPositionString.split(":")[0]
-                classificationRangeEnd = classificationPositionString.split(":")[1]
+                classificationRangeStart = int(classificationPositionString.split(":")[0])
+                classificationRangeEnd = int(classificationPositionString.split(":")[1])
 
                 # There is a match if the alteration position intersects the classification position range at all:
                 return alterationIntegerPosition >= classificationRangeStart \
-                       and alterationIntegerPosition >= classificationRangeEnd
+                       and alterationIntegerPosition <= classificationRangeEnd
 
 
-class Pi3kPathwayReport(ReportFeature):
+class AlasccaClassReport(ReportFeature):
     '''
     '''
+
+    NAME = "ALASCCA class"
 
     MUTN_CLASS_A = "Mutation class A"
     MUTN_CLASS_B = "Mutation class B"
     NO_MUTN = "No mutation"
     VALID_STRINGS = [MUTN_CLASS_A, MUTN_CLASS_B, NO_MUTN]
 
-    def __init__(self, pi3k_pathway_string):
-        self._pi3k_pathway_status = pi3k_pathway_string
+    def __init__(self, pathway_class):
+        self._pathway_class = pathway_class
+
+    def to_dict(self):
+        return {self.NAME:self._pathway_class}
+
+    def from_dict(self, input_dict):
+        pathway_class = input_dict[self.NAME]
+        self._pathway_class = pathway_class
 
     def make_title(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
@@ -459,16 +467,51 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
 
 
-class SimpleSomaticMutationsReport(ReportFeature):
-    '''A report on mutation status of selected genes.
-    '''
+class MutationStatus:
+    '''Mutation status of a given gene.'''
 
     MUT = "Mutated"
     NO_MUT = "Not mutated"
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
 
-    # XXX ADAPT THIS - NOT SURE HOW YET. BASED ON MARKUS' RECENT MEETING WITH THE ALASSCA BOARD,
+    def __init__(self):
+        self._status = self.NO_MUT
+        self._mutation_list = []
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if not self.get_status() == other.get_status():
+            return False
+        if not self.get_mutation_list() == other.get_mutation_list():
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def get_status(self):
+        return self._status
+
+    def get_mutation_list(self):
+        return self._mutation_list
+
+    def add_mutation(self, mutation, flag):
+        self._status = self.MUT
+        self._mutation_list.append((mutation,flag))
+
+    def set_not_determined(self):
+        assert self._status == self.NO_MUT
+        assert self._mutation_list == []
+        self._status = self.NOT_DETERMINED
+
+
+class SimpleSomaticMutationsReport(ReportFeature):
+    '''A report on mutation status of selected genes.
+    '''
+
+    # XXX ADAPT THIS - NOT SURE HOW YET. BASED ON MARKUS' RECENT MEETING WITH THE alascca BOARD,
     # IT SEEMS WE WILL NOT INCLUDE THIS TEXT, AS THE TEXT WILL BE THE SAME FOR EVERY REPORT:
     '''
     TEXT = {'ENG': {
@@ -479,7 +522,6 @@ class SimpleSomaticMutationsReport(ReportFeature):
         "NRAS_COMMON_MUT" : "blaha",
         "NRAS_UNCOMMON_MUT" : "qwerty"
     }}'''
-
 
     def __init__(self):
         # Sets up an empty dictionary of geneSymbol->(mutationStatus, mutationList)
@@ -492,15 +534,11 @@ class SimpleSomaticMutationsReport(ReportFeature):
     def add_gene(self, gene_name):
         # Adds a gene, with mutationStatus as "NoMutation" and mutationList as
         # empty by default:
-        self._symbol2mutation_status[gene_name] = (NO_MUT, [])
+        self._symbol2mutation_status[gene_name] = MutationStatus()
 
     def add_mutation(self, gene_symbol, mutation, flag):
         assert self._symbol2mutation_status.has_key(gene_symbol)
-        self._symbol2mutation_status[gene_symbol][0] = MUTATED
-
-        # XXX Is this correct? Should we be recording a "flag", since there is
-        # no longer any footnote text?:
-        self._symbol2mutation_status[gene_symbol][1].append((mutation, flag))
+        self._symbol2mutation_status[gene_symbol].add_mutation(mutation, flag)
 
     def to_dict(self):
         return self._symbol2mutation_status
@@ -643,21 +681,116 @@ class MsiStatusRule:
         pass
 
 
-# XXX IMPLEMENT THIS:
-class AlasscaClassRule:
-    '''A rule for generating an ALASSCA class (A/B/None) summarising PI3K
+class AlasccaClassRule:
+    '''A rule for generating an alascca class (A/B/None) summarising PI3K
     pathway mutational status. The rule parameters are specified in an
     input excel spreadsheet.'''
+
+    # These possible alteration flags must match the flags defined in the
+    # ALASCCA_MUTATION_TABLE excel spreadsheet:
+    CLASS_B_1 = "ALASCCA_CLASS_B_1"
+    CLASS_B_2 = "ALASCCA_CLASS_B_2"
+    CLASS_A = "ALASCCA_CLASS_A"
 
     # FIXME: Still need to generate exact algorithm for the constructor and
     # the apply() method. It should be fairly straightforward now though. See
     # SimpleSomaticMutationsRule as a template.
 
-    def __init__(self, excel_spreadsheet, symbol2gene):
-        pass
+    def __init__(self, excel_spreadsheet):
+        self._gene_symbol2classifications = parse_mutation_table(excel_spreadsheet)
 
-    def apply(self, excel_spreadsheet):
-        pass
+    # FIXME: It is currently unclear when we should be calling
+    # "not determined".
+
+    def apply(self, symbol2gene):
+        # If there is one or more genes with at least one class A alteration,
+        # then call class A. Otherwise, if there is one or more genes with at
+        # least one class B_1 mutation, then call class B. Otherwise, if there
+        # are at least two class B_2 mutations, then call class B. Otherwise,
+        # call no mutation.
+
+        # Classify alterations and count the flag instances...
+        flag_instances = {self.CLASS_B_1: 0, self.CLASS_B_2: 0,
+                          self.CLASS_A: 0}
+
+        for symbol in self._gene_symbol2classifications.keys():
+            # Retrieve all the classifications for the current gene:
+            gene_classifications = self._gene_symbol2classifications[symbol]
+
+            # Find all mutations matching this gene's rules:
+            alterations = []
+            gene = None
+            if symbol2gene.has_key(symbol):
+                gene = symbol2gene[symbol]
+                alterations = gene.get_alterations()
+
+            for alteration in alterations:
+                # Apply all rules to this alteration:
+                for classification in gene_classifications:
+                    flag = None
+                    if classification.match(alteration):
+                        flag = classification.get_output_flag()
+                        assert flag_instances.has_key(flag)
+                        flag_instances[flag] = flag_instances[flag] + 1
+
+        # Apply logic based on numbers of flag instances:
+        if flag_instances[self.CLASS_A] > 0:
+            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_A)
+        elif flag_instances[self.CLASS_B_1] > 0:
+            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_B)
+        elif flag_instances[self.CLASS_B_2] >= 2:
+            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_B)
+        else:
+            return AlasccaClassReport(AlasccaClassReport.NO_MUTN)
+
+
+def parse_mutation_table(spreadsheet_filename):
+    '''Parses a given excel spreadsheet, extracting mutation classification
+    rows from the mutation table. Returns a dictionary of gene symbol to
+    classification.'''
+
+    # Break each row up and add it to the above dictionary of gene
+    # decisions...
+
+    # Use openpyxl to parse the input file:
+    workbook = openpyxl.load_workbook(filename = spreadsheet_filename)
+    mutation_table = workbook.get_sheet_by_name("MutationTable")
+
+    # Get the initial rows containing data...
+    rows_of_interest = []
+    row_iter = mutation_table.iter_rows()
+
+    # FIXME: This excel spreadsheet parsing may not be robust enough...
+    # Skip over the first header row:
+    curr_row = row_iter.next()
+    for curr_row in row_iter:
+        if curr_row[0].value != None:
+            rows_of_interest.append(curr_row)
+
+    gene_symbol2classifications = {}
+
+    for row in rows_of_interest:
+        # Extract consequence set, symbol, geneID, transcriptID, amino
+        # acid change set, and flag from the current row:
+        consequences = row[0].value.split(",")
+        symbol = row[1].value
+        gene_ID = row[2].value # Not currently used.
+        transcript_ID = row[3].value
+        amino_acid_changes = []
+        if row[4].value != None:
+            amino_acid_changes = row[4].value.split(",")
+        flag = row[5].value
+
+        curr_classification = \
+            AlterationClassification(consequences, transcript_ID,
+                                     amino_acid_changes, flag)
+
+        if not gene_symbol2classifications.has_key(symbol):
+            gene_symbol2classifications[symbol] = []
+
+        gene_symbol2classifications[symbol].append(curr_classification)
+
+    return gene_symbol2classifications
 
 
 class SimpleSomaticMutationsRule:
@@ -693,44 +826,7 @@ class SimpleSomaticMutationsRule:
 
         # This data structure is ugly but I think it should work; it will
         # facilitate matching mutations to rules:
-        self._gene_symbol2classifications = {}
-
-        # Break each row up and add it to the above dictionary of gene
-        # decisions...
-
-        # Use openpyxl to parse the input file:
-        workbook = openpyxl.load_workbook(filename = '/Users/thowhi/reportgen/COLORECTAL_MUTATION_TABLE.xlsx') #excel_spreadsheet
-        mutation_table = workbook.get_sheet_by_name("MutationTable")
-
-        # Get the initial rows containing data...
-        rows_of_interest = []
-        row_iter = mutation_table.iter_rows()
-
-        # FIXME: This excel spreadsheet parsing may not be robust enough...
-        # Skip over the first header row:
-        curr_row = row_iter.next()
-        for curr_row in row_iter:
-            if curr_row[0].value != None:
-                rows_of_interest.append(curr_row)
-
-        for row in rows_of_interest:
-            # Extract consequence set, symbol, geneID, transcriptID, amino
-            # acid change set, and flag from the current row:
-            consequences = row[0].value.split(",")
-            symbol = row[1].value
-            gene_ID = row[2].value # Not currently used.
-            transcript_ID = row[3].value
-            amino_acid_changes = row[4].value.split(",")
-            flag = row[5].value
-
-            curr_classification = \
-                AlterationClassification(consequences, transcript_ID,
-                                         amino_acid_changes, flag)
-
-            if not self._gene_symbol2classifications.has_key(symbol):
-                self._gene_symbol2classifications[symbol] = []
-
-            self._gene_symbol2classifications[symbol].append(curr_classification)
+        self._gene_symbol2classifications = parse_mutation_table(excel_spreadsheet)
 
     def apply(self, symbol2gene):
         '''Generates a new SimpleSomaticMutationsReport object, summarising all
@@ -746,18 +842,21 @@ class SimpleSomaticMutationsRule:
             report.add_gene(symbol)
 
             # Find all mutations matching this gene's rules:
-            gene = symbol2gene[symbol]
+            alterations = []
+            gene = None
+            if symbol2gene.has_key(symbol):
+                gene = symbol2gene[symbol]
+                alterations = gene.get_alterations()
 
-            for alteration in gene.getAlterations():
+            for alteration in alterations:
                 # Apply all rules to this alteration, in order of precedence.
                 # In this way, later matched rules will overwrite any preceding
                 # flag result:
                 for classification in gene_classifications:
                     flag = None
-                    if classification.matches(alteration):
-                        flag = classification.get_flag()
-                    else:
-                        report.add_mutation(gene, alteration, flag)
+                    if classification.match(alteration):
+                        flag = classification.get_output_flag()
+                    report.add_mutation(gene.get_symbol(), alteration, flag)
 
         return report
 
@@ -765,7 +864,7 @@ class SimpleSomaticMutationsRule:
 class ReportCompiler:
     '''Compiles a genomic report given input genomic features and rules. Can then
     output a JSON formatted representation of the report. NOTE: There is no
-    ALASSCA report subtype: The particular type of report is determined by
+    alascca report subtype: The particular type of report is determined by
     the composition of rules the compiler is using to generate corresponding
     report features.'''
 
