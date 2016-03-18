@@ -48,6 +48,8 @@ class Alteration:
         self._gene = gene
         self._sequence_ontology_term = alterationType
         self._transcript_ID = transcriptID
+        # Note: positing string can be None, when the alteration type does
+        # not imply positional information.
         self._position_string = positionalString
 
     # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:

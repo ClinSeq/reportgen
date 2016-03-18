@@ -120,27 +120,33 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
-class TestAlasscaClassRule(unittest.TestCase):
+class TestAlasccaClassRule(unittest.TestCase):
     def setUp(self):
-        igf2_classification = reports.AlterationClassification(["amplification"], None, [], "ALASSCA_CLASS_B_1")
-        pten_classification_b_2 = reports.AlterationClassification(["start_lost","stop_gained","frameshift_variant","splice_acceptor_variant","splice_donor_variant"], "ENST00000371953", [], "ALASSCA_CLASS_B_2")
-        pten_classification_b_1 = reports.AlterationClassification(["loss_of_heterozygosity","homozygous_loss"], "ENST00000371953", [], "ALASSCA_CLASS_B_1")
-        pten_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000371953", ["C124S","G129E","R130G","R130Q"], "ALASSCA_CLASS_B_1")
-        pik3r1_classification_b_1 = reports.AlterationClassification(["frameshift_variant","inframe_insertion","inframe_deletion","stop_gained","splice_acceptor_variant","splice_donor_variant"], "ENST00000521381", ["340:670"], "ALASSCA_CLASS_B_1")
-        pik3r1_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000521381", ["376","379","452","464","503","560","564","567","573","642"], "ALASSCA_CLASS_B_1")
-        pik3ca_classification_b_1 = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["38","81","88","106","111","118","344","345","378","420","453","726"], "ALASSCA_CLASS_B_1")
-        pik3ca_classification_a = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["542","545","546","1021","1043","1044","1047"], "ALASSCA_CLASS_A")
+        igf2_classification = reports.AlterationClassification(["amplification"], None, [], "ALASCCA_CLASS_B_1")
+        pten_classification_b_2 = reports.AlterationClassification(["start_lost","stop_gained","frameshift_variant","splice_acceptor_variant","splice_donor_variant","loss_of_heterozygosity"], "ENST00000371953", [], "ALASCCA_CLASS_B_2")
+        pten_classification_b_1 = reports.AlterationClassification(["homozygous_loss"], "ENST00000371953", [], "ALASCCA_CLASS_B_1")
+        pten_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000371953", ["Cys124Ser","Gly129Glu","Arg130Gly","Arg130Gln"], "ALASCCA_CLASS_B_1")
+        pik3r1_classification_b_1 = reports.AlterationClassification(["frameshift_variant","inframe_insertion","inframe_deletion","stop_gained","splice_acceptor_variant","splice_donor_variant"], "ENST00000521381", ["340:670"], "ALASCCA_CLASS_B_1")
+        pik3r1_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000521381", ["376","379","452","464","503","560","564","567","573","642"], "ALASCCA_CLASS_B_1")
+        pik3ca_classification_b_1 = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["38","81","88","106","111","118","344","345","378","420","453","726"], "ALASCCA_CLASS_B_1")
+        pik3ca_classification_a = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["542","545","546","1021","1043","1044","1047"], "ALASCCA_CLASS_A")
         self._symbol2classifications = {"IGF2": [igf2_classification], "PTEN": [pten_classification_b_2, pten_classification_b_1, pten_classification_b_1_missense], "PIK3R1": [pik3r1_classification_b_1, pik3r1_classification_b_1_missense], "PIK3CA": [pik3ca_classification_b_1, pik3ca_classification_a]}
 
         self._rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx")
 
         self._pten_gene_single_mutation = genomics.Gene("PTEN", "ENSG00000171862")
-        self._pten_loh = genomics.Alteration(self._pten_gene_single_mutation, "ENST00000371953", "loss_of_heterozygosity", None)
-        self._pten_gene_single_mutation.add_alteration(self._pten_loh)
+        self._pten_hzl = genomics.Alteration(self._pten_gene_single_mutation, "ENST00000371953", "homozygous_loss", None)
+        self._pten_gene_single_mutation.add_alteration(self._pten_hzl)
 
         self._pten_gene_single_mutation_not_enough = genomics.Gene("PTEN", "ENSG00000171862")
         self._pten_frameshift = genomics.Alteration(self._pten_gene_single_mutation_not_enough, "ENST00000371953", "frameshift_variant", None)
         self._pten_gene_single_mutation_not_enough.add_alteration(self._pten_frameshift)
+
+        self._pten_gene_double_mutation = genomics.Gene("PTEN", "ENSG00000171862")
+        self._pten_stop_gained = genomics.Alteration(self._pten_gene_double_mutation, "ENST00000371953", "stop_gained", "Gly301Leu")
+        self._pten_splice_acceptor_variant = genomics.Alteration(self._pten_gene_double_mutation, "ENST00000371953", "splice_acceptor_variant", "Gly10Leu")
+        self._pten_gene_double_mutation.add_alteration(self._pten_stop_gained)
+        self._pten_gene_double_mutation.add_alteration(self._pten_splice_acceptor_variant)
 
         self._pik3r1_gene_frameshift = genomics.Gene("PIK3R1", "ENSG00000145675")
         # Note: Dummy amino acid change here; the position is important but not
@@ -154,41 +160,88 @@ class TestAlasscaClassRule(unittest.TestCase):
         self._pik3r1_frameshift_off = genomics.Alteration(self._pik3r1_gene_frameshift_off, "ENST00000521381", "frameshift_variant", "Val10Leu")
         self._pik3r1_gene_frameshift_off.add_alteration(self._pik3r1_frameshift_off)
 
+        self._pik3r1_gene_missense = genomics.Gene("PIK3R1", "ENSG00000145675")
+        # Note: Dummy amino acid change here; the position is important but not
+        # the actual residue change:
+        self._pik3r1_missense = genomics.Alteration(self._pik3r1_gene_missense, "ENST00000521381", "missense_variant", "Val376Leu")
+        self._pik3r1_gene_missense.add_alteration(self._pik3r1_missense)
+
+        self._pik3ca_gene_missense1 = genomics.Gene("PIK3R1", "ENSG00000145675")
+        # Note: Dummy amino acid change here; the position is important but not
+        # the actual residue change:
+        self._pik3ca_missense1 = genomics.Alteration(self._pik3ca_gene_missense1, "ENST00000263967", "missense_variant", "Val38Leu")
+        self._pik3ca_gene_missense1.add_alteration(self._pik3ca_missense1)
+
+        self._pik3ca_gene_missense2 = genomics.Gene("PIK3R1", "ENSG00000145675")
+        # Note: Dummy amino acid change here; the position is important but not
+        # the actual residue change:
+        self._pik3ca_missense2 = genomics.Alteration(self._pik3ca_gene_missense2, "ENST00000263967", "missense_variant", "Val542Leu")
+        self._pik3ca_gene_missense2.add_alteration(self._pik3ca_missense2)
+
+        self._pik3ca_gene_missense_a_and_b = genomics.Gene("PIK3R1", "ENSG00000145675")
+        # Note: Dummy amino acid change here; the position is important but not
+        # the actual residue change:
+        self._pik3ca_missense3 = genomics.Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "Val38Leu")
+        self._pik3ca_missense4 = genomics.Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "Val542Leu")
+        self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense3)
+        self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense4)
+
     def test_init(self):
         self.assertDictEqual(self._rule._gene_symbol2classifications, self._symbol2classifications)
 
-    # XXX CONTINUE HERE: DEBUG TO GET THESE TESTS WORKING.
     def test_apply_single_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation}
         test_report = self._rule.apply(input_symbol2gene)
-        expected_output_dict = {"ALASCCA CLASS", reports.AlasccaClassReport.MUTN_CLASS_B}
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pten_not_enough(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation_not_enough}
         test_report = self._rule.apply(input_symbol2gene)
-        expected_output_dict = {"ALASCCA CLASS", reports.AlasccaClassReport.NO_MUTN}
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.NO_MUTN}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift}
         test_report = self._rule.apply(input_symbol2gene)
-        expected_output_dict = {"ALASCCA CLASS", reports.AlasccaClassReport.MUTN_CLASS_B}
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift_off(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift_off}
         test_report = self._rule.apply(input_symbol2gene)
-        expected_output_dict = {"ALASCCA CLASS", reports.AlasccaClassReport.NO_MUTN}
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.NO_MUTN}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
-#    def test_apply_double_pten(self):
+    def test_apply_double_pten(self):
+        input_symbol2gene = {"PTEN": self._pten_gene_double_mutation}
+        test_report = self._rule.apply(input_symbol2gene)
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
+        self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
-#    def test_apply_single_pik3r1(self):
+    def test_apply_single_pik3r1_missense(self):
+        input_symbol2gene = {"PIK3R1": self._pik3r1_gene_missense}
+        test_report = self._rule.apply(input_symbol2gene)
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
+        self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
-#    def test_apply_pik3ca_class_b(self):
+    def test_apply_single_pik3ca_class_b(self):
+        input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense1}
+        test_report = self._rule.apply(input_symbol2gene)
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
+        self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
-#    def test_apply_pik3ca_class_a(self):
+    def test_apply_single_pik3ca_class_a(self):
+        input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense2}
+        test_report = self._rule.apply(input_symbol2gene)
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_A}
+        self.assertDictEqual(test_report.to_dict(), expected_output_dict)
+
+    def test_apply_pik3ca_class_a_test2(self):
+        input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense_a_and_b}
+        test_report = self._rule.apply(input_symbol2gene)
+        expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_A}
+        self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
 
 

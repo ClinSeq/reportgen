@@ -269,12 +269,16 @@ class AlterationClassification:
         if not isinstance(other, self.__class__):
             return False
         if not self.get_consequences() == other.get_consequences():
+            print >> sys.stderr, "Comparing consequences."
             return False
         if not self.get_transcript_ID() == other.get_transcript_ID():
+            print >> sys.stderr, "Comparing transcript IDs."
             return False
         if not self.get_position_information() == other.get_position_information():
+            print >> sys.stderr, "Comparing position information."
             return False
         if not self.get_output_flag() == other.get_output_flag():
+            print >> sys.stderr, "Flags differ."
             return False
         return True
 
@@ -299,10 +303,14 @@ class AlterationClassification:
             match = False
         if not alteration.get_transcript_ID() == self.get_transcript_ID():
             match = False
+        # FIXME: Perhaps I should make this mechanism more robust?
+        # Zero position information fields means that position is not specified
+        # and will not be used to discount a match:
         if len(self.get_position_information()) > 0:
             position_matches = self.matches_positions(alteration)
             if not position_matches:
                 match = False
+
         return match
 
     def matches_positions(self, alteration):
@@ -311,6 +319,12 @@ class AlterationClassification:
         Returns false otherwise.'''
 
         matchObserved = False
+
+        # FIXME: Possibly should refactor this code to make it more robust:
+        # If the alteration position string is None, it means that the
+        # alteration does not match any positions:
+        if alteration.get_position_string() == None:
+            return matchObserved
 
         for position_string in self._position_strings:
             if self.matches_position(position_string, alteration.get_position_string()):
