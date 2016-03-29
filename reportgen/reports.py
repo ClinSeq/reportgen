@@ -7,7 +7,6 @@ Created on Dec 1, 2015
 '''
 
 import collections, genomics, pdb, re, sys
-import openpyxl
 import pyodbc
 
 
