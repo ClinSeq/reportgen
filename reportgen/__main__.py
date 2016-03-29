@@ -11,6 +11,88 @@ import reports
 import formatting
 
 
+def compileMetadata():
+    description = """usage: %prog [options] <bloodID> <tumorID>\n
+Inputs:
+- Blood sample ID. NOTE: Sticker ID, not referral ID.
+- Tumor sample ID. NOTE: Sticker ID, not referral ID.
+
+Outputs:
+- JSON file containing the required fields:
+-- personnummer
+-- blood_sample_id
+-- tumor_sample_id
+-- blood_sample_date
+-- tumor_sample_date
+-- Patient name
+-- Doctor name
+-- Doctor address fields
+
+FIXME: Currently, the patient name, doctor name, and doctor address will be
+hard-coded.
+"""
+
+    parser = OptionParser(usage = description)
+    parser.add_option("--db_config_file", dest = "db_config_file",
+                      default = "~/.db_config_file.json",
+                      help = "Configuration file for logging into the " + \
+                          "database, including password. Default=[%default]")
+    parser.add_option("--output", dest = "output_file",
+                      default = "MetadataOutput.json",
+                      help = "Output location. Default=[%default]")
+    parser.add_option("--debug", action="store_true", dest="debug",
+                      help = "Debug the program using pdb.")
+    (options, args) = parser.parse_args()
+
+    # Parse the input parameters...
+
+    if (options.debug):
+        pdb.set_trace()
+
+    # Make sure the required input arguments exist:
+    if (len(args) != 2):
+        print >> sys.stderr, "WRONG # ARGS: ", len(args)
+        parser.print_help()
+        sys.exit(1)
+
+    # Check the input IDs:
+    blood_sample_ID = args[0]
+    if not reports.id_valid(blood_sample_ID):
+        print >> sys.stderr, "Invalid blood sample ID:", blood_sample_ID
+        sys.exit(1)
+
+    tumor_sample_ID = reports.id_valid(args[1])
+    if not reports.id_valid(tumor_sample_ID):
+        print >> sys.stderr, "Invalid tumor sample ID:", tumor_sample_ID
+        sys.exit(1)
+
+    # Establish a connection to the KI biobank database:
+    config_json = None
+    try:
+        config_json = json.load(options.db_config_file)
+    except Exception, e:
+        print >> sys.stderr, "Could not load/parse JSON database config file, " + \
+                             options.db_config_file + "."
+        sys.exit(1)
+
+    connection = reports.connect_clinseq_db(config_json)
+
+    # Open the output file:
+    output_file = None
+    try:
+        output_file = open(options.output_file, 'w')
+
+    pdb.set_trace()
+
+#    reportMetadata = reports.retrieve_report_metadata(bloodID, tumorID, connection)
+
+    # Output the report to a dictionary and write that dictionary to a JSON
+    # file:
+    metadata_json = reportMetadata.to_dict()
+    json.dump(metadata_json, output_file)
+    output_file.close()
+
+
 def compileGenomicReport():
     # Parse the command-line arguments...
     # FIXME: Need to add msi file input too once we've decided on the format for this information.
@@ -76,7 +158,11 @@ of this file's format.
     json_output_file = open(options.outputFileLoc)
 
     # Write the genomic report to output in JSON format:
+    # FIXME: We may just want toDict instead of toJSON here.
     output_json = report_compiler.toJSON()
+
+    # FIXME: USE json.dumps() (check exactly) to make nice pretty-printed json output.
+    # IT TAKES A DICTIONARY AS INPUT.
     print >> json_output_file, output_json
     json_output_file.close()
 

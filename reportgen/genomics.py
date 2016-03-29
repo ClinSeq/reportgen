@@ -5,6 +5,31 @@ class Gene:
     def __init__(self, symbol, gene_ID):
         self._symbol = symbol
         self._gene_ID = gene_ID
+
+    def get_ID(self):
+        return self._gene_ID
+
+    def get_symbol(self):
+        return self._symbol
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if not self.get_ID() == other.get_ID():
+            return False
+        if not self.get_symbol() == other.get_symbol():
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class GeneWithAlteration:
+    def __init__(self, symbol, gene_ID):
+        self._gene
+        self._symbol = symbol
+        self._gene_ID = gene_ID
         self._alterations = []
 
     def add_alteration(self, alteration):
@@ -106,7 +131,7 @@ class AlterationExtractor:
 
                 # Add this gene if it has not already been added:
                 if not self.symbol2gene.has_key(symbol):
-                    curr_gene = Gene(symbol, gene_id)
+                    curr_gene = GeneWithAlteration(symbol, gene_id)
                     self.symbol2gene[symbol] = curr_gene
 
                 curr_gene = self.symbol2gene[symbol]

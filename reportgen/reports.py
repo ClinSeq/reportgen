@@ -8,6 +8,29 @@ Created on Dec 1, 2015
 
 import collections, genomics, pdb, re, sys
 import openpyxl
+import pyodbc
+
+
+def connect_clinseq_db(db_config_json):
+    # Retrieve the driver, database name, servername, username, and password,
+    # for establishing a connection to MSSQL using ODBC:
+    driver_name = db_config_json["driver"]
+    server = db_config_json["server"]
+    database = db_config_json["database"]
+    uid = db_config_json["uid"]
+    password = db_config_json["password"]
+    return pyodbc.connect("DRIVER=%s;SERVER=%s;DATABASE=%s;UID=%s;PWD=%s" % \
+                          (driver_name, server, database, uid, password))
+
+
+def id_valid(id_string):
+    '''Checks an input blood or tumor ID for validity.'''
+
+    # Valid IDs must comprise exactly eight digits in [0-9]:
+    if re.match("^[0-9]+{8}$", id_string) != None:
+        return True
+    else:
+        return False
 
 class ReportMetadata(object):
     '''
@@ -387,6 +410,7 @@ class AlasccaClassReport(ReportFeature):
     def to_dict(self):
         return {self.NAME:self._pathway_class}
 
+    # FIXME: PERHAPS USE JSON.LOADS() INSTEAD HERE?
     def from_dict(self, input_dict):
         pathway_class = input_dict[self.NAME]
         self._pathway_class = pathway_class
