@@ -8,7 +8,8 @@ setup(name='reportgen',
       entry_points={
           'console_scripts': [
               'writeReport = reportgen.__main__:main',
-              'compileGenomicReport = reportgen.__main__:compileGenomicReport'
+              'compileGenomicReport = reportgen.__main__:compileGenomicReport',
+              'compileMetadata = reportgen.__main__:compileMetadata'
           ]
       },
       )

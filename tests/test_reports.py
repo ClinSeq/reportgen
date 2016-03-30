@@ -1,4 +1,5 @@
-import unittest
+import json, os, unittest
+import pyodbc
 from reportgen import reports
 from reportgen import genomics
 
@@ -120,6 +121,51 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
 
         expected_outdict = {'NRAS': reports.MutationStatus(), 'BRAF': braf_status, 'KRAS': kras_status}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
+
+
+class TestMisc(unittest.TestCase):
+    '''Tests for miscellaneous functions in the reports module.'''
+
+    def setUp(self):
+        # NOTE: Reading config rather than explicitly defining dictionary here,
+        # since the password is included in this information:
+        path = os.path.expanduser("~/.dbconfig.json")
+        self.config_dict = json.load(open(path))
+
+        self.cnxn = reports.connect_clinseq_db(self.config_dict)
+
+    def test_connect_clinseq_db_good_data(self):
+        # FIXME: Not really sure how to test if a connection object is produced
+        # upon valid input. Better to test this than testing nothing, though?:
+        self.assertTrue(isinstance(self.cnxn, pyodbc.Connection))
+
+    def test_connect_clinseq_db_empty_data(self):
+        self.assertRaises(KeyError, lambda: reports.connect_clinseq_db({}))
+
+    def test_id_valid_valid_input(self):
+        self.assertTrue(reports.id_valid("01234567"))
+
+    def test_id_valid_short_input(self):
+        self.assertFalse(reports.id_valid("0123456"))
+
+    def test_id_valid_letter_input(self):
+        self.assertFalse(reports.id_valid("ABCDEFGH"))
+
+    def test_retrieve_report_metadata_missing_sampleID(self):
+        # Inputting a valid blood and tumor ID should produce a ReportMetadata
+        # object:
+        self.assertRaises(ValueError, lambda: reports.retrieve_report_metadata("12345678", "02871255", self.cnxn))
+
+    def test_retrieve_report_metadata_valid_input(self):
+        # Inputting a valid blood and tumor ID should produce a ReportMetadata
+        # object:
+        report_metadata = reports.retrieve_report_metadata("02871131", "02871255", self.cnxn)
+        self.assertTrue(isinstance(report_metadata, reports.ReportMetadata))
+
+    def test_retrieve_report_metadata_differing_personnummers(self):
+        # Inputting a valid blood and tumor ID should produce a ReportMetadata
+        # object:
+        self.assertRaises(ValueError, lambda: reports.retrieve_report_metadata("02871131", "03019438", self.cnxn))
 
 
 class TestAlasccaClassRule(unittest.TestCase):

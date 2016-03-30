@@ -34,7 +34,7 @@ hard-coded.
 
     parser = OptionParser(usage = description)
     parser.add_option("--db_config_file", dest = "db_config_file",
-                      default = "~/.db_config_file.json",
+                      default = "~/.dbconfig.json",
                       help = "Configuration file for logging into the " + \
                           "database, including password. Default=[%default]")
     parser.add_option("--output", dest = "output_file",
@@ -61,35 +61,39 @@ hard-coded.
         print >> sys.stderr, "Invalid blood sample ID:", blood_sample_ID
         sys.exit(1)
 
-    tumor_sample_ID = reports.id_valid(args[1])
+    tumor_sample_ID = args[1]
     if not reports.id_valid(tumor_sample_ID):
         print >> sys.stderr, "Invalid tumor sample ID:", tumor_sample_ID
         sys.exit(1)
 
     # Establish a connection to the KI biobank database:
-    config_json = None
+    config_dict = None
     try:
-        config_json = json.load(options.db_config_file)
+        path = os.path.expanduser(options.db_config_file)
+        config_dict = json.load(open(path))
     except Exception, e:
         print >> sys.stderr, "Could not load/parse JSON database config file, " + \
                              options.db_config_file + "."
         sys.exit(1)
 
-    connection = reports.connect_clinseq_db(config_json)
+    connection = reports.connect_clinseq_db(config_dict)
 
     # Open the output file:
     output_file = None
     try:
         output_file = open(options.output_file, 'w')
+    except Exception, e:
+        print >> sys.stderr, "Could not open output file, " + \
+                             options.output_file + "."
+        sys.exit(1)
 
-    pdb.set_trace()
-
-#    reportMetadata = reports.retrieve_report_metadata(bloodID, tumorID, connection)
+    reportMetadata = reports.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID, connection)
 
     # Output the report to a dictionary and write that dictionary to a JSON
     # file:
     metadata_json = reportMetadata.to_dict()
-    json.dump(metadata_json, output_file)
+
+    json.dump(metadata_json, output_file, indent=4, sort_keys=True)
     output_file.close()
 
 

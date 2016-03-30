@@ -10,14 +10,14 @@ import collections, genomics, pdb, re, sys
 import pyodbc
 
 
-def connect_clinseq_db(db_config_json):
+def connect_clinseq_db(db_config_dict):
     # Retrieve the driver, database name, servername, username, and password,
     # for establishing a connection to MSSQL using ODBC:
-    driver_name = db_config_json["driver"]
-    server = db_config_json["server"]
-    database = db_config_json["database"]
-    uid = db_config_json["uid"]
-    password = db_config_json["password"]
+    driver_name = db_config_dict["driver"]
+    server = db_config_dict["server"]
+    database = db_config_dict["database"]
+    uid = db_config_dict["uid"]
+    password = db_config_dict["password"]
     return pyodbc.connect("DRIVER=%s;SERVER=%s;DATABASE=%s;UID=%s;PWD=%s" % \
                           (driver_name, server, database, uid, password))
 
@@ -26,17 +26,108 @@ def id_valid(id_string):
     '''Checks an input blood or tumor ID for validity.'''
 
     # Valid IDs must comprise exactly eight digits in [0-9]:
-    if re.match("^[0-9]+{8}$", id_string) != None:
+    if re.match("^[0-9]{8}$", id_string) != None:
         return True
     else:
         return False
+
+
+def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection):
+    '''Returns a ReportMetadata object containing the metadata information to
+    include in a report for a paired blood and tumor sample.'''
+
+    # Retrieve the relevant records from the tables clinseqalascca.bloodref and
+    # clinseqalascca.tissueref, by issuing queries with the input database
+    # connection...
+
+    cursor = connection.cursor()
+
+    query1 = '''SELECT pnr, collection_date FROM
+clinseqalascca.bloodref where sampleid = '%s' ''' % blood_sample_ID
+
+    cursor.execute(query1)
+    matching_rows = cursor.fetchall()
+
+    if not len(matching_rows) == 1:
+        raise ValueError("Blood sample ID does not yield a single unique entry: "
+                        + blood_sample_ID)
+
+    (blood_pnr, blood_date) = tuple(matching_rows[0])
+
+    query2 = '''SELECT pnr, collection_date FROM
+clinseqalascca.tissueref where sampleid_1 = '%s' or sampleid_2 = '%s' or
+sampleid_3 = '%s' or sampleid_4 = '%s' or sampleid_5 = '%s' or sampleid_6 =
+'%s' or sampleid_7 = '%s' or sampleid_8 = '%s' ''' % tuple([tissue_sample_ID] * 8)
+
+    cursor.execute(query2)
+    matching_rows = cursor.fetchall()
+
+    if not len(matching_rows) == 1:
+        raise ValueError("Tissue sample ID does not yield a single unique entry: "
+                        + tissue_sample_ID)
+
+    (tissue_pnr, tissue_date) = tuple(matching_rows[0])
+
+    # Do a sanity check that the personnnummer is the same from both the blood
+    # and tumor ID. Exit and report an error if this is not the case:
+    if not blood_pnr == tissue_pnr:
+        raise ValueError("Blood sample personnummer does not match tissue sample personnummer.")
+
+    # Convert dates to strings:
+    blood_date_str = str(blood_date)
+    tumor_date_str = str(tissue_date)
+
+    # Generate a ReportMetadata object, and specify the extracted fields to the
+    # relevant setter methods:
+    output_metadata = ReportMetadata()
+    output_metadata.set_pnr(blood_pnr)
+    output_metadata.set_blood_sample_ID(blood_sample_ID)
+    output_metadata.set_blood_sample_date(blood_date_str)
+    output_metadata.set_tumor_sample_ID(tissue_sample_ID)
+    output_metadata.set_tumor_sample_date(tumor_date_str)
+
+    return output_metadata
+
 
 class ReportMetadata(object):
     '''
     metadata for a single sample analysis report
     '''
 
-    def __init__(self, metadata_json):
+    def __init__(self):
+        self._personnummer = None
+        self._blood_sample_ID = None
+        self._tumor_sample_ID = None
+        self._blood_sample_date = None
+        self._tumor_sample_date = None
+        self._doctor = None
+        self._doctor_address_line1 = None
+        self._doctor_address_line2 = None
+        self._doctor_address_line3 = None
+
+    def set_pnr(self, pnr):
+        self._personnummer = pnr
+
+    def set_blood_sample_ID(self, blood_sample_ID):
+        self._blood_sample_ID = blood_sample_ID
+
+    def set_blood_sample_date(self, blood_sample_date):
+        self._blood_sample_date = blood_sample_date
+
+    def set_tumor_sample_ID(self, tumor_sample_ID):
+        self._tumor_sample_ID = tumor_sample_ID
+
+    def set_tumor_sample_date(self, tumor_sample_date):
+        self._tumor_sample_date = tumor_sample_date
+
+    def to_dict(self):
+        return {"personnnummer": self._personnummer,
+                "blood_sample_ID": self._blood_sample_ID,
+                "blood_sample_date": self._blood_sample_date,
+                "tumor_sample_ID": self._blood_sample_ID,
+                "tumor_sample_date": self._blood_sample_date}
+
+    def set_from_dict(self, metadata_json):
         '''
         Extracts the metadata fields from an input JSON object.
         '''
