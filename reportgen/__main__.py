@@ -114,6 +114,9 @@ of this file's format.
 """
 
     parser = OptionParser(usage = description)
+    parser.add_option("--output", dest = "output_file",
+                      default = "GenomicOutput.json",
+                      help = "Output location. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -137,37 +140,37 @@ of this file's format.
     vcf_file = open(args[0])
     cnv_file = open(args[1])
 
-    # Generate a dictionary of Gene objects from the input files:
+    # Generate a dictionary of AlteredGene objects from the input files:
     alteration_extractor = genomics.AlterationExtractor()
     alteration_extractor.extract_mutations(vcf_file)
-    alteration_extractor.extract_cnvs(cnv_file)
+    # FIXME: Add cnv_file cnv extraction later:
+    #alteration_extractor.extract_cnvs(cnv_file)
+
     symbol2altered_gene = alteration_extractor.to_dict()
 
     crc_mutations_spreadsheet = args[2]
-    alassca_class_spreadsheet = args[3]
+    alascca_class_spreadsheet = args[3]
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet, symbol2altered_gene)
-    alasscaRule = reports.AlasscaClassRule(alassca_class_spreadsheet, symbol2altered_gene)
+    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet)
+    alasccaRule = reports.AlasccaClassRule(alascca_class_spreadsheet)
 
     # Extract msiInfo from an input file too:
-    msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
-    msiRule = reports.MsiStatusRule(msiInfo)
+    #msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
+    #msiRule = reports.MsiStatusRule(msiInfo)
 
-    report_compiler = reports.ReportCompiler([msiRule, mutationsRule, alasscaRule])
-    report_compiler.extractFeatures()
+    # FIXME: Add msiRule here when we're ready to run it:
+    report_compiler = reports.ReportCompiler([mutationsRule, alasccaRule]) #msiRule,
+    report_compiler.extract_features(symbol2altered_gene)
 
     # Set output file according to options:
-    json_output_file = open(options.outputFileLoc)
+    json_output_file = open(options.output_file, 'w')
 
     # Write the genomic report to output in JSON format:
     # FIXME: We may just want toDict instead of toJSON here.
-    output_json = report_compiler.toJSON()
-
-    # FIXME: USE json.dumps() (check exactly) to make nice pretty-printed json output.
-    # IT TAKES A DICTIONARY AS INPUT.
-    print >> json_output_file, output_json
+    output_dict = report_compiler.to_dict()
+    json.dump(output_dict, json_output_file, indent=4, sort_keys=True)
     json_output_file.close()
 
     # FIXME: Perhaps need to implement some kind of progress reporting. I normally do this with

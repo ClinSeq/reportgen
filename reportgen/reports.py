@@ -500,6 +500,9 @@ class AlasccaClassReport(ReportFeature):
     def __init__(self, pathway_class):
         self._pathway_class = pathway_class
 
+    def get_name(self):
+        return "ALASSCA Class Report"
+
     def to_dict(self):
         return {self.NAME:self._pathway_class}
 
@@ -624,6 +627,11 @@ class MutationStatus:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    # FIXME: This seems quite nasty. Added this to facilitate converting
+    # SimpleSomaticMutationsReport objects to dictionaries.
+    def to_list(self):
+        return [self.get_status(), map(lambda tup: [tup[0].get_position_string(), tup[1]], self._mutation_list)]
+
     def get_status(self):
         return self._status
 
@@ -664,6 +672,9 @@ class SimpleSomaticMutationsReport(ReportFeature):
         # can only be non-null if mutationStatus is "mutated":
         self._symbol2mutation_status = {}
 
+    def get_name(self):
+        return "Simple Somatic Mutations Report"
+
     def add_gene(self, gene_name):
         # Adds a gene, with mutationStatus as "NoMutation" and mutationList as
         # empty by default:
@@ -675,15 +686,12 @@ class SimpleSomaticMutationsReport(ReportFeature):
         self._symbol2mutation_status[gene_symbol].add_mutation(mutation, flag)
 
     def to_dict(self):
-        return self._symbol2mutation_status
-        #output_dict = {}
-        #for symbol in self._symbol2mutation_status.keys():
-        #    # XXX Problem: This doesn't seem to deal with multiple mutations:
-        #    mutn_status_string = self._symbol2mutation_status[symbol][0]
-        #    mutn = self._symbol2mutation_status[symbol][1]
-        #    outputDict[symbol] = [mutnStatusString, mutn.toDict()]
-        #
-        #return outputDict
+        output_dict = {}
+        for symbol in self._symbol2mutation_status.keys():
+            mutation_status = self._symbol2mutation_status[symbol]
+            output_dict[symbol] = mutation_status.to_list()
+
+        return output_dict
 
     def from_dict(self, input_dict):
         self._symbol2mutation_status = input_dict
@@ -1002,31 +1010,28 @@ class ReportCompiler:
     report features.'''
 
     def __init__(self, rules):
-        self.rules = rules
+        self._rules = rules
 
         # This will contain the report features once they have been generated
         # by applying the rules:
-        self.name2feature = {}
+        self._name2feature = {}
 
-    def extractFeatures(self):
+    def extract_features(self, symbol2altered_gene):
         # Apply each rule, generating a corresponding report feature, which is
         # then stored in this object:
-        for currRule in self.rules:
-            currFeature = currRule.applyRule()
+        for curr_rule in self._rules:
+            curr_feature = curr_rule.apply(symbol2altered_gene)
 
             # Store the current feature under this feature's name:
-            self.name2feature[currFeature.getName()] = currFeature
+            self._name2feature[curr_feature.get_name()] = curr_feature
 
-    def toJSON(self):
-        pass
-        # Generate the output JSON file of the extracted features...
+    def to_dict(self):
+        output_dict = {}
+        for name in self._name2feature.keys():
+            feature = self._name2feature[name]
+            output_dict[name] = feature.to_dict()
 
-        # XXX FIXME: Implement by doing the following:
-        # Just convert self.name2feature to a dictionary of dictionaries by calling
-        # toDict() on each feature, and then return that final dictionary as a JSON
-        # string.
-
-        # return report_json_string
+        return output_dict
 
 
 
