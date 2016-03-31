@@ -104,16 +104,16 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     # Test empty input symbol2gene dictionary:
     def test_apply_empty_input(self):
         test_report = self._rule.apply({})
-        expected_outdict = {'NRAS': reports.MutationStatus(), 'BRAF': reports.MutationStatus(), 'KRAS': reports.MutationStatus()}
+        expected_outdict = {'NRAS': ['Not mutated', []], 'BRAF': ['Not mutated', []], 'KRAS': ['Not mutated', []]}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test single mutation symbol2gene input dictionary:
     def test_apply_single_mutation_input(self):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation}
         test_report = self._rule.apply(input_symbol2gene)
-        braf_status = reports.MutationStatus()
-        braf_status.add_mutation(self._braf_alteration3, "BRAF_COMMON")
-        expected_outdict = {'NRAS': reports.MutationStatus(), 'BRAF': braf_status, 'KRAS': reports.MutationStatus()}
+        expected_outdict = {'NRAS': ['Not mutated', []],
+                            'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
+                            'KRAS': ['Not mutated', []]}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test multiple genes and multiple mutations symbol2gene input dictionary:
@@ -121,15 +121,11 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation, "KRAS": self._kras_gene_multiple_mutations}
         test_report = self._rule.apply(input_symbol2gene)
 
-        braf_status = reports.MutationStatus()
-        braf_status.add_mutation(self._braf_alteration3, "BRAF_COMMON")
-
-        kras_status = reports.MutationStatus()
-        kras_status.add_mutation(self._kras_alteration1, "KRAS_COMMON")
-        kras_status.add_mutation(self._kras_alteration2, "KRAS_COMMON")
-        kras_status.add_mutation(self._kras_alteration3, None)
-
-        expected_outdict = {'NRAS': reports.MutationStatus(), 'BRAF': braf_status, 'KRAS': kras_status}
+        expected_outdict = {'NRAS': ['Not mutated', []],
+                            'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
+                            'KRAS': ['Mutated', [['Ala146Pro', u'KRAS_COMMON'],
+                                                 ['Lys117Asn', u'KRAS_COMMON'],
+                                                 ['Lys1Asn', None]]]}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
@@ -308,9 +304,20 @@ class TestAlasccaClassRule(unittest.TestCase):
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
 
+# Very basic testing of this class at the moment. Perhaps add more tests here.
+class TestReportCompiler(unittest.TestCase):
+    def setUp(self):
+        pass
 
+    def test_extract_features_empty(self):
+        compiler = reports.ReportCompiler([])
+        compiler.extract_features()
+        self.assertEqual({}, compiler._name2feature)
 
-
+    def test_to_dict_empty(self):
+        compiler = reports.ReportCompiler([])
+        compiler.extract_features()
+        self.assertEqual({}, compiler.to_dict())
 
 
 
