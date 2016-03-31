@@ -8,18 +8,22 @@ class TestAlterationClassification(unittest.TestCase):
     _single_consequence_classification = None
 
     def setUp(self):
-        self._braf_classification = reports.AlterationClassification(["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
+        self._braf_classification = reports.AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
 
-        self._braf_gene = genomics.GeneWithAlteration("BRAF", "ENSG00000157764")
+        braf = genomics.Gene("BRAF")
+        braf.set_ID("ENSG00000157764")
+        self._braf_gene = genomics.AlteredGene(braf)
         self._braf_alteration1 = genomics.Alteration(self._braf_gene, "ENST00000288602", "missense_variant", "Val600Glu")
         self._braf_gene.add_alteration(self._braf_alteration1)
         # A test alteration: Position only at 600:
         self._braf_alteration2 = genomics.Alteration(self._braf_gene, "ENST00000288602", "missense_variant", "600")
         self._braf_gene.add_alteration(self._braf_alteration2)
 
-        self._kras_classification = reports.AlterationClassification(["missense_variant"], "ENST00000256078", ["12","13","60","61","117","146"], "KRAS_COMMON")
+        self._kras_classification = reports.AlterationClassification("KRAS", ["missense_variant"], "ENST00000256078", ["12","13","60","61","117","146"], "KRAS_COMMON")
 
-        self._kras_gene = genomics.GeneWithAlteration("KRAS", "ENSG00000133703")
+        kras = genomics.Gene("KRAS")
+        kras.set_ID("ENSG00000133703")
+        self._kras_gene = genomics.AlteredGene(kras)
         self._kras_alteration1 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
         self._kras_gene.add_alteration(self._kras_alteration1)
         # Position only specified:
@@ -29,9 +33,11 @@ class TestAlterationClassification(unittest.TestCase):
         self._kras_alteration3 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys1Asn")
         self._kras_gene.add_alteration(self._kras_alteration3)
 
-        self._pik3r1_range_classification = reports.AlterationClassification(["inframe_insertion"], "ENST00000521381", ["340:670"], "TEST")
+        self._pik3r1_range_classification = reports.AlterationClassification("PIK3R1", ["inframe_insertion"], "ENST00000521381", ["340:670"], "TEST")
 
-        self._pik3r1_gene = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        pik3r1 = genomics.Gene("PIK3R1")
+        pik3r1.set_ID("ENSG00000145675")
+        self._pik3r1_gene = genomics.AlteredGene(pik3r1)
         # Dummy alteration; position is important, substitution is not:
         self._pik3r1_alteration1 = genomics.Alteration(self._pik3r1_gene, "ENST00000521381", "inframe_insertion", "Val344Lys")
 
@@ -62,16 +68,20 @@ class TestAlterationClassification(unittest.TestCase):
 
 class TestSimpleSomaticMutationsRule(unittest.TestCase):
     def setUp(self):
-        braf_classification = reports.AlterationClassification(["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
-        kras_classification = reports.AlterationClassification(["missense_variant"], "ENST00000256078", ["12","13","60","61","117","146"], "KRAS_COMMON")
-        nras_classification = reports.AlterationClassification(["missense_variant"], "ENST00000369535", ["12","13","61"], "NRAS_COMMON")
+        braf_classification = reports.AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
+        kras_classification = reports.AlterationClassification("KRAS", ["missense_variant"], "ENST00000256078", ["12","13","60","61","117","146"], "KRAS_COMMON")
+        nras_classification = reports.AlterationClassification("NRAS", ["missense_variant"], "ENST00000369535", ["12","13","61"], "NRAS_COMMON")
         self._symbol2classifications = {"BRAF": [braf_classification], "KRAS": [kras_classification], "NRAS": [nras_classification]}
 
-        self._braf_gene_single_mutation = genomics.GeneWithAlteration("BRAF", "ENSG00000157764")
+        braf = genomics.Gene("BRAF")
+        braf.set_ID("ENSG00000157764")
+        self._braf_gene_single_mutation = genomics.AlteredGene(braf)
         self._braf_alteration3 = genomics.Alteration(self._braf_gene_single_mutation, "ENST00000288602", "missense_variant", "Val600Glu")
         self._braf_gene_single_mutation.add_alteration(self._braf_alteration3)
 
-        self._kras_gene_multiple_mutations = genomics.GeneWithAlteration("KRAS", "ENSG00000133703")
+        kras = genomics.Gene("KRAS")
+        kras.set_ID("ENSG00000133703")
+        self._kras_gene_multiple_mutations = genomics.AlteredGene(kras)
         self._kras_alteration1 = genomics.Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "Ala146Pro")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration1)
         # Position only specified:
@@ -170,63 +180,69 @@ class TestMisc(unittest.TestCase):
 
 class TestAlasccaClassRule(unittest.TestCase):
     def setUp(self):
-        igf2_classification = reports.AlterationClassification(["amplification"], None, [], "ALASCCA_CLASS_B_1")
-        pten_classification_b_2 = reports.AlterationClassification(["start_lost","stop_gained","frameshift_variant","splice_acceptor_variant","splice_donor_variant","loss_of_heterozygosity"], "ENST00000371953", [], "ALASCCA_CLASS_B_2")
-        pten_classification_b_1 = reports.AlterationClassification(["homozygous_loss"], "ENST00000371953", [], "ALASCCA_CLASS_B_1")
-        pten_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000371953", ["Cys124Ser","Gly129Glu","Arg130Gly","Arg130Gln"], "ALASCCA_CLASS_B_1")
-        pik3r1_classification_b_1 = reports.AlterationClassification(["frameshift_variant","inframe_insertion","inframe_deletion","stop_gained","splice_acceptor_variant","splice_donor_variant"], "ENST00000521381", ["340:670"], "ALASCCA_CLASS_B_1")
-        pik3r1_classification_b_1_missense = reports.AlterationClassification(["missense_variant"], "ENST00000521381", ["376","379","452","464","503","560","564","567","573","642"], "ALASCCA_CLASS_B_1")
-        pik3ca_classification_b_1 = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["38","81","88","106","111","118","344","345","378","420","453","726"], "ALASCCA_CLASS_B_1")
-        pik3ca_classification_a = reports.AlterationClassification(["missense_variant"], "ENST00000263967", ["542","545","546","1021","1043","1044","1047"], "ALASCCA_CLASS_A")
+        igf2_classification = reports.AlterationClassification("IGF2", ["amplification"], None, [], "ALASCCA_CLASS_B_1")
+        pten_classification_b_2 = reports.AlterationClassification("PTEN", ["start_lost","stop_gained","frameshift_variant","splice_acceptor_variant","splice_donor_variant","loss_of_heterozygosity"], "ENST00000371953", [], "ALASCCA_CLASS_B_2")
+        pten_classification_b_1 = reports.AlterationClassification("PTEN", ["homozygous_loss"], "ENST00000371953", [], "ALASCCA_CLASS_B_1")
+        pten_classification_b_1_missense = reports.AlterationClassification("PTEN", ["missense_variant"], "ENST00000371953", ["Cys124Ser","Gly129Glu","Arg130Gly","Arg130Gln"], "ALASCCA_CLASS_B_1")
+        pik3r1_classification_b_1 = reports.AlterationClassification("PIK3R1", ["frameshift_variant","inframe_insertion","inframe_deletion","stop_gained","splice_acceptor_variant","splice_donor_variant"], "ENST00000521381", ["340:670"], "ALASCCA_CLASS_B_1")
+        pik3r1_classification_b_1_missense = reports.AlterationClassification("PIK3R1", ["missense_variant"], "ENST00000521381", ["376","379","452","464","503","560","564","567","573","642"], "ALASCCA_CLASS_B_1")
+        pik3ca_classification_b_1 = reports.AlterationClassification("PIK3CA", ["missense_variant"], "ENST00000263967", ["38","81","88","106","111","118","344","345","378","420","453","726"], "ALASCCA_CLASS_B_1")
+        pik3ca_classification_a = reports.AlterationClassification("PIK3CA", ["missense_variant"], "ENST00000263967", ["542","545","546","1021","1043","1044","1047"], "ALASCCA_CLASS_A")
         self._symbol2classifications = {"IGF2": [igf2_classification], "PTEN": [pten_classification_b_2, pten_classification_b_1, pten_classification_b_1_missense], "PIK3R1": [pik3r1_classification_b_1, pik3r1_classification_b_1_missense], "PIK3CA": [pik3ca_classification_b_1, pik3ca_classification_a]}
 
         self._rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx")
 
-        self._pten_gene_single_mutation = genomics.GeneWithAlteration("PTEN", "ENSG00000171862")
+        pten = genomics.Gene("PTEN")
+        pten.set_ID("ENSG00000171862")
+        self._pten_gene_single_mutation = genomics.AlteredGene(pten)
         self._pten_hzl = genomics.Alteration(self._pten_gene_single_mutation, "ENST00000371953", "homozygous_loss", None)
         self._pten_gene_single_mutation.add_alteration(self._pten_hzl)
 
-        self._pten_gene_single_mutation_not_enough = genomics.GeneWithAlteration("PTEN", "ENSG00000171862")
+        self._pten_gene_single_mutation_not_enough = genomics.AlteredGene(pten)
         self._pten_frameshift = genomics.Alteration(self._pten_gene_single_mutation_not_enough, "ENST00000371953", "frameshift_variant", None)
         self._pten_gene_single_mutation_not_enough.add_alteration(self._pten_frameshift)
 
-        self._pten_gene_double_mutation = genomics.GeneWithAlteration("PTEN", "ENSG00000171862")
+        self._pten_gene_double_mutation = genomics.AlteredGene(pten)
         self._pten_stop_gained = genomics.Alteration(self._pten_gene_double_mutation, "ENST00000371953", "stop_gained", "Gly301Leu")
         self._pten_splice_acceptor_variant = genomics.Alteration(self._pten_gene_double_mutation, "ENST00000371953", "splice_acceptor_variant", "Gly10Leu")
         self._pten_gene_double_mutation.add_alteration(self._pten_stop_gained)
         self._pten_gene_double_mutation.add_alteration(self._pten_splice_acceptor_variant)
 
-        self._pik3r1_gene_frameshift = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        pik3r1 = genomics.Gene("PIK3R1")
+        pik3r1.set_ID("ENSG00000145675")
+        self._pik3r1_gene_frameshift = genomics.AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3r1_frameshift = genomics.Alteration(self._pik3r1_gene_frameshift, "ENST00000521381", "frameshift_variant", "Val351Leu")
         self._pik3r1_gene_frameshift.add_alteration(self._pik3r1_frameshift)
 
-        self._pik3r1_gene_frameshift_off = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        self._pik3r1_gene_frameshift_off = genomics.AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3r1_frameshift_off = genomics.Alteration(self._pik3r1_gene_frameshift_off, "ENST00000521381", "frameshift_variant", "Val10Leu")
         self._pik3r1_gene_frameshift_off.add_alteration(self._pik3r1_frameshift_off)
 
-        self._pik3r1_gene_missense = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        self._pik3r1_gene_missense = genomics.AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3r1_missense = genomics.Alteration(self._pik3r1_gene_missense, "ENST00000521381", "missense_variant", "Val376Leu")
         self._pik3r1_gene_missense.add_alteration(self._pik3r1_missense)
 
-        self._pik3ca_gene_missense1 = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        pik3ca = genomics.Gene("PIK3CA")
+        pik3ca.set_ID("ENSG00000145675")
+        self._pik3ca_gene_missense1 = genomics.AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3ca_missense1 = genomics.Alteration(self._pik3ca_gene_missense1, "ENST00000263967", "missense_variant", "Val38Leu")
         self._pik3ca_gene_missense1.add_alteration(self._pik3ca_missense1)
 
-        self._pik3ca_gene_missense2 = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        self._pik3ca_gene_missense2 = genomics.AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3ca_missense2 = genomics.Alteration(self._pik3ca_gene_missense2, "ENST00000263967", "missense_variant", "Val542Leu")
         self._pik3ca_gene_missense2.add_alteration(self._pik3ca_missense2)
 
-        self._pik3ca_gene_missense_a_and_b = genomics.GeneWithAlteration("PIK3R1", "ENSG00000145675")
+        self._pik3ca_gene_missense_a_and_b = genomics.AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
         self._pik3ca_missense3 = genomics.Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "Val38Leu")

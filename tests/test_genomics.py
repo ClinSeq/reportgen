@@ -8,11 +8,15 @@ class TestAlterationExtractor(unittest.TestCase):
     def setUp(self):
         self._extractor = genomics.AlterationExtractor()
 
-        self._nras_gene = genomics.GeneWithAlteration("NRAS", "ENSG00000213281")
+        nras = genomics.Gene("NRAS")
+        nras.set_ID("ENSG00000213281")
+        self._nras_gene = genomics.AlteredGene(nras)
         test_alteration1 = genomics.Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "Gln61His")
         self._nras_gene.add_alteration(test_alteration1)
 
-        self._kras_gene = genomics.GeneWithAlteration("KRAS", "ENSG00000133703")
+        kras = genomics.Gene("KRAS")
+        kras.set_ID("ENSG00000133703")
+        self._kras_gene = genomics.AlteredGene(kras)
         test_alteration2 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
         self._kras_gene.add_alteration(test_alteration2)
         test_alteration3 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys117Asn")
@@ -24,7 +28,7 @@ class TestAlterationExtractor(unittest.TestCase):
 
         expected_dict = {"NRAS": self._nras_gene}
 
-        self.assertEqual(output_dict["NRAS"].get_symbol(), "NRAS")
+        self.assertEqual(output_dict["NRAS"].get_gene().get_symbol(), "NRAS")
 
     def test_extract_mutations_simple_input(self):
         self._extractor.extract_mutations(open("tests/simple_variant_input.vcf"))

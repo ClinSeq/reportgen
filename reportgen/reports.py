@@ -7,6 +7,7 @@ Created on Dec 1, 2015
 '''
 
 import collections, genomics, pdb, re, sys
+import openpyxl
 import pyodbc
 
 
@@ -372,7 +373,8 @@ class AlterationClassification:
     '''This class is used to assign a particular classification to input
     genetic alterations, if a match occurs.'''
 
-    def __init__(self, consequences, transcriptID, positionInformationStrings, outputFlag):
+    def __init__(self, symbol, consequences, transcriptID, positionInformationStrings, outputFlag):
+        self._symbol = symbol
         self._consequences = consequences
         self._transcript_ID = transcriptID
         self._position_strings = positionInformationStrings
@@ -381,22 +383,23 @@ class AlterationClassification:
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
+        if not self.get_symbol() == other.get_symbol():
+            return False
         if not self.get_consequences() == other.get_consequences():
-            print >> sys.stderr, "Comparing consequences."
             return False
         if not self.get_transcript_ID() == other.get_transcript_ID():
-            print >> sys.stderr, "Comparing transcript IDs."
             return False
         if not self.get_position_information() == other.get_position_information():
-            print >> sys.stderr, "Comparing position information."
             return False
         if not self.get_output_flag() == other.get_output_flag():
-            print >> sys.stderr, "Flags differ."
             return False
         return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def get_symbol(self):
+        return self._symbol
 
     def get_position_information(self):
         return self._position_strings
@@ -417,8 +420,8 @@ class AlterationClassification:
         if not alteration.get_transcript_ID() == self.get_transcript_ID():
             match = False
         # FIXME: Perhaps I should make this mechanism more robust?
-        # Zero position information fields means that position is not specified
-        # and will not be used to discount a match:
+        # Absence of position information fields means that position is not
+        # specified and will not be used to discount a match:
         if len(self.get_position_information()) > 0:
             position_matches = self.matches_positions(alteration)
             if not position_matches:
@@ -596,7 +599,9 @@ class MsiReport(ReportFeature):
 
 
 class MutationStatus:
-    '''Mutation status of a given gene.'''
+    '''Mutation status of a given gene. Note: Currently, the gene is not
+    directly stated, but can be accessed via the contained Alteration
+    objects, which must all refer to the same AlteredGene object.'''
 
     MUT = "Mutated"
     NO_MUT = "Not mutated"
@@ -664,7 +669,8 @@ class SimpleSomaticMutationsReport(ReportFeature):
         # empty by default:
         self._symbol2mutation_status[gene_name] = MutationStatus()
 
-    def add_mutation(self, gene_symbol, mutation, flag):
+    def add_mutation(self, mutation, flag):
+        gene_symbol = mutation.get_altered_gene().get_gene().get_symbol()
         assert self._symbol2mutation_status.has_key(gene_symbol)
         self._symbol2mutation_status[gene_symbol].add_mutation(mutation, flag)
 
@@ -910,7 +916,7 @@ def parse_mutation_table(spreadsheet_filename):
         flag = row[5].value
 
         curr_classification = \
-            AlterationClassification(consequences, transcript_ID,
+            AlterationClassification(symbol, consequences, transcript_ID,
                                      amino_acid_changes, flag)
 
         if not gene_symbol2classifications.has_key(symbol):
@@ -971,7 +977,6 @@ class SimpleSomaticMutationsRule:
 
             # Find all mutations matching this gene's rules:
             alterations = []
-            gene = None
             if symbol2gene.has_key(symbol):
                 gene = symbol2gene[symbol]
                 alterations = gene.get_alterations()
@@ -984,7 +989,7 @@ class SimpleSomaticMutationsRule:
                     flag = None
                     if classification.match(alteration):
                         flag = classification.get_output_flag()
-                    report.add_mutation(gene.get_symbol(), alteration, flag)
+                    report.add_mutation(alteration, flag)
 
         return report
 
