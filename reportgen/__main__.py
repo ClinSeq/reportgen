@@ -97,7 +97,7 @@ hard-coded.
     output_file.close()
 
 
-def compileGenomicReport():
+def compileAlasccaGenomicReport():
     # Parse the command-line arguments...
     # FIXME: Need to add msi file input too once we've decided on the format for this information.
     # FIXME: ADD MORE PRECISE DESCRIPTION of CNV file ONCE WE HAVE AGREED ON THE FILE FORMAT
@@ -129,9 +129,6 @@ of this file's format.
     # Make sure the required input arguments exist:
     if (len(args) != 4):
         print >> sys.stderr, "WRONG # ARGS: ", len(args)
-        parser.add_option("--output", dest = "oututFileLoc",
-                          default = "GenomicReport.json",
-                          help = "Output location. Default=[%default]")
         parser.print_help()
         sys.exit(1)
 
@@ -177,9 +174,9 @@ of this file's format.
     # print statements to sys.stderr, but perhaps we want to write to log files instead?
 
 
-def main():
+def writeAlasccaReport():
     # Parse the command-line arguments...
-    description = """usage: %prog [options] <metadataJSONfile> <reportJSONfile>\n
+    description = """usage: %prog [options] <reportJSONfile> <metadataJSONfile>\n
 Inputs:
 - JSON file containing metadata for the sample
 - JSON file containing the genomic status report data for the sample
@@ -248,8 +245,8 @@ Outputs:
         sys.exit(1)
 
     # Try to open the input files; report an error if this fails:
-    meta_json_filename = args[0]
-    report_json_filename = args[1]
+    report_json_filename = args[0]
+    meta_json_filename = args[1]
     meta_json_file = None
     report_json_file = None
     try:
@@ -289,7 +286,7 @@ Outputs:
                                            options.logos)
 
     try:
-        alascca_report = reports.AlasccaReport(meta_json, report_json, doc_format)
+        alascca_report = reports.AlasccaReport(report_json, meta_json, doc_format)
     except ValueError, e:
         print >> sys.stderr, "ERROR: Invalid report."
         print >> sys.stderr, e
@@ -314,8 +311,12 @@ Outputs:
     #    subprocess.call(["rm", tmp_latex_filename])
     
     if call_result != 0:
-        sys.stderr, "ERROR: pdflatex conversion failed."
+        print >> sys.stderr, "ERROR: pdflatex conversion failed."
         sys.exit(1)
+
+
+def main():
+    writeAlasccaReport()
 
 
 if __name__ == '__main__':

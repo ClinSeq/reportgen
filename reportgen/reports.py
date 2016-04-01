@@ -135,15 +135,17 @@ class ReportMetadata(object):
 
         # FIXME: Check the fields for validty and report ValueError if not valid.
 
-        self._personnummer = metadata_json["personnummer"]
-        self._blood_sample_id = metadata_json["blood_sample_id"]
-        self._tumor_sample_id = metadata_json["tumor_sample_id"]
+        self._personnummer = metadata_json["personnnummer"]
+        self._blood_sample_id = metadata_json["blood_sample_ID"]
+        self._tumor_sample_id = metadata_json["tumor_sample_ID"]
         self._blood_sample_date = metadata_json["blood_sample_date"]
         self._tumor_sample_date = metadata_json["tumor_sample_date"]
-        self._doctor = metadata_json["doctor"]
-        self._doctor_address_line1 = metadata_json["doctor_address_line1"]
-        self._doctor_address_line2 = metadata_json["doctor_address_line2"]
-        self._doctor_address_line3 = metadata_json["doctor_address_line3"]
+
+        # FIXME: Add extraction of address information once it's included.
+        self._doctor = "Dr XXX YYY" #metadata_json["doctor"]
+        self._doctor_address_line1 = "Dummy address line 1" #metadata_json["doctor_address_line1"]
+        self._doctor_address_line2 = "Dummy address line 2" #metadata_json["doctor_address_line2"]
+        self._doctor_address_line3 = "Dummy address line 3" #metadata_json["doctor_address_line3"]
 
     def get_blood_sample_id(self):
         return self._blood_sample_id
@@ -183,13 +185,14 @@ class GenomicReport(object):
     '''
     '''
 
-    def __init__(self, metadata_json, report_json, doc_format):
+    def __init__(self, report_json, metadata_json, doc_format):
         # Save the metadata and report json objects:
-        self._metadata_json = metadata_json
         self._report_json = report_json
+        self._metadata_json = metadata_json
 
         # Generate a representation of the report metadata:
-        self._metadata = ReportMetadata(metadata_json)
+        self._metadata = ReportMetadata()
+        self._metadata.set_from_dict(metadata_json)
 
         # Store the document format object:
         self._doc_format = doc_format
@@ -226,59 +229,32 @@ class GenomicReport(object):
 \\end{document}''' % (format_header, footer, metadata_header, body)
 
 
+def extract_feature(genomics_dict, reportFeatureClassname):
+    feature_name = reportFeatureClassname.get_name()
+    feature_contents = genomics_dict[feature_name]
+
+    extracted_feature = reportFeatureClassname()
+    extracted_feature.set_from_dict(feature_contents)
+    return extracted_feature
+
+
 class AlasccaReport(GenomicReport):
     '''An ALASCCA project sample genomic status report. Can be used to generate
     a latex document displaying the report.'''
 
-    def __init__(self, metadata_json, report_json, doc_format):
-        super(AlasccaReport, self).__init__(metadata_json, report_json, doc_format)
+    def __init__(self, genomics_dict, metadata_dict, doc_format):
+        super(AlasccaReport, self).__init__(genomics_dict, metadata_dict, doc_format)
 
-        # Retrieve all relevant items from the report json object, checking
-        # values as we proceed...
+        # Extract genomics features from the report json object...
 
-        # Pi3k pathway status string:
-        pi3k_pathway_string = report_json[AlasccaClassReport.NAME]
-        if not pi3k_pathway_string in AlasccaClassReport.VALID_STRINGS:
-            raise ValueError("Invalid PI3K pathway string: " + pi3k_pathway_string)
+        self._pi3k_pathway_report = extract_feature(genomics_dict, AlasccaClassReport)
+        self._other_mutations_report = extract_feature(genomics_dict, SimpleSomaticMutationsReport)
+        #self._msi_report = extract_feature(genomics_dict, MsiReport)
 
-        # MSI status string:
-        msi_status_string = report_json["MSI_status"]
-        if not msi_status_string in MsiReport.VALID_STRINGS:
-            raise ValueError("Invalid MSI status string: " + msi_status_string)
-
-        # Extract status tuples for BRAF, KRAS and NRAS:
-        other_mutation_statuses = collections.OrderedDict()
-        braf_status = report_json["BRAF"]
-        if (not type(braf_status) is list) or (len(braf_status) != 2) or \
-            (not braf_status[0] in OtherMutationsReport.VALID_STRINGS):
-            raise ValueError("Invalid BRAF status: ", braf_status)
-        other_mutation_statuses["BRAF"] = tuple(braf_status)
-
-        kras_status = report_json["KRAS"]
-        if (not type(braf_status) is list) or (len(kras_status) != 2) or \
-            (not kras_status[0] in OtherMutationsReport.VALID_STRINGS):
-            raise ValueError("Invalid KRAS status: ", kras_status)
-        other_mutation_statuses["KRAS"] = tuple(kras_status)
-
-        nras_status = report_json["NRAS"]
-        if (not type(braf_status) is list) or (len(nras_status) != 2) or \
-            (not nras_status[0] in OtherMutationsReport.VALID_STRINGS):
-            raise ValueError("Invalid NRAS status: ", nras_status)
-        other_mutation_statuses["NRAS"] = tuple(nras_status)
-
-        # Instantiate the relevant report elements, derived from the
-        # information retrieved above:
-        report_metadata = self.get_metadata()
-        self._initial_comment = InitialComment(report_metadata.get_blood_sample_id(),
-                                              report_metadata.get_tumor_sample_id(),
-                                              report_metadata.get_blood_sample_date(),
-                                              report_metadata.get_tumor_sample_date())
-
-        self._pi3k_pathway_report = AlasccaClassReport(pi3k_pathway_string)
-        self._msi_report = MsiReport(msi_status_string)
-        self._other_mutations_report = OtherMutationsReport(other_mutation_statuses)
-        self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
-        self._final_comment = FinalCommentAlasccaReport()
+        # XXX CONTINUE HERE: THE ABOVE CODE SEEMS TO BE WORKING. NEXT, REFACTOR
+        # THIS CODE TO WORK WITH THE CHANGES RECENTLY INTRODUCED.
+        # self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
+        # self._final_comment = FinalCommentAlasccaReport()
 
     def make_body_latex(self):
         title_latex = None
@@ -497,17 +473,17 @@ class AlasccaClassReport(ReportFeature):
     NO_MUTN = "No mutation"
     VALID_STRINGS = [MUTN_CLASS_A, MUTN_CLASS_B, NO_MUTN]
 
-    def __init__(self, pathway_class):
-        self._pathway_class = pathway_class
+    def __init__(self):
+        self._pathway_class = None
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "ALASSCA Class Report"
 
     def to_dict(self):
         return {self.NAME:self._pathway_class}
 
-    # FIXME: PERHAPS USE JSON.LOADS() INSTEAD HERE?
-    def from_dict(self, input_dict):
+    def set_from_dict(self, input_dict):
         pathway_class = input_dict[self.NAME]
         self._pathway_class = pathway_class
 
@@ -672,7 +648,8 @@ class SimpleSomaticMutationsReport(ReportFeature):
         # can only be non-null if mutationStatus is "mutated":
         self._symbol2mutation_status = {}
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Simple Somatic Mutations Report"
 
     def add_gene(self, gene_name):
@@ -693,7 +670,7 @@ class SimpleSomaticMutationsReport(ReportFeature):
 
         return output_dict
 
-    def from_dict(self, input_dict):
+    def set_from_dict(self, input_dict):
         self._symbol2mutation_status = input_dict
 
     # XXX UPDATE THIS METHOD TO MAKE IT WORK WITH THE UPDATED _SYMBOL2MUTATIONSTATUS

@@ -7,8 +7,8 @@ setup(name='reportgen',
       include_package_data=True,
       entry_points={
           'console_scripts': [
-              'writeReport = reportgen.__main__:main',
-              'compileGenomicReport = reportgen.__main__:compileGenomicReport',
+              'writeAlasccaReport = reportgen.__main__:writeAlasccaReport',
+              'compileAlasccaGenomicReport = reportgen.__main__:compileAlasccaGenomicReport',
               'compileMetadata = reportgen.__main__:compileMetadata'
           ]
       },
