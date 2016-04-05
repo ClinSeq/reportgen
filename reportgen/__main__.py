@@ -301,7 +301,7 @@ Outputs:
     print >> sys.stderr, "Writing latex to output file:", tmp_latex_filename
     tmp_latex_file.write(report_latex_string.encode('utf8'))
     tmp_latex_file.close()
-    
+
     # Convert latex to pdf by running pdflatex on the command line:
     # -job-name=Report
     call_result = subprocess.call(["pdflatex", "-jobname", "Report", tmp_latex_filename])
