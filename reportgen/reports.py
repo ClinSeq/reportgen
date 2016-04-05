@@ -121,6 +121,9 @@ class ReportMetadata(object):
     def set_tumor_sample_date(self, tumor_sample_date):
         self._tumor_sample_date = tumor_sample_date
 
+    def get_name(self):
+        return "Report Metadata"
+
     def to_dict(self):
         return {"personnnummer": self._personnummer,
                 "blood_sample_ID": self._blood_sample_ID,
@@ -128,24 +131,33 @@ class ReportMetadata(object):
                 "tumor_sample_ID": self._blood_sample_ID,
                 "tumor_sample_date": self._blood_sample_date}
 
-    def set_from_dict(self, metadata_json):
+    def set_from_dict(self, metadata_dict):
         '''
         Extracts the metadata fields from an input JSON object.
         '''
 
+        # FIXME: Inconsistent use of "set_from_dict" for the report metadata
+        # compared with the report feature concrete classes. Not sure whether
+        # to unify these somehow.
+
         # FIXME: Check the fields for validty and report ValueError if not valid.
 
-        self._personnummer = metadata_json["personnnummer"]
-        self._blood_sample_id = metadata_json["blood_sample_ID"]
-        self._tumor_sample_id = metadata_json["tumor_sample_ID"]
-        self._blood_sample_date = metadata_json["blood_sample_date"]
-        self._tumor_sample_date = metadata_json["tumor_sample_date"]
+        self._personnummer = metadata_dict["personnnummer"]
+        self._blood_sample_id = metadata_dict["blood_sample_ID"]
+        self._tumor_sample_id = metadata_dict["tumor_sample_ID"]
+        self._blood_sample_date = metadata_dict["blood_sample_date"]
+        self._tumor_sample_date = metadata_dict["tumor_sample_date"]
 
         # FIXME: Add extraction of address information once it's included.
-        self._doctor = "Dr XXX YYY" #metadata_json["doctor"]
-        self._doctor_address_line1 = "Dummy address line 1" #metadata_json["doctor_address_line1"]
-        self._doctor_address_line2 = "Dummy address line 2" #metadata_json["doctor_address_line2"]
-        self._doctor_address_line3 = "Dummy address line 3" #metadata_json["doctor_address_line3"]
+        self._doctor = "Dr Namn Namnsson" #metadata_json["doctor"]
+        self._doctor_address_line1 = "Onkologimottagningen" #metadata_json["doctor_address_line1"]
+        self._doctor_address_line2 = "Stora Lasaretet" #metadata_json["doctor_address_line2"]
+        self._doctor_address_line3 = "123 45 Stadsby" #metadata_json["doctor_address_line3"]
+
+    def generate_dates_report(self):
+        dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,
+                                   self._blood_sample_date, self._tumor_sample_date)
+        return dates_report
 
     def get_blood_sample_id(self):
         return self._blood_sample_id
@@ -245,16 +257,20 @@ class AlasccaReport(GenomicReport):
     def __init__(self, genomics_dict, metadata_dict, doc_format):
         super(AlasccaReport, self).__init__(genomics_dict, metadata_dict, doc_format)
 
-        # Extract genomics features from the report json object...
+        # Generate report on dates:
+        self._dates_report = self.get_metadata().generate_dates_report()
 
-        self._pi3k_pathway_report = extract_feature(genomics_dict, AlasccaClassReport)
-        self._other_mutations_report = extract_feature(genomics_dict, SimpleSomaticMutationsReport)
+        # Extract genomics features from the report json object...
+        self._alascca_class_report = extract_feature(genomics_dict, AlasccaClassReport)
+        self._somatic_mutations_report = extract_feature(genomics_dict, SimpleSomaticMutationsReport)
         #self._msi_report = extract_feature(genomics_dict, MsiReport)
 
-        # XXX CONTINUE HERE: THE ABOVE CODE SEEMS TO BE WORKING. NEXT, REFACTOR
-        # THIS CODE TO WORK WITH THE CHANGES RECENTLY INTRODUCED.
-        # self._clinical_genetics = ClinicalRecommendationsReport(braf_status, msi_status_string)
-        # self._final_comment = FinalCommentAlasccaReport()
+        # Note: The section with the metadata is generated separately, not
+        # here.
+
+        # The section of the report with the text explaining the report
+        # content:
+        self._report_legend = ReportLegend()
 
     def make_body_latex(self):
         title_latex = None
@@ -269,22 +285,24 @@ class AlasccaReport(GenomicReport):
             title_latex = u'''\\section*{ClinSeq Analysrapport}\\label{clinseq-alascca-analysisreport}'''
             alascca_title_latex = u'''\\subsection*{Rapport för ALASCCA Studien}\\label{alascca-report}'''
             clinseq_title_latex = u'''\\subsection*{Övriga Information Från ClinSeq-profilen}\\label{clinseq-report}'''
-        initial_comment_latex = self._initial_comment.make_latex(self._doc_format)
-        pi3k_pathway_latex = self._pi3k_pathway_report.make_latex(self._doc_format)
-        msi_latex = self._msi_report.make_latex(self._doc_format)
-        other_mutations_latex = self._other_mutations_report.make_latex(self._doc_format)
-        clinical_genetics_latex = self._clinical_genetics.make_latex(self._doc_format)
-        final_comment_latex = self._final_comment.make_latex(self._doc_format)
 
+        dates_latex = self._dates_report.make_latex(self._doc_format)
+        alascca_class_latex = self._alascca_class_report.make_latex(self._doc_format)
+        somatic_mutations_latex = self._somatic_mutations_report.make_latex(self._doc_format)
+        #msi_latex = self._msi_report.make_latex(self._doc_format)
+        report_legend_latex = self._report_legend.make_latex(self._doc_format)
+
+        # FIXME: This is getting a bit hacky (adding mybox):
         return title_latex + \
-               initial_comment_latex + \
-               alascca_title_latex + \
-               pi3k_pathway_latex + \
-               clinseq_title_latex + \
-               msi_latex + \
-               other_mutations_latex + \
-               clinical_genetics_latex + \
-               final_comment_latex
+            dates_latex + \
+            "\n\\begin{mybox}\n" + \
+            alascca_title_latex + \
+            alascca_class_latex + \
+            "\n\\end{mybox}\n" + \
+            clinseq_title_latex + \
+            somatic_mutations_latex + \
+            report_legend_latex
+            #msi_latex + \
 
 
 class ReportFeature(object):
@@ -317,32 +335,6 @@ class ReportFeature(object):
         a string containing latex code for a title.'''
 
     # Concrete classes must implement toDict() and fromDict()
-
-
-class InitialComment(ReportFeature):
-    '''
-    '''
-
-    def __init__(self, blood_sample_id, tumor_sample_id, blood_sample_date, tumor_sample_date):
-        super(InitialComment, self).__init__()
-        self._blood_sample_id = blood_sample_id
-        self._tumor_sample_id = tumor_sample_id
-        self._blood_sample_date = blood_sample_date
-        self._tumor_sample_date = tumor_sample_date
-
-    def make_title(self, doc_format):
-        return None
-
-    def make_content_body(self, doc_format):
-        if doc_format.get_language() == doc_format.ENGLISH:
-            return u'''Analysis completed for blood sample %d taken %s and tumor sample %d taken %s''' % \
-                (self._blood_sample_id, self._blood_sample_date,
-                self._tumor_sample_id, self._tumor_sample_date)
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Analys genomförd för blodprov %d taget %s och tumörprov %d taget %s''' % \
-                (self._blood_sample_id, self._blood_sample_date,
-                self._tumor_sample_id, self._tumor_sample_date)
 
 
 class AlterationClassification:
@@ -462,6 +454,32 @@ class AlterationClassification:
                        and alterationIntegerPosition <= classificationRangeEnd
 
 
+class DatesReport(ReportFeature):
+    '''A report of key dates relevant to a given report.
+    '''
+
+    def __init__(self, blood_sample_id, tumor_sample_id,
+                 blood_sample_date, tumor_sample_date):
+        self._blood_sample_id = blood_sample_date
+        self._tumor_sample_id = tumor_sample_id
+        self._blood_sample_date = blood_sample_date
+        self._tumor_sample_date = tumor_sample_date
+
+    def make_title(self, doc_format):
+        return None
+
+    def make_content_body(self, doc_format):
+        if doc_format.get_language() == doc_format.ENGLISH:
+            return u'''Analysis completed for blood sample %d taken %s and tumor sample %d taken %s''' % \
+                (self._blood_sample_id, self._blood_sample_date,
+                self._tumor_sample_id, self._tumor_sample_date)
+        else:
+            assert doc_format.get_language() == doc_format.SWEDISH
+            return u'''Analys genomförd för blodprov %s taget %s och tumörprov %s taget %s''' % \
+                (self._blood_sample_id, self._blood_sample_date,
+                self._tumor_sample_id, self._tumor_sample_date)
+
+
 class AlasccaClassReport(ReportFeature):
     '''
     '''
@@ -471,6 +489,7 @@ class AlasccaClassReport(ReportFeature):
     MUTN_CLASS_A = "Mutation class A"
     MUTN_CLASS_B = "Mutation class B"
     NO_MUTN = "No mutation"
+    NOT_DET = "Not determined"
     VALID_STRINGS = [MUTN_CLASS_A, MUTN_CLASS_B, NO_MUTN]
 
     def __init__(self):
@@ -492,18 +511,21 @@ class AlasccaClassReport(ReportFeature):
             return u'''PI3K signaling pathway'''
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''PI3K-signalväg'''
+            return u'''Randomisering till ALASCCA-studien'''
 
     def make_content_body(self, doc_format):
         class_a_box = doc_format.get_unchecked_checkbox()
         class_b_box = doc_format.get_unchecked_checkbox()
         no_mutations_box = doc_format.get_unchecked_checkbox()
-        if self._pi3k_pathway_status == self.MUTN_CLASS_A:
+        not_determined_box = doc_format.get_unchecked_checkbox()
+        if self._pathway_class == self.MUTN_CLASS_A:
             class_a_box = doc_format.get_checked_checkbox()
-        if self._pi3k_pathway_status == self.MUTN_CLASS_B:
+        if self._pathway_class == self.MUTN_CLASS_B:
             class_b_box = doc_format.get_checked_checkbox()
-        if self._pi3k_pathway_status == self.NO_MUTN:
+        if self._pathway_class == self.NO_MUTN:
             no_mutations_box = doc_format.get_checked_checkbox()
+        if self._pathway_class == self.NOT_DET:
+            not_determined_box = doc_format.get_checked_checkbox()
 
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''$\\begin{array}{ p{1cm} p{8cm} }
@@ -516,14 +538,16 @@ class AlasccaClassReport(ReportFeature):
 ''' % (class_a_box, class_b_box, no_mutations_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''$\\begin{array}{ p{1cm} p{8cm} }
+            return u'''$\\begin{array}{ p{1cm} p{10cm} }
   \\toprule
   \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
   \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
+  \\tabularnewline
   \\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\tabularnewline
+  \\includegraphics{%s} & Ej utförd/Ej bedömbar, patienten kan \emph{ej} randomiseras \\tabularnewline
   \\bottomrule
 \\end{array}$
-''' % (class_a_box, class_b_box, no_mutations_box)
+''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
 
 
 class MsiReport(ReportFeature):
@@ -695,22 +719,22 @@ class SimpleSomaticMutationsReport(ReportFeature):
             body_string = body_string + u'''Gene & Mut. & Ej mut. & Ej utförd & Kommentar \\tabularnewline
   \\midrule
 '''
-        for gene in self._symbol2mutationStatus.keys():
+        for gene in self._symbol2mutation_status.keys():
             # Set up box image paths and comments string:
             mut_box = doc_format.get_unchecked_checkbox()
             no_mut_box = doc_format.get_unchecked_checkbox()
             not_det_box = doc_format.get_unchecked_checkbox()
-            mutn_info_tuple = self._symbol2mutationStatus[gene]
+            mutn_info_tuple = self._symbol2mutation_status[gene]
             mutn_status = mutn_info_tuple[0]
             comments = mutn_info_tuple[1]
-            if comments == None:
+            if len(comments) == 0:
                 comments = ""
 
-            if mutn_status == self.MUT:
+            if mutn_status == MutationStatus.MUT:
                 mut_box = doc_format.get_checked_checkbox()
-            if mutn_status == self.NO_MUT:
+            if mutn_status == MutationStatus.NO_MUT:
                 no_mut_box = doc_format.get_checked_checkbox()
-            if mutn_status == self.NOT_DETERMINED:
+            if mutn_status == MutationStatus.NOT_DETERMINED:
                 not_det_box = doc_format.get_checked_checkbox()
 
             # Add a row for the current gene:
@@ -758,7 +782,7 @@ class ClinicalRecommendationsReport(ReportFeature):
             return u''''''
 
 
-class FinalCommentAlasccaReport(ReportFeature):
+class ReportLegend(ReportFeature):
     '''
     '''
 
@@ -766,7 +790,8 @@ class FinalCommentAlasccaReport(ReportFeature):
         '''
         '''
 
-
+    # XXX CONTINUE HERE: ADD CODE FOR GENERATING LATEX CODE AS REQUIRED BY MARKUS'
+    # UPDATED REQUIREMENTS.
     def make_title(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''Other information'''

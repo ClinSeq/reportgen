@@ -193,7 +193,7 @@ Outputs:
                       help = "Language in which the report text will be " + \
                           "generated. One of Swedish or English. Default=[%default]")
     parser.add_option("--fontfamily", dest = "fontfamily",
-                      default = "Roman",
+                      default = "SansSerif",
                       help = "Font in which the report text will be " + \
                           "generated. One of Roman or SansSerif. Default=[%default]")
     parser.add_option("--sansfont", dest = "sansfont",
@@ -206,7 +206,15 @@ Outputs:
                           "Default=[%default]")
     parser.add_option("--margin", dest = "margin",
                       default = "3cm",
-                      help = "Margin size for report. " + \
+                      help = "Top margin size for report. " + \
+                          "Default=[%default]")
+    parser.add_option("--lmargin", dest = "lmargin",
+                      default = "1cm",
+                      help = "Left margin size for report. " + \
+                          "Default=[%default]")
+    parser.add_option("--rmargin", dest = "rmargin",
+                      default = "1cm",
+                      help = "Right margin size for report. " + \
                           "Default=[%default]")
     parser.add_option("--tablepos", dest = "tablepos",
                       default = "left",
@@ -282,7 +290,8 @@ Outputs:
     doc_format = formatting.DocumentFormat(options.checked, options.unchecked,
                                            options.fontfamily, options.fontsize,
                                            options.tablepos, options.language,
-                                           options.margin, options.sansfont,
+                                           options.margin, options.lmargin,
+                                           options.rmargin, options.sansfont,
                                            options.logos)
 
     try:
