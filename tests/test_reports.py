@@ -91,26 +91,28 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         self._kras_alteration3 = genomics.Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "Lys1Asn")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration3)
 
-        self._rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx")
-
     def test_classification_is_same(self):
+        rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
         # FIXME (MAYBE): COULD HAVE THE RIGHT HAND SIDE OF THESE TESTS HARD-CODED INSTEAD OF READ FROM ABOVE.
         # E.g. Test if there are three elements in the first nras gene alteration.
-        self.assertEqual(self._rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
+        self.assertEqual(rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
 
     def test_symbol2classification_is_same(self):
-        self.assertDictEqual(self._rule._gene_symbol2classifications, self._symbol2classifications)
+        rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
+        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     # Test empty input symbol2gene dictionary:
     def test_apply_empty_input(self):
-        test_report = self._rule.apply({})
+        rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
+        test_report = rule.apply()
         expected_outdict = {'NRAS': ['Not mutated', []], 'BRAF': ['Not mutated', []], 'KRAS': ['Not mutated', []]}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test single mutation symbol2gene input dictionary:
     def test_apply_single_mutation_input(self):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_outdict = {'NRAS': ['Not mutated', []],
                             'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
                             'KRAS': ['Not mutated', []]}
@@ -119,7 +121,8 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     # Test multiple genes and multiple mutations symbol2gene input dictionary:
     def test_apply_multiple_mutation_input(self):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation, "KRAS": self._kras_gene_multiple_mutations}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
+        test_report = rule.apply()
 
         expected_outdict = {'NRAS': ['Not mutated', []],
                             'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
