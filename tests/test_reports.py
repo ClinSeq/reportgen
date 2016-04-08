@@ -186,8 +186,6 @@ class TestAlasccaClassRule(unittest.TestCase):
         pik3ca_classification_a = reports.AlterationClassification("PIK3CA", ["missense_variant"], "ENST00000263967", ["542","545","546","1021","1043","1044","1047"], "ALASCCA_CLASS_A")
         self._symbol2classifications = {"IGF2": [igf2_classification], "PTEN": [pten_classification_b_2, pten_classification_b_1, pten_classification_b_1_missense], "PIK3R1": [pik3r1_classification_b_1, pik3r1_classification_b_1_missense], "PIK3CA": [pik3ca_classification_b_1, pik3ca_classification_a]}
 
-        self._rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx")
-
         pten = genomics.Gene("PTEN")
         pten.set_ID("ENSG00000171862")
         self._pten_gene_single_mutation = genomics.AlteredGene(pten)
@@ -247,59 +245,69 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense4)
 
     def test_init(self):
-        self.assertDictEqual(self._rule._gene_symbol2classifications, self._symbol2classifications)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", {})
+        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     def test_apply_single_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pten_not_enough(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation_not_enough}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.NO_MUTN}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift_off(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift_off}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.NO_MUTN}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_double_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_double_mutation}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_missense(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_missense}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_b(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense1}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_a(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense2}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_pik3ca_class_a_test2(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense_a_and_b}
-        test_report = self._rule.apply(input_symbol2gene)
+        rule = reports.AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        test_report = rule.apply()
         expected_output_dict = {reports.AlasccaClassReport.NAME: reports.AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
