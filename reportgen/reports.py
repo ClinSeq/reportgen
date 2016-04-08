@@ -263,7 +263,7 @@ class AlasccaReport(GenomicReport):
         # Extract genomics features from the report json object...
         self._alascca_class_report = extract_feature(genomics_dict, AlasccaClassReport)
         self._somatic_mutations_report = extract_feature(genomics_dict, SimpleSomaticMutationsReport)
-        #self._msi_report = extract_feature(genomics_dict, MsiReport)
+        self._msi_report = extract_feature(genomics_dict, MsiReport)
 
         # Note: The section with the metadata is generated separately, not
         # here.
@@ -292,18 +292,32 @@ class AlasccaReport(GenomicReport):
         #msi_latex = self._msi_report.make_latex(self._doc_format)
         report_legend_latex = self._report_legend.make_latex(self._doc_format)
 
-        # FIXME: This is getting a bit hacky (adding mybox):
+        # FIXME: This is getting a bit hacky (adding mybox and other such things here):
         return title_latex + \
             dates_latex + \
             "\n\\begin{mybox}\n" + \
-            alascca_title_latex + \
             alascca_class_latex + \
             "\n\\end{mybox}\n" + \
             clinseq_title_latex + \
+            "\n$\\begin{array}{p{10cm} {p5cm}}\n" + \
             somatic_mutations_latex + \
+            "&" + \
+            "test" + \
+            "\\end{array}$" + \
             report_legend_latex
+            # Taking the main alascca title out as it doesn't add anything:
+            #alascca_title_latex + \
             #msi_latex + \
 
+'''$\\begin{array}{ p{1cm} p{10cm} }
+  \\toprule
+  \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
+  \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
+  \\tabularnewline
+  \\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\tabularnewline
+  \\includegraphics{%s} & Ej utförd/Ej bedömbar, patienten kan \emph{ej} randomiseras \\tabularnewline
+  \\bottomrule
+\\end{array}$'''
 
 class ReportFeature(object):
     '''
@@ -499,6 +513,10 @@ class AlasccaClassReport(ReportFeature):
     def get_name():
         return "ALASSCA Class Report"
 
+    def set_class(self, pathway_class):
+        assert pathway_class in self.VALID_STRINGS
+        self._pathway_class = pathway_class
+
     def to_dict(self):
         return {self.NAME:self._pathway_class}
 
@@ -538,7 +556,8 @@ class AlasccaClassReport(ReportFeature):
 ''' % (class_a_box, class_b_box, no_mutations_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''$\\begin{array}{ p{1cm} p{10cm} }
+            return u'''\\begin{center}
+$\\begin{array}{ p{1cm} p{10cm} }
   \\toprule
   \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
   \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
@@ -547,6 +566,7 @@ class AlasccaClassReport(ReportFeature):
   \\includegraphics{%s} & Ej utförd/Ej bedömbar, patienten kan \emph{ej} randomiseras \\tabularnewline
   \\bottomrule
 \\end{array}$
+\\end{center}
 ''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
 
 
@@ -559,8 +579,20 @@ class MsiReport(ReportFeature):
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
+    NAME = "Msi Report"
+
     def __init__(self, msi_status_string):
         self._msi_status = msi_status_string
+
+    def to_dict(self):
+        return {self.NAME:self._msi_status}
+
+    def set_from_dict(self, input_dict):
+        msi_status = input_dict[self.NAME]
+        self._msi_status = msi_status
+
+    def get_name(self):
+        return self.NAME
 
     def make_title(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
@@ -808,21 +840,30 @@ class ReportLegend(ReportFeature):
             return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
 
 
-# XXX IMPLEMENT THIS:
 class MsiStatusRule:
     '''A rule for generating an MSI status class.'''
 
-    # FIXME: Still need to generate exact algorithm for the constructor and
-    # the apply() method. It should be fairly straightforward now though. See
-    # SimpleSomaticMutationsRule as a template.
+    def __init__(self, msi_status):
+        self.msi_status = msi_status
 
-    # FIXME: We need to agree on the format of the input file and parameter file.
+    def apply(self):
+        # FIXME: At some point I need to make these thresholds settable
+        # somewhere. Currently hard-coding them here.
 
-    def __init__(self, excel_spreadsheet, symbol2gene):
-        pass
+        min_total_sites = 50
 
-    def apply(self, excel_spreadsheet):
-        pass
+        percent_msi_h = 5
+
+        status_string = None
+        if self.msi_status.get_total() < min_total_sites:
+            status_string = MsiReport.NOT_DETERMINED
+        else:
+            if self.msi_status.get_percent() > percent_msi_h:
+                status_string = MsiReport.MSI
+            else:
+                status_string = MsiReport.MSS
+
+        return MsiReport(status_string)
 
 
 class AlasccaClassRule:
@@ -840,13 +881,15 @@ class AlasccaClassRule:
     # the apply() method. It should be fairly straightforward now though. See
     # SimpleSomaticMutationsRule as a template.
 
-    def __init__(self, excel_spreadsheet):
+    def __init__(self, excel_spreadsheet, symbol2gene):
         self._gene_symbol2classifications = parse_mutation_table(excel_spreadsheet)
+
+        self._symbol2gene = symbol2gene
 
     # FIXME: It is currently unclear when we should be calling
     # "not determined".
 
-    def apply(self, symbol2gene):
+    def apply(self):
         # If there is one or more genes with at least one class A alteration,
         # then call class A. Otherwise, if there is one or more genes with at
         # least one class B_1 mutation, then call class B. Otherwise, if there
@@ -864,8 +907,8 @@ class AlasccaClassRule:
             # Find all mutations matching this gene's rules:
             alterations = []
             gene = None
-            if symbol2gene.has_key(symbol):
-                gene = symbol2gene[symbol]
+            if self._symbol2gene.has_key(symbol):
+                gene = self._symbol2gene[symbol]
                 alterations = gene.get_alterations()
 
             for alteration in alterations:
@@ -878,14 +921,22 @@ class AlasccaClassRule:
                         flag_instances[flag] = flag_instances[flag] + 1
 
         # Apply logic based on numbers of flag instances:
+        report = AlasccaClassReport()
         if flag_instances[self.CLASS_A] > 0:
-            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_A)
+            alasccaClass = AlasccaClassReport.MUTN_CLASS_A
         elif flag_instances[self.CLASS_B_1] > 0:
-            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_B)
+            alasccaClass = AlasccaClassReport.MUTN_CLASS_B
         elif flag_instances[self.CLASS_B_2] >= 2:
-            return AlasccaClassReport(AlasccaClassReport.MUTN_CLASS_B)
+            alasccaClass = AlasccaClassReport.MUTN_CLASS_B
         else:
-            return AlasccaClassReport(AlasccaClassReport.NO_MUTN)
+            alasccaClass = AlasccaClassReport.NO_MUTN
+
+        # FIXME/NOTE: Currently there is no way of setting it to "not
+        # determined". We need to figure out how/when to define this
+        # and then we will need to adapt this and other code accordingly.
+
+        report.set_class(alasccaClass)
+        return report
 
 
 def parse_mutation_table(spreadsheet_filename):
@@ -946,7 +997,7 @@ class SimpleSomaticMutationsRule:
     of interest and how they should be flagged, and these rules then get applied
     to a set of gene mutations by an instance of this class.'''
 
-    def __init__(self, excel_spreadsheet):
+    def __init__(self, excel_spreadsheet, symbol2gene):
         # FIXME: Somewhere, we need to have an exact specification of the structure
         # of the excel spreadsheet specifying rules. Writing this down here for
         # the time being.
@@ -972,7 +1023,9 @@ class SimpleSomaticMutationsRule:
         # facilitate matching mutations to rules:
         self._gene_symbol2classifications = parse_mutation_table(excel_spreadsheet)
 
-    def apply(self, symbol2gene):
+        self._symbol2gene = symbol2gene
+
+    def apply(self):
         '''Generates a new SimpleSomaticMutationsReport object, summarising all
         somatic mutations of interest observed in the specified gene
         mutations.'''
@@ -987,8 +1040,8 @@ class SimpleSomaticMutationsRule:
 
             # Find all mutations matching this gene's rules:
             alterations = []
-            if symbol2gene.has_key(symbol):
-                gene = symbol2gene[symbol]
+            if self._symbol2gene.has_key(symbol):
+                gene = self._symbol2gene[symbol]
                 alterations = gene.get_alterations()
 
             for alteration in alterations:
@@ -1018,11 +1071,11 @@ class ReportCompiler:
         # by applying the rules:
         self._name2feature = {}
 
-    def extract_features(self, symbol2altered_gene):
+    def extract_features(self):
         # Apply each rule, generating a corresponding report feature, which is
         # then stored in this object:
         for curr_rule in self._rules:
-            curr_feature = curr_rule.apply(symbol2altered_gene)
+            curr_feature = curr_rule.apply()
 
             # Store the current feature under this feature's name:
             self._name2feature[curr_feature.get_name()] = curr_feature

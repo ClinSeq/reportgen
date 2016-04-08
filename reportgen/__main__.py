@@ -101,10 +101,11 @@ def compileAlasccaGenomicReport():
     # Parse the command-line arguments...
     # FIXME: Need to add msi file input too once we've decided on the format for this information.
     # FIXME: ADD MORE PRECISE DESCRIPTION of CNV file ONCE WE HAVE AGREED ON THE FILE FORMAT
-    description = """usage: %prog [options] <vcfFile> <cnvFile> <crcMutationRules> <alasscaMutationRules>\n
+    description = """usage: %prog [options] <vcfFile> <cnvFile> <msiFile> <crcMutationRules> <alasscaMutationRules>\n
 Inputs:
 - VCF file specifying somatic mutations
-- Text file specifying CNVs.
+- Text file specifying CNVs
+- Text file specifying MSI information
 - Excel spreadsheet specifying rules regarding how to report colorectal cancer mutations
 - Excel spreadsheet specifying rules regarding how to report ALASSCA class
 
@@ -127,7 +128,7 @@ of this file's format.
         pdb.set_trace()
 
     # Make sure the required input arguments exist:
-    if (len(args) != 4):
+    if (len(args) != 5):
         print >> sys.stderr, "WRONG # ARGS: ", len(args)
         parser.print_help()
         sys.exit(1)
@@ -136,6 +137,7 @@ of this file's format.
     # files. Need to implement this.
     vcf_file = open(args[0])
     cnv_file = open(args[1])
+    msi_file = open(args[2])
 
     # Generate a dictionary of AlteredGene objects from the input files:
     alteration_extractor = genomics.AlterationExtractor()
@@ -145,21 +147,33 @@ of this file's format.
 
     symbol2altered_gene = alteration_extractor.to_dict()
 
-    crc_mutations_spreadsheet = args[2]
-    alascca_class_spreadsheet = args[3]
+    # Extract msi status from an input file too:
+    msi_status = genomics.MSIStatus()
+    msi_status.set_from_file(msi_file)
+
+    crc_mutations_spreadsheet = args[3]
+    alascca_class_spreadsheet = args[4]
+
+    # FIXME/ISSUE:
+    # It seems like we should be passing the genomic features to the rule
+    # objects when we call ".apply()", and not when we create the actual
+    # rule objects. The trouble with this is that another object then
+    # needs to keep track of what object should be passed to which rule.
+    # Currently, I'll implement it such that the Rule objects are passed
+    # the relevant information they need when they are created, so that
+    # their ".apply()" methods then accept no arguments.
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet)
-    alasccaRule = reports.AlasccaClassRule(alascca_class_spreadsheet)
-
-    # Extract msiInfo from an input file too:
-    #msiInfo = None # FIXME: This could be some kind of filename where msi rules are specified, if needed.
-    #msiRule = reports.MsiStatusRule(msiInfo)
+    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
+                                                       symbol2altered_gene)
+    alasccaRule = reports.AlasccaClassRule(alascca_class_spreadsheet,
+                                           symbol2altered_gene)
+    msiRule = reports.MsiStatusRule(msi_status)
 
     # FIXME: Add msiRule here when we're ready to run it:
-    report_compiler = reports.ReportCompiler([mutationsRule, alasccaRule]) #msiRule,
-    report_compiler.extract_features(symbol2altered_gene)
+    report_compiler = reports.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+    report_compiler.extract_features()
 
     # Set output file according to options:
     json_output_file = open(options.output_file, 'w')
