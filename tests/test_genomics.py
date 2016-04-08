@@ -53,11 +53,24 @@ class TestAlterationExtractor(unittest.TestCase):
         self.assertDictEqual(dict, expected_dict, dict)
 
 
+class TestMSIStatus(unittest.TestCase):
+    def setUp(self):
+        pass
 
+    def test_set_from_file_test_percent(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._percent == 72.60)
 
+    def test_set_from_file_test_somatic_sites(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._somatic_sites == 53)
 
-
-
+    def test_set_from_file_test_total_sites(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._total_sites == 73)
 
 
 
