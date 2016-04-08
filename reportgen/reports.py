@@ -579,7 +579,7 @@ class MsiReport(ReportFeature):
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
-    NAME = "Msi Report"
+    NAME = "MSI Status"
 
     def __init__(self, msi_status_string):
         self._msi_status = msi_status_string
@@ -595,7 +595,7 @@ class MsiReport(ReportFeature):
         return self._msi_status
 
     def get_name(self):
-        return self.NAME
+        return "MSI Report"
 
     def make_title(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
