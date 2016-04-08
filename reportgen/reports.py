@@ -591,6 +591,9 @@ class MsiReport(ReportFeature):
         msi_status = input_dict[self.NAME]
         self._msi_status = msi_status
 
+    def get_status(self):
+        return self._msi_status
+
     def get_name(self):
         return self.NAME
 

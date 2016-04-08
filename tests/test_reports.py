@@ -328,9 +328,30 @@ class TestReportCompiler(unittest.TestCase):
         self.assertEqual({}, compiler.to_dict())
 
 
+class TestMsiStatusRule(unittest.TestCase):
+    def setUp(self):
+        pass
 
+    def test_apply_high(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        rule = reports.MsiStatusRule(msi_status)
+        msi_report = rule.apply()
+        self.assertEqual(msi_report.get_status(), reports.MsiReport.MSI)
 
+    def test_apply_low(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_low_eg.txt"))
+        rule = reports.MsiStatusRule(msi_status)
+        msi_report = rule.apply()
+        self.assertEqual(msi_report.get_status(), reports.MsiReport.MSS)
 
+    def test_apply_not_determined(self):
+        msi_status = genomics.MSIStatus()
+        msi_status.set_from_file(open("tests/msi_not_determined_eg.txt"))
+        rule = reports.MsiStatusRule(msi_status)
+        msi_report = rule.apply()
+        self.assertEqual(msi_report.get_status(), reports.MsiReport.NOT_DETERMINED)
 
 
 

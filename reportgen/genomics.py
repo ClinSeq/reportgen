@@ -183,7 +183,14 @@ class MSIStatus:
         self._somatic_sites = vals[1]
         self._percent = vals[2]
 
+    def get_total(self):
+        return self._total_sites
 
+    def get_num_somatic(self):
+        return self._somatic_sites
+
+    def get_percent(self):
+        return self._percent
 
 
 
