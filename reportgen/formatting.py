@@ -16,8 +16,8 @@ class DocumentFormat(object):
     SWEDISH = "Swedish"
 
     def __init__(self, checked, unchecked, fontfamily="Roman", fontsize="10pt",
-                 tablepos="left", language="Swedish", margin="4cm",
-                 sans_font_default="phv", logos=""):
+                 tablepos="left", language="Swedish", margin="3cm", lmargin="1cm",
+                 rmargin="1cm", sans_font_default="phv", logos=""):
         '''
         Raises a ValueError if any of the specified option values are invalid.
 
@@ -49,6 +49,8 @@ class DocumentFormat(object):
             raise ValueError("Invalid language for DocumenFormat: " + language)
         self._language = language
         self._margin = margin
+        self._lmargin = lmargin
+        self._rmargin = rmargin
         self._sans_font_default = sans_font_default
         self._logo_files = logos.split(",")
 
@@ -73,6 +75,12 @@ class DocumentFormat(object):
     def get_margin(self):
         return self._margin
 
+    def get_lmargin(self):
+        return self._lmargin
+
+    def get_rmargin(self):
+        return self._rmargin
+
     def get_sans_font_default(self):
         return self._sans_font_default
 
@@ -82,27 +90,32 @@ class DocumentFormat(object):
     def make_latex(self):
         return u'''\\documentclass[%s]{article}
 \\usepackage{booktabs}
-\\usepackage[margin=%s]{geometry}
+\\usepackage[margin=%s,lmargin=%s,rmargin=%s]{geometry}
 \\usepackage[utf8]{inputenc}
 \\usepackage{graphicx}
 \\usepackage{changepage}
 \\usepackage{fancyhdr}
+\\usepackage[framemethod=tikz]{mdframed}
+
+\\definecolor{mycolor}{rgb}{0.122, 0.435, 0.698}
+\\newmdenv[innerlinewidth=0.5pt, roundcorner=4pt,linecolor=mycolor,innerleftmargin=6pt,
+innerrightmargin=6pt,innertopmargin=6pt,innerbottommargin=6pt]{mybox}
 
 \\pagestyle{fancy}
 
 \\renewcommand*{\\familydefault}{%s}
 \\renewcommand{\sfdefault}{%s}
-''' % (self.get_fontsize(), self.get_margin(), self.get_fontfamily(), self.get_sans_font_default())
+''' % (self.get_fontsize(), self.get_margin(), self.get_lmargin(), self.get_rmargin(), self.get_fontfamily(), self.get_sans_font_default())
 
     def make_footer_latex(self):
         '''\includegraphics[width=50mm]{/Users/thowhi/reportgen/ki-logo_cmyk_5.png} & \includegraphics[width=50mm]{/Users/thowhi/reportgen/ALASCCA_logo.png}'''
         format_string = " c " * len(self.get_logo_files())
-        toks = ["\includegraphics[width=50mm]{" + filename + "}" for filename in self.get_logo_files()]
+        toks = ["\includegraphics[width=35mm]{" + filename + "}" for filename in self.get_logo_files()]
         contents_string = " & ".join(toks)
         return u'''
 \\fancyhf{}
 \\renewcommand{\headrulewidth}{0pt}
-\\fancyfoot[C]{
+\\fancyhead[L]{
   \\begin{tabular}[t]{ %s }
     %s \\tabularnewline
   \\end{tabular}
