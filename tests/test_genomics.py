@@ -1,25 +1,26 @@
 import unittest
-from reportgen import genomics
+
+from reportgen.rules.general import AlterationExtractor, Gene, AlteredGene, Alteration, MSIStatus
 
 
 class TestAlterationExtractor(unittest.TestCase):
     _extractor = None
 
     def setUp(self):
-        self._extractor = genomics.AlterationExtractor()
+        self._extractor = AlterationExtractor()
 
-        nras = genomics.Gene("NRAS")
+        nras = Gene("NRAS")
         nras.set_ID("ENSG00000213281")
-        self._nras_gene = genomics.AlteredGene(nras)
-        test_alteration1 = genomics.Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "Gln61His")
+        self._nras_gene = AlteredGene(nras)
+        test_alteration1 = Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "Gln61His")
         self._nras_gene.add_alteration(test_alteration1)
 
-        kras = genomics.Gene("KRAS")
+        kras = Gene("KRAS")
         kras.set_ID("ENSG00000133703")
-        self._kras_gene = genomics.AlteredGene(kras)
-        test_alteration2 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
+        self._kras_gene = AlteredGene(kras)
+        test_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
         self._kras_gene.add_alteration(test_alteration2)
-        test_alteration3 = genomics.Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys117Asn")
+        test_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys117Asn")
         self._kras_gene.add_alteration(test_alteration3)
 
     def test_gene(self):
@@ -58,17 +59,17 @@ class TestMSIStatus(unittest.TestCase):
         pass
 
     def test_set_from_file_test_percent(self):
-        msi_status = genomics.MSIStatus()
+        msi_status = MSIStatus()
         msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(msi_status._percent == 72.60)
 
     def test_set_from_file_test_somatic_sites(self):
-        msi_status = genomics.MSIStatus()
+        msi_status = MSIStatus()
         msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(msi_status._somatic_sites == 53)
 
     def test_set_from_file_test_total_sites(self):
-        msi_status = genomics.MSIStatus()
+        msi_status = MSIStatus()
         msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(msi_status._total_sites == 73)
 
