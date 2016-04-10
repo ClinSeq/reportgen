@@ -6,8 +6,14 @@ Created on Dec 1, 2015
 
 import json, os, pdb, subprocess, sys, tempfile
 from optparse import OptionParser
-import genomics
-import reports
+
+import reportgen.reporting.genomics
+import reportgen.reporting.util
+from reportgen.rules.general import AlterationExtractor, MSIStatus
+
+import reportgen.rules.alascca
+import reportgen.rules.msi
+import reportgen.rules.simple_somatic_mutations
 import formatting
 
 
@@ -57,12 +63,12 @@ hard-coded.
 
     # Check the input IDs:
     blood_sample_ID = args[0]
-    if not reports.id_valid(blood_sample_ID):
+    if not reportgen.reporting.util.id_valid(blood_sample_ID):
         print >> sys.stderr, "Invalid blood sample ID:", blood_sample_ID
         sys.exit(1)
 
     tumor_sample_ID = args[1]
-    if not reports.id_valid(tumor_sample_ID):
+    if not reportgen.reporting.util.id_valid(tumor_sample_ID):
         print >> sys.stderr, "Invalid tumor sample ID:", tumor_sample_ID
         sys.exit(1)
 
@@ -76,7 +82,7 @@ hard-coded.
                              options.db_config_file + "."
         sys.exit(1)
 
-    connection = reports.connect_clinseq_db(config_dict)
+    connection = reportgen.reporting.util.connect_clinseq_db(config_dict)
 
     # Open the output file:
     output_file = None
@@ -87,7 +93,7 @@ hard-coded.
                              options.output_file + "."
         sys.exit(1)
 
-    reportMetadata = reports.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID, connection)
+    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID, connection)
 
     # Output the report to a dictionary and write that dictionary to a JSON
     # file:
@@ -140,7 +146,7 @@ of this file's format.
     msi_file = open(args[2])
 
     # Generate a dictionary of AlteredGene objects from the input files:
-    alteration_extractor = genomics.AlterationExtractor()
+    alteration_extractor = AlterationExtractor()
     alteration_extractor.extract_mutations(vcf_file)
     # FIXME: Add cnv_file cnv extraction later:
     #alteration_extractor.extract_cnvs(cnv_file)
@@ -148,7 +154,7 @@ of this file's format.
     symbol2altered_gene = alteration_extractor.to_dict()
 
     # Extract msi status from an input file too:
-    msi_status = genomics.MSIStatus()
+    msi_status = MSIStatus()
     msi_status.set_from_file(msi_file)
 
     crc_mutations_spreadsheet = args[3]
@@ -165,14 +171,13 @@ of this file's format.
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reports.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
-                                                       symbol2altered_gene)
-    alasccaRule = reports.AlasccaClassRule(alascca_class_spreadsheet,
-                                           symbol2altered_gene)
-    msiRule = reports.MsiStatusRule(msi_status)
+    mutationsRule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
+                                                                                        symbol2altered_gene)
+    alasccaRule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
+                                                           symbol2altered_gene)
+    msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    # FIXME: Add msiRule here when we're ready to run it:
-    report_compiler = reports.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+    report_compiler = reportgen.reporting.util.ReportCompiler([mutationsRule, alasccaRule, msiRule])
     report_compiler.extract_features()
 
     # Set output file according to options:
@@ -284,20 +289,20 @@ Outputs:
         print >> sys.stderr, "ERROR: Could not open genomic status report file, " + report_json_filename + "."
         print >> sys.stderr, e
         sys.exit(1)
-    
+
     # Try to parse the input files and exit with error if they cannot be parsed:
     # FIXME: Not sure what type of exception is raised upon a parsing error in json.load
     try:
         meta_json = json.load(meta_json_file)
     except ValueError, e:
-        print >> sys.stderr, "ERROR: Problem parsing metadata file, " + meta_json_filename + "." 
+        print >> sys.stderr, "ERROR: Problem parsing metadata file, " + meta_json_filename + "."
         print >> sys.stderr, e
         sys.exit(1)
 
     try:
         report_json = json.load(report_json_file)
     except ValueError, e:
-        print >> sys.stderr, "ERROR: Problem parsing genomic status report file, " + report_json_filename + "." 
+        print >> sys.stderr, "ERROR: Problem parsing genomic status report file, " + report_json_filename + "."
         print >> sys.stderr, e
         sys.exit(1)
 
@@ -309,12 +314,12 @@ Outputs:
                                            options.logos)
 
     try:
-        alascca_report = reports.AlasccaReport(report_json, meta_json, doc_format)
+        alascca_report = reportgen.reporting.genomics.AlasccaReport(report_json, meta_json, doc_format)
     except ValueError, e:
         print >> sys.stderr, "ERROR: Invalid report."
         print >> sys.stderr, e
         sys.exit(1)
-    
+
     # Generate a string of latex code representing the report:
     report_latex_string = alascca_report.make_latex()
 
@@ -332,7 +337,7 @@ Outputs:
     # Delete the temporary latex file unless told to retain it in the command line options:
     #if not options.keep_latex:
     #    subprocess.call(["rm", tmp_latex_filename])
-    
+
     if call_result != 0:
         print >> sys.stderr, "ERROR: pdflatex conversion failed."
         sys.exit(1)
