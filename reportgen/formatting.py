@@ -119,18 +119,15 @@ class DocumentFormat(object):
     # allowing these to be flexible as I had originally planned. I think this
     # is necessary in order to achieve the required document appearance.
 
-    def make_footer_latex(self):
+    def make_logos_latex(self):
         '''\includegraphics[width=50mm]{/Users/thowhi/reportgen/ki-logo_cmyk_5.png} & \includegraphics[width=50mm]{/Users/thowhi/reportgen/ALASCCA_logo.png}'''
         format_string = " c " * len(self.get_logo_files())
         toks = ["\includegraphics[width=35mm]{" + filename + "}" for filename in self.get_logo_files()]
         contents_string = " & ".join(toks)
         return u'''
-\\fancyhf{}
-\\renewcommand{\headrulewidth}{0pt}
-\\fancyhead[L]{
-  \\begin{tabular}[t]{ %s }
+\\begin{tabular}[t]{ %s }
     %s \\tabularnewline
-  \\end{tabular}
+\\end{tabular}
 }
 ''' % (format_string, contents_string)
 

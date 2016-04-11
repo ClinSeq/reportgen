@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re
-
-import openpyxl
+import pdb, re
+import openpyxl, pyodbc
 
 from reportgen.reporting.metadata import ReportMetadata
 from reportgen.rules.general import AlterationClassification
@@ -40,8 +39,9 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection):
 
     cursor = connection.cursor()
 
-    query1 = '''SELECT pnr, collection_date FROM
-clinseqalascca.bloodref where sampleid = '%s' ''' % blood_sample_ID
+    query1 = '''SELECT pnr, crid, collection_date FROM
+clinseqalascca.bloodref where barcode1 = '%s' or barcode2 = '%s' or barcode3 = '%s' ''' % \
+             (blood_sample_ID, blood_sample_ID, blood_sample_ID)
 
     cursor.execute(query1)
     matching_rows = cursor.fetchall()
@@ -50,12 +50,10 @@ clinseqalascca.bloodref where sampleid = '%s' ''' % blood_sample_ID
         raise ValueError("Blood sample ID does not yield a single unique entry: "
                          + blood_sample_ID)
 
-    (blood_pnr, blood_date) = tuple(matching_rows[0])
+    (blood_pnr, blood_referral_ID, blood_date) = tuple(matching_rows[0])
 
-    query2 = '''SELECT pnr, collection_date FROM
-clinseqalascca.tissueref where sampleid_1 = '%s' or sampleid_2 = '%s' or
-sampleid_3 = '%s' or sampleid_4 = '%s' or sampleid_5 = '%s' or sampleid_6 =
-'%s' or sampleid_7 = '%s' or sampleid_8 = '%s' ''' % tuple([tissue_sample_ID] * 8)
+    query2 = '''SELECT pnr, crid, collection_date FROM
+clinseqalascca.tissueref where barcode1 = '%s' or barcode2 = '%s' ''' % (tissue_sample_ID, tissue_sample_ID)
 
     cursor.execute(query2)
     matching_rows = cursor.fetchall()
@@ -64,7 +62,7 @@ sampleid_3 = '%s' or sampleid_4 = '%s' or sampleid_5 = '%s' or sampleid_6 =
         raise ValueError("Tissue sample ID does not yield a single unique entry: "
                          + tissue_sample_ID)
 
-    (tissue_pnr, tissue_date) = tuple(matching_rows[0])
+    (tissue_pnr, tissue_referral_ID, tissue_date) = tuple(matching_rows[0])
 
     # Do a sanity check that the personnnummer is the same from both the blood
     # and tumor ID. Exit and report an error if this is not the case:
@@ -80,8 +78,10 @@ sampleid_3 = '%s' or sampleid_4 = '%s' or sampleid_5 = '%s' or sampleid_6 =
     output_metadata = ReportMetadata()
     output_metadata.set_pnr(blood_pnr)
     output_metadata.set_blood_sample_ID(blood_sample_ID)
+    output_metadata.set_blood_referral_ID(blood_referral_ID)
     output_metadata.set_blood_sample_date(blood_date_str)
     output_metadata.set_tumor_sample_ID(tissue_sample_ID)
+    output_metadata.set_tumor_referral_ID(blood_referral_ID)
     output_metadata.set_tumor_sample_date(tumor_date_str)
 
     return output_metadata

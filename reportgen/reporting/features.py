@@ -39,9 +39,12 @@ class DatesReport(ReportFeature):
     '''
 
     def __init__(self, blood_sample_id, tumor_sample_id,
-                 blood_sample_date, tumor_sample_date):
+                 blood_sample_date, tumor_sample_date,
+                 blood_referral_id, tumor_referral_id):
         self._blood_sample_id = blood_sample_date
         self._tumor_sample_id = tumor_sample_id
+        self._blood_referral_id = blood_referral_id
+        self._tumor_referral_id = tumor_referral_id
         self._blood_sample_date = blood_sample_date
         self._tumor_sample_date = tumor_sample_date
 
@@ -55,9 +58,10 @@ class DatesReport(ReportFeature):
                 self._tumor_sample_id, self._tumor_sample_date)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Analys genomförd för blodprov %s taget %s och tumörprov %s taget %s''' % \
-                (self._blood_sample_id, self._blood_sample_date,
-                self._tumor_sample_id, self._tumor_sample_date)
+            return u'''Blodprov taget %s, remiss-ID %s, etikett %s \\\\
+Tumörprov taget %s, remiss-ID %s, etikett %s \\\\''' % \
+                   (self._blood_sample_date, self._blood_referral_id, self._blood_sample_id,
+                    self._tumor_sample_date, self._tumor_referral_id, self._tumor_sample_id)
 
 
 class AlasccaClassReport(ReportFeature):
@@ -122,18 +126,13 @@ class AlasccaClassReport(ReportFeature):
 ''' % (class_a_box, class_b_box, no_mutations_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''\\begin{center}
-$\\begin{array}{ p{1cm} p{10cm} }
-  \\toprule
-  \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
-  \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
-  \\tabularnewline
-  \\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\tabularnewline
-  \\includegraphics{%s} & Ej utförd/Ej bedömbar, patienten kan \emph{ej} randomiseras \\tabularnewline
-  \\bottomrule
-\\end{array}$
-\\end{center}
-''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
+            return u'''\\begin{tabular}{l l}
+\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Mutationsklass A, patienten kan randomiseras \\\\
+\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Mutationsklass B, patienten kan randomiseras \\\\
+& \\\\
+\\includegraphics{./reportgen/rsz_checked_checkbox.png} & Inga mutationer, patienten kan \emph{ej} randomiseras \\\\
+\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Ej utförd/ej bedömbar, patienten kan \emph{ej} randomiseras \\\\
+\\end{tabular}''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
 
 
 class MsiReport(ReportFeature):
@@ -192,14 +191,11 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''$\\begin{array}{ p{1cm} p{3cm} }
-  \\toprule
-  \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
-  \\includegraphics{%s} & MSI-H \\tabularnewline
-  \\includegraphics{%s} & Ej utförd \\tabularnewline
-  \\bottomrule
-\\end{array}$
-''' % (mss_box, msi_box, not_determined_box)
+            return u'''  \begin{tabular}{l | l}
+MSI-H\textsuperscript{1} & \includegraphics{%s} \\
+MSS/MSI-L\textsuperscript{2} & \includegraphics{%s} \\
+Ej bedömbar & \includegraphics{%s} \\
+  \end{tabular}''' % (mss_box, msi_box, not_determined_box)
 
 
 class SimpleSomaticMutationsReport(ReportFeature):
@@ -261,17 +257,12 @@ class SimpleSomaticMutationsReport(ReportFeature):
             return u'''Övriga mutationer'''
 
     def make_content_body(self, doc_format):
-        body_string = u'''$\\begin{array}{ p{2cm} p{2cm} p{2cm} p{2cm} p{2cm} }
-  \\toprule
+        body_string = u'''  \\begin{tabular}{l | l | l | l | l}
   '''
-        if doc_format.get_language() == doc_format.ENGLISH:
-            body_string = body_string + u'''Gene & Mut. & No mut. & Not Det. & Comments \\tabularnewline
-  \\midrule
-'''
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            body_string = body_string + u'''Gene & Mut. & Ej mut. & Ej utförd & Kommentar \\tabularnewline
-  \\midrule
+        assert doc_format.get_language() == doc_format.SWEDISH
+        body_string = body_string + u'''Gen & Mutation & Ej mutation & Ej bedömbar & Kommentar \\tabularnewline
+\arrayrulecolor{grey}\hline
+\arrayrulecolor{grey}\hline
 '''
         for gene in self._symbol2mutation_status.keys():
             # Set up box image paths and comments string:
@@ -292,13 +283,11 @@ class SimpleSomaticMutationsReport(ReportFeature):
                 not_det_box = doc_format.get_checked_checkbox()
 
             # Add a row for the current gene:
-            body_string = body_string + u'''%s & \\includegraphics{%s} & \\includegraphics{%s} & \\includegraphics{%s} & %s \\tabularnewline
-''' % (gene, mut_box, no_mut_box, not_det_box, comments)
+            body_string = body_string + u'''\\textit{%s}\\textsuperscript{3} &
+            \\includegraphics{%s} &
+            \\includegraphics{%s} &
+            \\includegraphics{%s} & %s \\\\''' % (gene, mut_box, no_mut_box, not_det_box, comments)
 
-        body_string = body_string + u'''
-  \\bottomrule
-\\end{array}$
-'''
         return body_string
 
 
@@ -355,8 +344,24 @@ class ReportLegend(ReportFeature):
 
     def make_content_body(self, doc_format):
         # FIXME: Need to double-check these texts:
-        if doc_format.get_language() == doc_format.ENGLISH:
-            return u'''Mutations examined are BRAF codon 600, KRAS exon 2-4 and NRAS codons 12, 13, 59, 61, 117 and 146.'''
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Mutationer som undersöks är BRAF kodon 600, KRAS exon 2-4 samt för NRAS 12, 13, 59, 61, 117 och 146.'''
+        assert doc_format.get_language() == doc_format.SWEDISH
+        return u'''\\textbf{Tolkning} \\par
+{\\small
+Tilläggsinformationen från ClinSeq-panelen är av potentiellt klinisk betydelse. Analyserna är utförda på forskningsbasis med en för forskning validerad men inte kliniskt ackrediterad metod. För tolkningsstöd se nedan. \\\\
+
+\\textbf{Mikrosatellitinstabilitet (MSI)}\\\\
+\\textbf{\\textsuperscript{1} MSI-H (MSI-high):} Tumören uppvisar höggradig mikrosatellitinstabilitet, vilket innebär inaktivering av DNA mismatch-reparation. MSI-H kan orsakas av förvärvade (somatiska) eller medfödda (ärftliga) genetiska förändringar. \\\\
+\\textbf{\\textsuperscript{2} MSS/MSI-L (MSI-low):} Tumören uppvisar mikrosatellitstabilitet eller visar MSI för enstaka markörer. \\\\
+
+\\textbf{Kliniska situationer där MSI kan ha betydelse}\\\\
+Tumörer med MSI-H i stadium II har en god prognos med lägre recidivrisk än tumörer med MSS/MSI-L. Fyndet bör vägas in i beslut om adjuvant cytostatikabehandling enligt nationellt vårdprogram. Vid fynd av MSI-H utan samtidig \\textit{BRAF}-mutation (se nedan) bör familjeanamnes göras och ställningstagande till vidare onkogenetisk utredning tas. Syftet med en onkogenetisk utredning är att identifiera familjer med ärftlig kolorektalcancer. I dessa familjer skall särskilda kontrollprogram erbjudas för familjemedlemmar med ökad risk. \\\\
+
+\\textbf{Aktiverande mutationer i \\textit{BRAF}, \\textit{KRAS} och \\textit{NRAS}}\\\\
+\\textbf{\\textsuperscript{3} För \\textit{BRAF}} rapporteras den mutation som med nuvarande kunskap betraktas som aktiverande (V600E). Tumörer med denna \\textit{BRAF}-mutation är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\textit{BRAF}-mutation är vid avancerade tumörer (stadium IV) en negativ prognostisk faktor. \\\\
+\\textbf{\\textsuperscript{4} För \\textit{KRAS} och \\textit{NRAS}} rapporteras de mutationer som med nuvarande kunskap betraktas som aktiverande (kodon 12, 13, 59, 61, 117 och 146). Tumörer med dessa \\textit{KRAS}/\\textit{NRAS}-mutationer är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\\\
+
+\\textbf{Kontakt}\\\\
+Frågor om analysmetoden i ALASCCA-studien kan skickas till ALASCCA@meb.ki.se
+}
+\\par
+'''

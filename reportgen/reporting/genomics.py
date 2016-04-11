@@ -108,9 +108,7 @@ class AlasccaReport(GenomicReport):
 \\onehalfspacing
 {''' + \
             dates_latex + \
-            '''Blodprov taget 2016-01-01, remiss-ID 98765432, etikett 12345678 \\\\
-Tumörprov taget 2016-01-02, remiss-ID 14253647, etikett 34567890 \\\\
-}
+            '''}
 \\par
 \singlespacing
 
