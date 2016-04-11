@@ -88,24 +88,36 @@ class DocumentFormat(object):
         return self._logo_files
 
     def make_latex(self):
-        return u'''\\documentclass[%s]{article}
+        return u'''\\documentclass[10pt]{article}
+\\usepackage[table]{xcolor}
 \\usepackage{booktabs}
-\\usepackage[margin=%s,lmargin=%s,rmargin=%s]{geometry}
+\\usepackage[top=0.75cm,lmargin=1cm,rmargin=1cm,bottom=1cm]{geometry}
 \\usepackage[utf8]{inputenc}
 \\usepackage{graphicx}
+\\usepackage{longtable}
 \\usepackage{changepage}
 \\usepackage{fancyhdr}
-\\usepackage[framemethod=tikz]{mdframed}
+\\usepackage[many]{tcolorbox}
+\\usepackage{colortbl}
+\\usepackage{multicol}
+\\usepackage{multirow}
+\\usepackage{setspace}
 
-\\definecolor{mycolor}{rgb}{0.122, 0.435, 0.698}
-\\newmdenv[innerlinewidth=0.5pt, roundcorner=4pt,linecolor=mycolor,innerleftmargin=6pt,
-innerrightmargin=6pt,innertopmargin=6pt,innerbottommargin=6pt]{mybox}
+\\setlength{\\parindent}{0pt}
 
-\\pagestyle{fancy}
 
-\\renewcommand*{\\familydefault}{%s}
-\\renewcommand{\sfdefault}{%s}
-''' % (self.get_fontsize(), self.get_margin(), self.get_lmargin(), self.get_rmargin(), self.get_fontfamily(), self.get_sans_font_default())
+\\definecolor{grey}{rgb}{0.2, 0.2, 0.2}
+
+\\definecolor{lightgrey}{rgb}{0.7, 0.7, 0.7}
+
+\\definecolor{ratherlightgrey}{rgb}{0.9, 0.9, 0.9}
+
+\renewcommand*{\familydefault}{%s}
+\renewcommand{\sfdefault}{%s}
+''' % (self.get_fontfamily(), self.get_sans_font_default()) #self.get_fontsize(), self.get_margin(), self.get_lmargin(), self.get_rmargin(),
+    # NOTE: I have hard-coded the font size and margin sizes above rather than
+    # allowing these to be flexible as I had originally planned. I think this
+    # is necessary in order to achieve the required document appearance.
 
     def make_footer_latex(self):
         '''\includegraphics[width=50mm]{/Users/thowhi/reportgen/ki-logo_cmyk_5.png} & \includegraphics[width=50mm]{/Users/thowhi/reportgen/ALASCCA_logo.png}'''
