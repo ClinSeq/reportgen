@@ -77,38 +77,99 @@ class AlasccaReport(GenomicReport):
 
     def make_body_latex(self):
         title_latex = None
-        alascca_title_latex = None
         clinseq_title_latex = None
         if self._doc_format.get_language() == self._doc_format.ENGLISH:
             title_latex = u'''\\section*{ClinSeq Analysis Report}\\label{clinseq-alascca-analysisreport}'''
-            alascca_title_latex = u'''\\subsection*{Report for ALASCCA study}\\label{alascca-report}'''
             clinseq_title_latex = u'''\\subsection*{Other Information from ClinSeq Profile}\\label{clinseq-report}'''
         else:
             assert self._doc_format.get_language() == self._doc_format.SWEDISH
-            title_latex = u'''\\section*{ClinSeq Analysrapport}\\label{clinseq-alascca-analysisreport}'''
-            alascca_title_latex = u'''\\subsection*{Rapport för ALASCCA Studien}\\label{alascca-report}'''
-            clinseq_title_latex = u'''\\subsection*{Övriga Information Från ClinSeq-profilen}\\label{clinseq-report}'''
+            title_latex = u'''\\begin{center}
+\\huge{ClinSeq Analysrapport}
+\\end{center}'''
+            clinseq_title_latex = u'''\\Large*{Övrig information från ClinSeq-profil}\\label{clinseq-report}'''
+        msi_title_latex = self._alascca_class_report.make_title_latex(self._doc_format)
+        alascca_title_latex = self._alascca_class_report.make_title_latex(self._doc_format)
+        somatic_mutations_title_latex = self._somatic_mutations_report.make_title_latex(self._doc_format)
 
+        logos_latex = self._doc_format.make_logo_latex()
         dates_latex = self._dates_report.make_latex(self._doc_format)
         alascca_class_latex = self._alascca_class_report.make_latex(self._doc_format)
         somatic_mutations_latex = self._somatic_mutations_report.make_latex(self._doc_format)
-        #msi_latex = self._msi_report.make_latex(self._doc_format)
+        msi_latex = self._msi_report.make_latex(self._doc_format)
         report_legend_latex = self._report_legend.make_latex(self._doc_format)
 
         # FIXME: This is getting a bit hacky (adding mybox and other such things here):
         return title_latex + \
+            "\n\\vspace{-0.3cm}" + \
+            logos_latex + \
+            "\n\\vspace{0.3cm}" + \
+            self._metadata.make_latex() + \
+            '''\n\\vspace{1cm}
+\\onehalfspacing
+{''' + \
             dates_latex + \
-            "\n\\begin{mybox}\n" + \
-            alascca_class_latex + \
-            "\n\\end{mybox}\n" + \
-            clinseq_title_latex + \
-            "\n$\\begin{array}{p{10cm} {p5cm}}\n" + \
-            somatic_mutations_latex + \
-            "&" + \
-            "test" + \
-            "\\end{array}$" + \
-            report_legend_latex
-            # Taking the main alascca title out as it doesn't add anything:
-            #alascca_title_latex + \
-            #msi_latex + \
+            '''Blodprov taget 2016-01-01, remiss-ID 98765432, etikett 12345678 \\\\
+Tumörprov taget 2016-01-02, remiss-ID 14253647, etikett 34567890 \\\\
+}
+\\par
+\singlespacing
 
+\\setlength{\\fboxsep}{10pt}
+\setlength{\\fboxrule}{3pt}
+
+\\rowcolors{1}{ratherlightgrey}{}
+\\fcolorbox{blue}{white}{%
+  \\parbox{18.9cm}{%
+\\centering
+{''' + \
+            alascca_title_latex + \
+            "\n\\vspace{0.2cm}" + \
+            alascca_class_latex + \
+            '''}
+\\begin{center}''' + \
+            clinseq_title_latex + \
+'''\\end{center}
+
+\\vspace{-0.5cm}
+
+\\begin{minipage}{.4\\linewidth}
+\\fcolorbox{lightgrey}{white}{%
+  \\parbox[t][3cm][t]{6.1cm}{%
+\\centering
+
+{''' + \
+            msi_title_latex + \
+            '''} \\par
+\\vspace{0.4cm}
+
+\\tcbox[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=0mm,
+  boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
+{''' + \
+            msi_latex + \
+            '''}
+}}
+\\end{minipage}
+\\begin{minipage}{.6\linewidth}
+\\fcolorbox{lightgrey}{white}{%
+  \\parbox[t][3cm][t]{11cm}{%
+    \\centering
+
+    \\rowcolors{2}{}{ratherlightgrey}
+
+    {''' + \
+            somatic_mutations_title_latex + \
+            '''} \par
+\\vspace{0.3cm}
+
+\\tcbox[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=0mm,
+  boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
+{
+  ''' + \
+            somatic_mutations_latex + \
+            '''}
+}}
+    \\end{minipage}%
+
+\\vspace{0.3cm}
+''' + \
+            report_legend_latex
