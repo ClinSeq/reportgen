@@ -110,7 +110,9 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     def test_apply_empty_input(self):
         rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
         test_report = rule.apply()
-        expected_outdict = {'NRAS': ['Not mutated', []], 'BRAF': ['Not mutated', []], 'KRAS': ['Not mutated', []]}
+        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
+                            'BRAF': {"Status" : 'Not mutated', "Alterations": []},
+                            'KRAS': {"Status": 'Not mutated', "Alterations" : []}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test single mutation symbol2gene input dictionary:
@@ -133,7 +135,7 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
                             'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
                             'KRAS': {"Status": 'Mutated', "Alterations" : [{"HGVSp": 'p.Ala146Pro', "Flag": u'KRAS_COMMON'},
                                                                            {"HGVSp": 'p.Lys117Asn', "Flag": u'KRAS_COMMON'},
-                                                                           {"HGVSp": 'p.Lys1Asn', "Flag": u'KRAS_COMMON'}]}}
+                                                                           {"HGVSp": 'p.Lys1Asn', "Flag": None}]}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
@@ -166,20 +168,18 @@ class TestMisc(unittest.TestCase):
         self.assertFalse(id_valid("ABCDEFGH"))
 
     def test_retrieve_report_metadata_missing_sampleID(self):
-        # Inputting a valid blood and tumor ID should produce a ReportMetadata
-        # object:
-        self.assertRaises(ValueError, lambda: retrieve_report_metadata("12345678", "02871255", self.cnxn))
+        self.assertRaises(ValueError, lambda: retrieve_report_metadata("12345678", "3098849", self.cnxn))
 
     def test_retrieve_report_metadata_valid_input(self):
         # Inputting a valid blood and tumor ID should produce a ReportMetadata
         # object:
-        report_metadata = retrieve_report_metadata("02871131", "02871255", self.cnxn)
+        report_metadata = retrieve_report_metadata("3098121", "3098849", self.cnxn)
         self.assertTrue(isinstance(report_metadata, ReportMetadata))
 
-    def test_retrieve_report_metadata_differing_personnummers(self):
-        # Inputting a valid blood and tumor ID should produce a ReportMetadata
-        # object:
-        self.assertRaises(ValueError, lambda: retrieve_report_metadata("02871131", "03019438", self.cnxn))
+#    def test_retrieve_report_metadata_differing_personnummers(self):
+#        # Inputting a valid blood and tumor ID should produce a ReportMetadata
+#        # object:
+#        self.assertRaises(ValueError, lambda: retrieve_report_metadata("02871131", "03019438", self.cnxn))
 
 
 class TestAlasccaClassRule(unittest.TestCase):
@@ -187,7 +187,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         igf2_classification = AlterationClassification("IGF2", ["amplification"], None, [], "ALASCCA_CLASS_B_1")
         pten_classification_b_2 = AlterationClassification("PTEN", ["start_lost", "stop_gained", "frameshift_variant", "splice_acceptor_variant", "splice_donor_variant", "loss_of_heterozygosity"], "ENST00000371953", [], "ALASCCA_CLASS_B_2")
         pten_classification_b_1 = AlterationClassification("PTEN", ["homozygous_loss"], "ENST00000371953", [], "ALASCCA_CLASS_B_1")
-        pten_classification_b_1_missense = AlterationClassification("PTEN", ["missense_variant"], "ENST00000371953", ["Cys124Ser", "Gly129Glu", "Arg130Gly", "Arg130Gln"], "ALASCCA_CLASS_B_1")
+        pten_classification_b_1_missense = AlterationClassification("PTEN", ["missense_variant"], "ENST00000371953", ["p.Cys124Ser", "p.Gly129Glu", "p.Arg130Gly", "p.Arg130Gln"], "ALASCCA_CLASS_B_1")
         pik3r1_classification_b_1 = AlterationClassification("PIK3R1", ["frameshift_variant", "inframe_insertion", "inframe_deletion", "stop_gained", "splice_acceptor_variant", "splice_donor_variant"], "ENST00000521381", ["340:670"], "ALASCCA_CLASS_B_1")
         pik3r1_classification_b_1_missense = AlterationClassification("PIK3R1", ["missense_variant"], "ENST00000521381", ["376", "379", "452", "464", "503", "560", "564", "567", "573", "642"], "ALASCCA_CLASS_B_1")
         pik3ca_classification_b_1 = AlterationClassification("PIK3CA", ["missense_variant"], "ENST00000263967", ["38", "81", "88", "106", "111", "118", "344", "345", "378", "420", "453", "726"], "ALASCCA_CLASS_B_1")

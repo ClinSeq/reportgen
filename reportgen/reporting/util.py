@@ -23,7 +23,7 @@ def id_valid(id_string):
     '''Checks an input blood or tumor ID for validity.'''
 
     # Valid IDs must comprise exactly eight digits in [0-9]:
-    if re.match("^[0-9]{8}$", id_string) != None:
+    if re.match("^[0-9]+$", id_string) != None:
         return True
     else:
         return False
@@ -146,8 +146,8 @@ def parse_mutation_table(spreadsheet_filename):
 
 
 def format_personnummer(personnummer):
-    assert re.match("^[0-9]{10}$", personnummer)
-    return personnummer[:6] + "-" + personnummer[6:]
+    assert re.match("^[0-9]{12}$", personnummer)
+    return personnummer[2:8] + "-" + personnummer[8:]
 
 
 class ReportCompiler:

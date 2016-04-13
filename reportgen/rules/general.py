@@ -73,11 +73,11 @@ class AlterationClassification:
         # FIXME: Possibly should refactor this code to make it more robust:
         # If the alteration position string is None, it means that the
         # alteration does not match any positions:
-        if alteration.get_position_string() == None:
+        if alteration.get_hgvsp() == None:
             return matchObserved
 
         for position_string in self._position_strings:
-            if self.matches_position(position_string, alteration.get_position_string()):
+            if self.matches_position(position_string, alteration.get_hgvsp()):
                 matchObserved = True
 
         return matchObserved
