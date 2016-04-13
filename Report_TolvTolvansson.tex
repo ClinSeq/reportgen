@@ -1,0 +1,171 @@
+
+\documentclass[10pt]{article}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage[top=0.75cm,lmargin=1cm,rmargin=1cm,bottom=1cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{changepage}
+\usepackage{fancyhdr}
+\usepackage[many]{tcolorbox}
+\usepackage{colortbl}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{setspace}
+
+\setlength{\parindent}{0pt}
+
+
+\definecolor{grey}{rgb}{0.2, 0.2, 0.2}
+
+\definecolor{lightgrey}{rgb}{0.7, 0.7, 0.7}
+
+\definecolor{ratherlightgrey}{rgb}{0.9, 0.9, 0.9}
+
+\renewcommand*{\familydefault}{\sfdefault}
+\renewcommand{\sfdefault}{phv}
+
+\begin{document}
+
+\pagenumbering{gobble}
+
+\vspace{0cm}
+
+\begin{center}
+\huge{ClinSeq Analysrapport}
+\end{center}
+
+\vspace{-0.3cm}
+
+\begin{tabular}[t]{  c  c  }
+    \includegraphics[width=35mm]{/home/vagrant/repos/reportgen/reportgen/assets/ki-logo_cmyk_5.png} & \includegraphics[width=35mm]{/home/vagrant/repos/reportgen/reportgen/assets/ALASCCA_logo.png} \tabularnewline
+\end{tabular}
+
+\vspace{0.3cm}
+
+\begin{tabular}{ l l }
+\multirow{2}{10.5cm}{\begin{tabular}{l}Personnummer 121212-1212 \\
+Analys genomförd 2016-04-05\\
+\end{tabular}} &
+\multirow{4}{7cm}{
+\begin{tabular}{l}Dr Namn Namnsson\\
+Onkologimottagningen\\
+Stora Lasaretet\\
+123 45 Stadsby\\
+\end{tabular}} \\
+ & \\
+ & \\
+ & \\
+\end{tabular}
+
+\vspace{1cm}
+
+\onehalfspacing
+{
+Blodprov taget 2016-04-05, remiss-ID 159725, etikett 3098121 \\
+Tumörprov taget 2016-04-05, remiss-ID 159725, etikett 3098121 \\
+}
+\par
+\singlespacing
+
+\setlength{\fboxsep}{10pt}
+\setlength{\fboxrule}{3pt}
+
+\rowcolors{1}{ratherlightgrey}{}
+\fcolorbox{blue}{white}{%
+  \parbox{18.9cm}{%
+\centering
+{\Large Randomisering till ALASCCA-studien} \par
+\vspace{0.2cm}
+\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
+       boxrule=0.4pt, colframe=grey, colback=white]
+{
+\begin{tabular}{l l}
+\includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} & Mutationsklass A, patienten kan randomiseras \\
+\includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} & Mutationsklass B, patienten kan randomiseras \\
+& \\
+\includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_checked_checkbox.png} & Inga mutationer, patienten kan \emph{ej} randomiseras \\
+\includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} & Ej utförd/ej bedömbar, patienten kan \emph{ej} randomiseras \\
+\end{tabular}
+}
+}
+}
+\begin{center}
+{\Large Övrig information från ClinSeq-profil}\label{clinseq-report}
+\end{center}
+
+\begin{minipage}{.3\linewidth}
+\fcolorbox{lightgrey}{white}{%
+  \parbox[t][3cm][t]{4.1cm}{%
+\centering
+
+{{\large Mikrosatellitinstabilitet\\(MSI)}} \par
+\vspace{0.4cm}
+
+\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
+  boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
+{
+  \begin{tabular}{l | l}
+MSI-H\textsuperscript{1} & \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} \\
+MSS/MSI-L\textsuperscript{2} & \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_checked_checkbox.png} \\
+Ej bedömbar & \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} \\
+  \end{tabular}
+}
+}}
+\end{minipage}
+\begin{minipage}{.7\linewidth}
+\fcolorbox{lightgrey}{white}{%
+  \parbox[t][3cm][t]{13.1cm}{%
+    \centering
+
+    \rowcolors{2}{}{ratherlightgrey}
+
+    {{\large Övriga mutationer}} \par
+\vspace{0.3cm}
+
+\tcbox[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=0mm,
+  boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
+{
+  
+  \begin{tabular}{l | l | l | l | l}
+  Gen & Mutation & Ej mutation & Ej bedömbar & Kommentar \tabularnewline
+\arrayrulecolor{grey}\hline
+\arrayrulecolor{grey}\hline
+\textit{BRAF}\textsuperscript{3} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_checked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} &  \\\textit{KRAS}\textsuperscript{4} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_checked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} &  \\\textit{NRAS}\textsuperscript{4} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_checked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} &
+            \includegraphics{/home/vagrant/repos/reportgen/reportgen/assets/rsz_unchecked_checkbox.png} & p.Gln61His \\
+\end{tabular}}
+}}
+    \end{minipage}%
+
+\vspace{0.3cm}
+
+\textbf{Tolkning} \par
+{\small
+Tilläggsinformationen från ClinSeq-panelen är av potentiellt klinisk betydelse. Analyserna är utförda på forskningsbasis med en för forskning validerad men inte kliniskt ackrediterad metod. För tolkningsstöd se nedan. \\
+
+\textbf{Mikrosatellitinstabilitet (MSI)}\\
+\textbf{\textsuperscript{1} MSI-H (MSI-high):} Tumören uppvisar höggradig mikrosatellitinstabilitet, vilket innebär inaktivering av DNA mismatch-reparation. MSI-H kan orsakas av förvärvade (somatiska) eller medfödda (ärftliga) genetiska förändringar. \\
+\textbf{\textsuperscript{2} MSS/MSI-L (MSI-low):} Tumören uppvisar mikrosatellitstabilitet eller visar MSI för enstaka markörer. \\
+
+\textbf{Kliniska situationer där MSI kan ha betydelse}\\
+Tumörer med MSI-H i stadium II har en god prognos med lägre recidivrisk än tumörer med MSS/MSI-L. Fyndet bör vägas in i beslut om adjuvant cytostatikabehandling enligt nationellt vårdprogram. Vid fynd av MSI-H utan samtidig \textit{BRAF}-mutation (se nedan) bör familjeanamnes göras och ställningstagande till vidare onkogenetisk utredning tas. Syftet med en onkogenetisk utredning är att identifiera familjer med ärftlig kolorektalcancer. I dessa familjer skall särskilda kontrollprogram erbjudas för familjemedlemmar med ökad risk. \\
+
+\textbf{Aktiverande mutationer i \textit{BRAF}, \textit{KRAS} och \textit{NRAS}}\\
+\textbf{\textsuperscript{3} För \textit{BRAF}} rapporteras den mutation som med nuvarande kunskap betraktas som aktiverande (V600E). Tumörer med denna \textit{BRAF}-mutation är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \textit{BRAF}-mutation är vid avancerade tumörer (stadium IV) en negativ prognostisk faktor. \\
+\textbf{\textsuperscript{4} För \textit{KRAS} och \textit{NRAS}} rapporteras de mutationer som med nuvarande kunskap betraktas som aktiverande (kodon 12, 13, 59, 61, 117 och 146). Tumörer med dessa \textit{KRAS}/\textit{NRAS}-mutationer är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\
+
+\textbf{Kontakt}\\
+Frågor om analysmetoden i ALASCCA-studien kan skickas till ALASCCA@meb.ki.se
+}
+\par
+
+\end{document}
