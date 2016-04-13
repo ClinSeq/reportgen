@@ -12,15 +12,15 @@ class TestAlterationExtractor(unittest.TestCase):
         nras = Gene("NRAS")
         nras.set_ID("ENSG00000213281")
         self._nras_gene = AlteredGene(nras)
-        test_alteration1 = Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "Gln61His")
+        test_alteration1 = Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "p.Gln61His")
         self._nras_gene.add_alteration(test_alteration1)
 
         kras = Gene("KRAS")
         kras.set_ID("ENSG00000133703")
         self._kras_gene = AlteredGene(kras)
-        test_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
+        test_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Ala146Pro")
         self._kras_gene.add_alteration(test_alteration2)
-        test_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys117Asn")
+        test_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Lys117Asn")
         self._kras_gene.add_alteration(test_alteration3)
 
     def test_gene(self):
@@ -41,17 +41,17 @@ class TestAlterationExtractor(unittest.TestCase):
 
     def test_extract_mutations_multiple_mutations(self):
         self._extractor.extract_mutations(open("tests/multiple_mutations_variant_input.vcf"))
-        dict = self._extractor.to_dict()
+        output_dict = self._extractor.to_dict()
 
         expected_dict = {"KRAS": self._kras_gene}
-        self.assertDictEqual(dict, expected_dict, dict)
+        self.assertDictEqual(output_dict, expected_dict, output_dict)
 
     def test_extract_mutations_multiple_genes(self):
         self._extractor.extract_mutations(open("tests/multiple_genes_variant_input.vcf"))
-        dict = self._extractor.to_dict()
+        output_dict = self._extractor.to_dict()
 
         expected_dict = {"KRAS": self._kras_gene, "NRAS": self._nras_gene}
-        self.assertDictEqual(dict, expected_dict, dict)
+        self.assertDictEqual(output_dict, expected_dict, output_dict)
 
 
 class TestMSIStatus(unittest.TestCase):

@@ -19,29 +19,26 @@ class TestAlterationClassification(unittest.TestCase):
     _single_consequence_classification = None
 
     def setUp(self):
-        self._braf_classification = AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
+        self._braf_classification = AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["p.Val600Glu"], "BRAF_COMMON")
 
         braf = Gene("BRAF")
         braf.set_ID("ENSG00000157764")
         self._braf_gene = AlteredGene(braf)
-        self._braf_alteration1 = Alteration(self._braf_gene, "ENST00000288602", "missense_variant", "Val600Glu")
+        self._braf_alteration1 = Alteration(self._braf_gene, "ENST00000288602", "missense_variant", "p.Val600Glu")
         self._braf_gene.add_alteration(self._braf_alteration1)
-        # A test alteration: Position only at 600:
-        self._braf_alteration2 = Alteration(self._braf_gene, "ENST00000288602", "missense_variant", "600")
-        self._braf_gene.add_alteration(self._braf_alteration2)
 
         self._kras_classification = AlterationClassification("KRAS", ["missense_variant"], "ENST00000256078", ["12", "13", "60", "61", "117", "146"], "KRAS_COMMON")
 
         kras = Gene("KRAS")
         kras.set_ID("ENSG00000133703")
         self._kras_gene = AlteredGene(kras)
-        self._kras_alteration1 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Ala146Pro")
+        self._kras_alteration1 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Ala146Pro")
         self._kras_gene.add_alteration(self._kras_alteration1)
-        # Position only specified:
-        self._kras_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "60")
+        # A fake mutation whose position is in the set of KRAS mutations:
+        self._kras_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Lys60Pro")
         self._kras_gene.add_alteration(self._kras_alteration2)
         # A fake mutation that is *not* in the set of KRAS mutations:
-        self._kras_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "Lys1Asn")
+        self._kras_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Lys1Asn")
         self._kras_gene.add_alteration(self._kras_alteration3)
 
         self._pik3r1_range_classification = AlterationClassification("PIK3R1", ["inframe_insertion"], "ENST00000521381", ["340:670"], "TEST")
@@ -50,13 +47,10 @@ class TestAlterationClassification(unittest.TestCase):
         pik3r1.set_ID("ENSG00000145675")
         self._pik3r1_gene = AlteredGene(pik3r1)
         # Dummy alteration; position is important, substitution is not:
-        self._pik3r1_alteration1 = Alteration(self._pik3r1_gene, "ENST00000521381", "inframe_insertion", "Val344Lys")
+        self._pik3r1_alteration1 = Alteration(self._pik3r1_gene, "ENST00000521381", "inframe_insertion", "p.Val344Lys")
 
     def test_matches_positions_string_vs_string(self):
         self.assertTrue(self._braf_classification.matches_positions(self._braf_alteration1))
-
-    def test_matches_positions_string_vs_position(self):
-        self.assertFalse(self._braf_classification.matches_positions(self._braf_alteration2))
 
     def test_matches_positions_position_vs_string(self):
         self.assertTrue(self._kras_classification.matches_positions(self._kras_alteration1))
@@ -79,7 +73,7 @@ class TestAlterationClassification(unittest.TestCase):
 
 class TestSimpleSomaticMutationsRule(unittest.TestCase):
     def setUp(self):
-        braf_classification = AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["Val600Glu"], "BRAF_COMMON")
+        braf_classification = AlterationClassification("BRAF", ["missense_variant"], "ENST00000288602", ["p.Val600Glu"], "BRAF_COMMON")
         kras_classification = AlterationClassification("KRAS", ["missense_variant"], "ENST00000256078", ["12", "13", "60", "61", "117", "146"], "KRAS_COMMON")
         nras_classification = AlterationClassification("NRAS", ["missense_variant"], "ENST00000369535", ["12", "13", "61"], "NRAS_COMMON")
         self._symbol2classifications = {"BRAF": [braf_classification], "KRAS": [kras_classification], "NRAS": [nras_classification]}
@@ -87,19 +81,19 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         braf = Gene("BRAF")
         braf.set_ID("ENSG00000157764")
         self._braf_gene_single_mutation = AlteredGene(braf)
-        self._braf_alteration3 = Alteration(self._braf_gene_single_mutation, "ENST00000288602", "missense_variant", "Val600Glu")
+        self._braf_alteration3 = Alteration(self._braf_gene_single_mutation, "ENST00000288602", "missense_variant", "p.Val600Glu")
         self._braf_gene_single_mutation.add_alteration(self._braf_alteration3)
 
         kras = Gene("KRAS")
         kras.set_ID("ENSG00000133703")
         self._kras_gene_multiple_mutations = AlteredGene(kras)
-        self._kras_alteration1 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "Ala146Pro")
+        self._kras_alteration1 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "p.Ala146Pro")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration1)
         # Position only specified:
-        self._kras_alteration2 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "Lys117Asn")
+        self._kras_alteration2 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "p.Lys117Asn")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration2)
         # A fake mutation that is *not* in the set of KRAS mutations:
-        self._kras_alteration3 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "Lys1Asn")
+        self._kras_alteration3 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "p.Lys1Asn")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration3)
 
     def test_classification_is_same(self):
@@ -124,9 +118,9 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation}
         rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
-        expected_outdict = {'NRAS': ['Not mutated', []],
-                            'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
-                            'KRAS': ['Not mutated', []]}
+        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
+                            'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
+                            'KRAS': {"Status": 'Not mutated', "Alterations" : []}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test multiple genes and multiple mutations symbol2gene input dictionary:
@@ -135,11 +129,11 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
 
-        expected_outdict = {'NRAS': ['Not mutated', []],
-                            'BRAF': ['Mutated', [['Val600Glu', u'BRAF_COMMON']]],
-                            'KRAS': ['Mutated', [['Ala146Pro', u'KRAS_COMMON'],
-                                                 ['Lys117Asn', u'KRAS_COMMON'],
-                                                 ['Lys1Asn', None]]]}
+        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
+                            'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
+                            'KRAS': {"Status": 'Mutated', "Alterations" : [{"HGVSp": 'p.Ala146Pro', "Flag": u'KRAS_COMMON'},
+                                                                           {"HGVSp": 'p.Lys117Asn', "Flag": u'KRAS_COMMON'},
+                                                                           {"HGVSp": 'p.Lys1Asn', "Flag": u'KRAS_COMMON'}]}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
@@ -211,8 +205,8 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pten_gene_single_mutation_not_enough.add_alteration(self._pten_frameshift)
 
         self._pten_gene_double_mutation = AlteredGene(pten)
-        self._pten_stop_gained = Alteration(self._pten_gene_double_mutation, "ENST00000371953", "stop_gained", "Gly301Leu")
-        self._pten_splice_acceptor_variant = Alteration(self._pten_gene_double_mutation, "ENST00000371953", "splice_acceptor_variant", "Gly10Leu")
+        self._pten_stop_gained = Alteration(self._pten_gene_double_mutation, "ENST00000371953", "stop_gained", "p.Gly301Leu")
+        self._pten_splice_acceptor_variant = Alteration(self._pten_gene_double_mutation, "ENST00000371953", "splice_acceptor_variant", "p.Gly10Leu")
         self._pten_gene_double_mutation.add_alteration(self._pten_stop_gained)
         self._pten_gene_double_mutation.add_alteration(self._pten_splice_acceptor_variant)
 
@@ -221,19 +215,19 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pik3r1_gene_frameshift = AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3r1_frameshift = Alteration(self._pik3r1_gene_frameshift, "ENST00000521381", "frameshift_variant", "Val351Leu")
+        self._pik3r1_frameshift = Alteration(self._pik3r1_gene_frameshift, "ENST00000521381", "frameshift_variant", "p.Val351Leu")
         self._pik3r1_gene_frameshift.add_alteration(self._pik3r1_frameshift)
 
         self._pik3r1_gene_frameshift_off = AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3r1_frameshift_off = Alteration(self._pik3r1_gene_frameshift_off, "ENST00000521381", "frameshift_variant", "Val10Leu")
+        self._pik3r1_frameshift_off = Alteration(self._pik3r1_gene_frameshift_off, "ENST00000521381", "frameshift_variant", "p.Val10Leu")
         self._pik3r1_gene_frameshift_off.add_alteration(self._pik3r1_frameshift_off)
 
         self._pik3r1_gene_missense = AlteredGene(pik3r1)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3r1_missense = Alteration(self._pik3r1_gene_missense, "ENST00000521381", "missense_variant", "Val376Leu")
+        self._pik3r1_missense = Alteration(self._pik3r1_gene_missense, "ENST00000521381", "missense_variant", "p.Val376Leu")
         self._pik3r1_gene_missense.add_alteration(self._pik3r1_missense)
 
         pik3ca = Gene("PIK3CA")
@@ -241,20 +235,20 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pik3ca_gene_missense1 = AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3ca_missense1 = Alteration(self._pik3ca_gene_missense1, "ENST00000263967", "missense_variant", "Val38Leu")
+        self._pik3ca_missense1 = Alteration(self._pik3ca_gene_missense1, "ENST00000263967", "missense_variant", "p.Val38Leu")
         self._pik3ca_gene_missense1.add_alteration(self._pik3ca_missense1)
 
         self._pik3ca_gene_missense2 = AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3ca_missense2 = Alteration(self._pik3ca_gene_missense2, "ENST00000263967", "missense_variant", "Val542Leu")
+        self._pik3ca_missense2 = Alteration(self._pik3ca_gene_missense2, "ENST00000263967", "missense_variant", "p.Val542Leu")
         self._pik3ca_gene_missense2.add_alteration(self._pik3ca_missense2)
 
         self._pik3ca_gene_missense_a_and_b = AlteredGene(pik3ca)
         # Note: Dummy amino acid change here; the position is important but not
         # the actual residue change:
-        self._pik3ca_missense3 = Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "Val38Leu")
-        self._pik3ca_missense4 = Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "Val542Leu")
+        self._pik3ca_missense3 = Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "p.Val38Leu")
+        self._pik3ca_missense4 = Alteration(self._pik3ca_gene_missense_a_and_b, "ENST00000263967", "missense_variant", "p.Val542Leu")
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense3)
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense4)
 

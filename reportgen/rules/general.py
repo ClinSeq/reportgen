@@ -73,11 +73,11 @@ class AlterationClassification:
         # FIXME: Possibly should refactor this code to make it more robust:
         # If the alteration position string is None, it means that the
         # alteration does not match any positions:
-        if alteration.get_hgvsp() == None:
+        if alteration.get_position_string() == None:
             return matchObserved
 
         for position_string in self._position_strings:
-            if self.matches_position(position_string, alteration.get_hgvsp()):
+            if self.matches_position(position_string, alteration.get_position_string()):
                 matchObserved = True
 
         return matchObserved
@@ -89,7 +89,7 @@ class AlterationClassification:
         # figure out how to deal with these. E.g. what if there are two ranges (alteration
         # range and classification range) and they partially overlap?
 
-        if re.match("^[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}$", classificationPositionString) != None:
+        if re.match("^p\.[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}$", classificationPositionString) != None:
             # The position string denotes a specific amino acid substitution
             # => Only match if the alteration matches that substitution
             # exactly:
@@ -257,6 +257,15 @@ class Alteration:
 
     def get_hgvsp(self):
         return self._hgvsp
+
+    def get_position_string(self):
+        # FIXME: Splitting the HGVSp string on "." to retrieve the position
+        # string. I think this is valid but it seems like a hack:
+        hgvsp_value = self.get_hgvsp()
+        if hgvsp_value == None:
+            return None
+        else:
+            return hgvsp_value.split(".")[1]
 
     def get_altered_gene(self):
         return self._altered_gene
