@@ -161,9 +161,6 @@ class TestMisc(unittest.TestCase):
     def test_id_valid_valid_input(self):
         self.assertTrue(id_valid("01234567"))
 
-    def test_id_valid_short_input(self):
-        self.assertFalse(id_valid("0123456"))
-
     def test_id_valid_letter_input(self):
         self.assertFalse(id_valid("ABCDEFGH"))
 
