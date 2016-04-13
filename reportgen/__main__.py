@@ -211,6 +211,12 @@ Outputs:
                       default = "Swedish",
                       help = "Language in which the report text will be " + \
                           "generated. One of Swedish or English. Default=[%default]")
+    parser.add_option("--output_name", dest = "output_name",
+                      default = "Report",
+                      help = "Output file name (not including file extension). Default=[%default]")
+    parser.add_option("--output_dir", dest = "output_dir",
+                      default = ".",
+                      help = "Output directory for pdf. Default=[%default]")
     parser.add_option("--fontfamily", dest = "fontfamily",
                       default = "SansSerif",
                       help = "Font in which the report text will be " + \
@@ -332,7 +338,8 @@ Outputs:
 
     # Convert latex to pdf by running pdflatex on the command line:
     # -job-name=Report
-    call_result = subprocess.call(["pdflatex", "-jobname", "Report", tmp_latex_filename])
+    call_result = subprocess.call(["pdflatex", "-jobname", options.output_name,
+                                   "-output-directory", options.output_dir, tmp_latex_filename])
 
     # Delete the temporary latex file unless told to retain it in the command line options:
     #if not options.keep_latex:

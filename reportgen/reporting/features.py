@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from reportgen.rules.general import MutationStatus
-
+import pdb
 
 class ReportFeature(object):
     '''
@@ -17,10 +17,11 @@ class ReportFeature(object):
         feature_latex = u"\n"
         # If title latex or body latex is generated as None by the concrete
         # implementation, then don't generate latex for that part:
-        if not title_latex == None:
-            feature_latex = feature_latex + u"\\subsubsection*{%s}\n" % (title_latex)
+        # FIXME: This whole way of doing this is broken. Fix properly at some point:
+        #if not title_latex == None:
+        #    feature_latex = feature_latex + u"\\subsubsection*{%s}\n" % (title_latex)
         if not body_latex == None:
-            feature_latex = feature_latex + body_latex + u"\\vspace{6pt}"
+            feature_latex = feature_latex + body_latex
         return feature_latex
 
     def make_content_body(self, doc_format):
@@ -41,7 +42,7 @@ class DatesReport(ReportFeature):
     def __init__(self, blood_sample_id, tumor_sample_id,
                  blood_sample_date, tumor_sample_date,
                  blood_referral_id, tumor_referral_id):
-        self._blood_sample_id = blood_sample_date
+        self._blood_sample_id = blood_sample_id
         self._tumor_sample_id = tumor_sample_id
         self._blood_referral_id = blood_referral_id
         self._tumor_referral_id = tumor_referral_id
@@ -94,12 +95,12 @@ class AlasccaClassReport(ReportFeature):
         pathway_class = input_dict[self.NAME]
         self._pathway_class = pathway_class
 
-    def make_title(self, doc_format):
+    def make_title_latex(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''PI3K signaling pathway'''
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Randomisering till ALASCCA-studien'''
+            return u'''{\\Large Randomisering till ALASCCA-studien}'''
 
     def make_content_body(self, doc_format):
         class_a_box = doc_format.get_unchecked_checkbox()
@@ -126,13 +127,17 @@ class AlasccaClassReport(ReportFeature):
 ''' % (class_a_box, class_b_box, no_mutations_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''\\begin{tabular}{l l}
-\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Mutationsklass A, patienten kan randomiseras \\\\
-\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Mutationsklass B, patienten kan randomiseras \\\\
+            return u'''\\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
+       boxrule=0.4pt, colframe=grey, colback=white]
+{
+\\begin{tabular}{l l}
+\\includegraphics{%s} & Mutationsklass A, patienten kan randomiseras \\\\
+\\includegraphics{%s} & Mutationsklass B, patienten kan randomiseras \\\\
 & \\\\
-\\includegraphics{./reportgen/rsz_checked_checkbox.png} & Inga mutationer, patienten kan \emph{ej} randomiseras \\\\
-\\includegraphics{./reportgen/rsz_unchecked_checkbox.png} & Ej utförd/ej bedömbar, patienten kan \emph{ej} randomiseras \\\\
-\\end{tabular}''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
+\\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\\\
+\\includegraphics{%s} & Ej utförd/ej bedömbar, patienten kan \emph{ej} randomiseras \\\\
+\\end{tabular}
+}''' % (class_a_box, class_b_box, no_mutations_box, not_determined_box)
 
 
 class MsiReport(ReportFeature):
@@ -146,8 +151,8 @@ class MsiReport(ReportFeature):
 
     NAME = "MSI Status"
 
-    def __init__(self, msi_status_string):
-        self._msi_status = msi_status_string
+    def __init__(self):
+        self._msi_status = None
 
     def to_dict(self):
         return {self.NAME:self._msi_status}
@@ -159,15 +164,19 @@ class MsiReport(ReportFeature):
     def get_status(self):
         return self._msi_status
 
-    def get_name(self):
+    def set_status(self, msi_status):
+        self._msi_status = msi_status
+
+    @staticmethod
+    def get_name():
         return "MSI Report"
 
-    def make_title(self, doc_format):
+    def make_title_latex(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''Microsatellite instability (MSI)'''
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Mikrosatellitinstabilitet (MSI)'''
+            return u'''{\\large Mikrosatellitinstabilitet\\\\(MSI)}'''
 
     def make_content_body(self, doc_format):
         mss_box = doc_format.get_unchecked_checkbox()
@@ -191,11 +200,11 @@ class MsiReport(ReportFeature):
 ''' % (mss_box, msi_box, not_determined_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''  \begin{tabular}{l | l}
-MSI-H\textsuperscript{1} & \includegraphics{%s} \\
-MSS/MSI-L\textsuperscript{2} & \includegraphics{%s} \\
-Ej bedömbar & \includegraphics{%s} \\
-  \end{tabular}''' % (mss_box, msi_box, not_determined_box)
+            return u'''  \\begin{tabular}{l | l}
+MSI-H\\textsuperscript{1} & \\includegraphics{%s} \\\\
+MSS/MSI-L\\textsuperscript{2} & \\includegraphics{%s} \\\\
+Ej bedömbar & \\includegraphics{%s} \\\\
+  \\end{tabular}''' % (mss_box, msi_box, not_determined_box)
 
 
 class SimpleSomaticMutationsReport(ReportFeature):
@@ -240,7 +249,7 @@ class SimpleSomaticMutationsReport(ReportFeature):
         output_dict = {}
         for symbol in self._symbol2mutation_status.keys():
             mutation_status = self._symbol2mutation_status[symbol]
-            output_dict[symbol] = mutation_status.to_list()
+            output_dict[symbol] = mutation_status.to_dict()
 
         return output_dict
 
@@ -249,29 +258,37 @@ class SimpleSomaticMutationsReport(ReportFeature):
 
     # XXX UPDATE THIS METHOD TO MAKE IT WORK WITH THE UPDATED _SYMBOL2MUTATIONSTATUS
     # ATTRIBUTE:
-    def make_title(self, doc_format):
+    def make_title_latex(self, doc_format):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''Other mutations'''
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
-            return u'''Övriga mutationer'''
+            return u'''{\\large Övriga mutationer}'''
 
     def make_content_body(self, doc_format):
         body_string = u'''  \\begin{tabular}{l | l | l | l | l}
   '''
         assert doc_format.get_language() == doc_format.SWEDISH
         body_string = body_string + u'''Gen & Mutation & Ej mutation & Ej bedömbar & Kommentar \\tabularnewline
-\arrayrulecolor{grey}\hline
-\arrayrulecolor{grey}\hline
+\\arrayrulecolor{grey}\hline
+\\arrayrulecolor{grey}\hline
 '''
-        for gene in self._symbol2mutation_status.keys():
+        genes = self._symbol2mutation_status.keys()
+        genes.sort()
+        for gene in genes:
             # Set up box image paths and comments string:
             mut_box = doc_format.get_unchecked_checkbox()
             no_mut_box = doc_format.get_unchecked_checkbox()
             not_det_box = doc_format.get_unchecked_checkbox()
-            mutn_info_tuple = self._symbol2mutation_status[gene]
-            mutn_status = mutn_info_tuple[0]
-            comments = mutn_info_tuple[1]
+            mutn_info = self._symbol2mutation_status[gene]
+
+            # FIXME: This is not nice. The structure of symbol2mutation_status
+            # is different when the object is generated in the first place and
+            # when it is read from the JSON file. This affects how the HGVSp
+            # values are retrieved here:
+            mutn_status = mutn_info["Status"]
+            comments = " ".join(map(lambda alteration_dict: alteration_dict["HGVSp"],
+                                    mutn_info["Alterations"]))
             if len(comments) == 0:
                 comments = ""
 
@@ -282,12 +299,23 @@ class SimpleSomaticMutationsReport(ReportFeature):
             if mutn_status == MutationStatus.NOT_DETERMINED:
                 not_det_box = doc_format.get_checked_checkbox()
 
-            # Add a row for the current gene:
-            body_string = body_string + u'''\\textit{%s}\\textsuperscript{3} &
-            \\includegraphics{%s} &
-            \\includegraphics{%s} &
-            \\includegraphics{%s} & %s \\\\''' % (gene, mut_box, no_mut_box, not_det_box, comments)
+            # HACK: Need to display a superscript if the gene is NRAS, BRAF,
+            # or KRAS. Hard-coding this at this point:
+            superscript_text = ""
+            if gene == "BRAF":
+                superscript_text = "\\textsuperscript{3}"
+            elif gene == "NRAS":
+                superscript_text = "\\textsuperscript{4}"
+            elif gene == "KRAS":
+                superscript_text = "\\textsuperscript{4}"
 
+            # Add a row for the current gene:
+            body_string = body_string + u'''\\textit{%s}%s &
+            \\includegraphics{%s} &
+            \\includegraphics{%s} &
+            \\includegraphics{%s} & %s \\\\''' % (gene, superscript_text, mut_box, no_mut_box, not_det_box, comments)
+
+        body_string += u'\n\\end{tabular}'
         return body_string
 
 

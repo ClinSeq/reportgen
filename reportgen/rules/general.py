@@ -1,4 +1,4 @@
-import re
+import pdb, re
 
 import vcf
 
@@ -73,11 +73,11 @@ class AlterationClassification:
         # FIXME: Possibly should refactor this code to make it more robust:
         # If the alteration position string is None, it means that the
         # alteration does not match any positions:
-        if alteration.get_position_string() == None:
+        if alteration.get_hgvsp() == None:
             return matchObserved
 
         for position_string in self._position_strings:
-            if self.matches_position(position_string, alteration.get_position_string()):
+            if self.matches_position(position_string, alteration.get_hgvsp()):
                 matchObserved = True
 
         return matchObserved
@@ -146,10 +146,17 @@ class MutationStatus:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    # FIXME: This seems quite nasty. Added this to facilitate converting
-    # SimpleSomaticMutationsReport objects to dictionaries.
-    def to_list(self):
-        return [self.get_status(), map(lambda tup: [tup[0].get_position_string(), tup[1]], self._mutation_list)]
+    def to_dict(self):
+        output_list = []
+        for mutation_tup in self._mutation_list:
+            output_list.append({
+                "HGVSp" : mutation_tup[0].get_hgvsp(),
+                "Flag" : mutation_tup[1]
+            })
+        return {
+            "Status" : self._status,
+            "Alterations" : output_list
+        }
 
     def get_status(self):
         return self._status
@@ -239,14 +246,17 @@ class Alteration:
         self._transcript_ID = transcriptID
         # Note: positing string can be None, when the alteration type does
         # not imply positional information.
-        self._position_string = positionalString
+        self._hgvsp = positionalString
 
     # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:
     def to_dict(self):
-        if self._position_string != None:
-            return self._position_string + "_" + self._sequence_ontology_term
+        if self._hgvsp != None:
+            return self._hgvsp + "_" + self._sequence_ontology_term
         else:
             return self._sequence_ontology_term
+
+    def get_hgvsp(self):
+        return self._hgvsp
 
     def get_altered_gene(self):
         return self._altered_gene
@@ -257,9 +267,6 @@ class Alteration:
     def get_transcript_ID(self):
         return self._transcript_ID
 
-    def get_position_string(self):
-        return self._position_string
-
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
@@ -269,7 +276,7 @@ class Alteration:
             return False
         if not self.get_transcript_ID() == other.get_transcript_ID():
             return False
-        if not self.get_position_string() == other.get_position_string():
+        if not self.get_hgvsp() == other.get_hgvsp():
             return False
         return True
 
@@ -293,7 +300,7 @@ class AlterationExtractor:
                 gene_id = fields[1]
                 transcript_id = fields[2]
                 alteration_type = fields[4].split("&")[0]
-                aa_position = fields[35].split(".")[-1]
+                aa_position = fields[35].split(":")[-1]
 
                 # Add this gene if it has not already been added:
                 if not self.symbol2gene.has_key(symbol):

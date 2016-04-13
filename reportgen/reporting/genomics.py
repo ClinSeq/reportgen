@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pdb
 from reportgen.reporting.util import extract_feature
 from reportgen.reporting.metadata import ReportMetadata
 from reportgen.reporting.features import AlasccaClassReport, MsiReport, SimpleSomaticMutationsReport, ReportLegend
@@ -35,22 +36,17 @@ class GenomicReport(object):
 
     def make_latex(self):
         format_header = self._doc_format.make_latex()
-        metadata_header = self._metadata.make_latex(self._doc_format)
         body = self.make_body_latex()
-        footer = self._doc_format.make_footer_latex()
         return u'''
 %s
 \\begin{document}
 
-%s
-
 \\pagenumbering{gobble}
 
-\\vspace*{0cm}
+\\vspace{0cm}
 
 %s
-%s
-\\end{document}''' % (format_header, footer, metadata_header, body)
+\\end{document}''' % (format_header, body)
 
 
 class AlasccaReport(GenomicReport):
@@ -86,29 +82,31 @@ class AlasccaReport(GenomicReport):
             title_latex = u'''\\begin{center}
 \\huge{ClinSeq Analysrapport}
 \\end{center}'''
-            clinseq_title_latex = u'''\\Large*{Övrig information från ClinSeq-profil}\\label{clinseq-report}'''
-        msi_title_latex = self._alascca_class_report.make_title_latex(self._doc_format)
+            clinseq_title_latex = u'''{\\Large Övrig information från ClinSeq-profil}\\label{clinseq-report}'''
+        msi_title_latex = self._msi_report.make_title_latex(self._doc_format)
         alascca_title_latex = self._alascca_class_report.make_title_latex(self._doc_format)
         somatic_mutations_title_latex = self._somatic_mutations_report.make_title_latex(self._doc_format)
 
-        logos_latex = self._doc_format.make_logo_latex()
+        logos_latex = self._doc_format.make_logos_latex()
         dates_latex = self._dates_report.make_latex(self._doc_format)
         alascca_class_latex = self._alascca_class_report.make_latex(self._doc_format)
         somatic_mutations_latex = self._somatic_mutations_report.make_latex(self._doc_format)
         msi_latex = self._msi_report.make_latex(self._doc_format)
         report_legend_latex = self._report_legend.make_latex(self._doc_format)
+        metadata_latex = self._metadata.make_latex(self._doc_format)
 
         # FIXME: This is getting a bit hacky (adding mybox and other such things here):
         return title_latex + \
-            "\n\\vspace{-0.3cm}" + \
+            "\n\n\\vspace{-0.3cm}\n" + \
             logos_latex + \
-            "\n\\vspace{0.3cm}" + \
-            self._metadata.make_latex() + \
-            '''\n\\vspace{1cm}
+            "\n\\vspace{0.3cm}\n\n" + \
+            metadata_latex + \
+            '''\n\n\\vspace{1cm}\n
 \\onehalfspacing
 {''' + \
             dates_latex + \
-            '''}
+            '''
+}
 \\par
 \singlespacing
 
@@ -119,20 +117,20 @@ class AlasccaReport(GenomicReport):
 \\fcolorbox{blue}{white}{%
   \\parbox{18.9cm}{%
 \\centering
-{''' + \
+''' + \
             alascca_title_latex + \
-            "\n\\vspace{0.2cm}" + \
+            " \\par\n\\vspace{0.2cm}" + \
             alascca_class_latex + \
-            '''}
-\\begin{center}''' + \
+            '''
+}
+}
+\\begin{center}\n''' + \
             clinseq_title_latex + \
-'''\\end{center}
+'''\n\\end{center}
 
-\\vspace{-0.5cm}
-
-\\begin{minipage}{.4\\linewidth}
+\\begin{minipage}{.3\\linewidth}
 \\fcolorbox{lightgrey}{white}{%
-  \\parbox[t][3cm][t]{6.1cm}{%
+  \\parbox[t][3cm][t]{4.1cm}{%
 \\centering
 
 {''' + \
@@ -140,16 +138,17 @@ class AlasccaReport(GenomicReport):
             '''} \\par
 \\vspace{0.4cm}
 
-\\tcbox[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=0mm,
+\\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
   boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
 {''' + \
             msi_latex + \
-            '''}
+            '''
+}
 }}
 \\end{minipage}
-\\begin{minipage}{.6\linewidth}
+\\begin{minipage}{.7\linewidth}
 \\fcolorbox{lightgrey}{white}{%
-  \\parbox[t][3cm][t]{11cm}{%
+  \\parbox[t][3cm][t]{13.1cm}{%
     \\centering
 
     \\rowcolors{2}{}{ratherlightgrey}

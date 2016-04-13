@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from reportgen.reporting.features import DatesReport
+import util
 
 
 class ReportMetadata(object):
@@ -79,7 +80,8 @@ class ReportMetadata(object):
 
     def generate_dates_report(self):
         dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,
-                                   self._blood_sample_date, self._tumor_sample_date)
+                                   self._blood_sample_date, self._tumor_sample_date,
+                                   self._blood_referral_ID, self._tumor_referral_ID)
         return dates_report
 
     def get_blood_sample_id(self):
@@ -103,7 +105,7 @@ class ReportMetadata(object):
             table_latex = u'''$\\begin{array}{ p{11cm} p{7cm} }
 Pnr %s & %s \\tabularnewline
 Analysis performed %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
-\\end{array}$''' % (self._personnummer, self._doctor, self._tumor_sample_date, self._doctor_address_line1,
+\\end{array}$''' % (util.format_personnummer(self._personnummer), self._doctor, self._tumor_sample_date, self._doctor_address_line1,
                     self._doctor_address_line2, self._doctor_address_line3)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
@@ -120,7 +122,8 @@ Analys genomförd %s\\\\
  & \\\\
  & \\\\
  & \\\\
-\\end{tabular}''' % (self._personnummer, self._tumor_sample_date, self._doctor,
+\\end{tabular}''' % (util.format_personnummer(self._personnummer),
+                     self._tumor_sample_date, self._doctor,
                      self._doctor_address_line1, self._doctor_address_line2,
                      self._doctor_address_line3)
         return table_latex

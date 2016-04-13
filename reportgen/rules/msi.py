@@ -23,4 +23,6 @@ class MsiStatusRule:
             else:
                 status_string = MsiReport.MSS
 
-        return MsiReport(status_string)
+        report = MsiReport()
+        report.set_status(status_string)
+        return report

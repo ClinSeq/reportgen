@@ -112,8 +112,8 @@ class DocumentFormat(object):
 
 \\definecolor{ratherlightgrey}{rgb}{0.9, 0.9, 0.9}
 
-\renewcommand*{\familydefault}{%s}
-\renewcommand{\sfdefault}{%s}
+\\renewcommand*{\\familydefault}{%s}
+\\renewcommand{\\sfdefault}{%s}
 ''' % (self.get_fontfamily(), self.get_sans_font_default()) #self.get_fontsize(), self.get_margin(), self.get_lmargin(), self.get_rmargin(),
     # NOTE: I have hard-coded the font size and margin sizes above rather than
     # allowing these to be flexible as I had originally planned. I think this
@@ -128,7 +128,6 @@ class DocumentFormat(object):
 \\begin{tabular}[t]{ %s }
     %s \\tabularnewline
 \\end{tabular}
-}
 ''' % (format_string, contents_string)
 
 

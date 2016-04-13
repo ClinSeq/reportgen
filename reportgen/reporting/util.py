@@ -145,6 +145,11 @@ def parse_mutation_table(spreadsheet_filename):
     return gene_symbol2classifications
 
 
+def format_personnummer(personnummer):
+    assert re.match("^[0-9]{10}$", personnummer)
+    return personnummer[:6] + "-" + personnummer[6:]
+
+
 class ReportCompiler:
     '''Compiles a genomic report given input genomic features and rules. Can then
     output a JSON formatted representation of the report. NOTE: There is no
