@@ -97,18 +97,18 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration3)
 
     def test_classification_is_same(self):
-        rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
+        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
         # FIXME (MAYBE): COULD HAVE THE RIGHT HAND SIDE OF THESE TESTS HARD-CODED INSTEAD OF READ FROM ABOVE.
         # E.g. Test if there are three elements in the first nras gene alteration.
         self.assertEqual(rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
 
     def test_symbol2classification_is_same(self):
-        rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
+        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
         self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     # Test empty input symbol2gene dictionary:
     def test_apply_empty_input(self):
-        rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", {})
+        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
         test_report = rule.apply()
         expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
                             'BRAF': {"Status" : 'Not mutated', "Alterations": []},
@@ -118,7 +118,7 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     # Test single mutation symbol2gene input dictionary:
     def test_apply_single_mutation_input(self):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation}
-        rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
+        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
                             'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
@@ -128,7 +128,7 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     # Test multiple genes and multiple mutations symbol2gene input dictionary:
     def test_apply_multiple_mutation_input(self):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation, "KRAS": self._kras_gene_multiple_mutations}
-        rule = SimpleSomaticMutationsRule("COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
+        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
 
         expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
@@ -250,12 +250,12 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense4)
 
     def test_init(self):
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", {})
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", {})
         self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     def test_apply_single_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
@@ -263,7 +263,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pten_not_enough(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation_not_enough}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.NO_MUTN}
@@ -271,7 +271,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pik3r1_frameshift(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
@@ -279,7 +279,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pik3r1_frameshift_off(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift_off}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.NO_MUTN}
@@ -287,7 +287,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_double_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_double_mutation}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
@@ -295,7 +295,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pik3r1_missense(self):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_missense}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
@@ -303,7 +303,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pik3ca_class_b(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense1}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
@@ -311,7 +311,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_single_pik3ca_class_a(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense2}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
@@ -319,7 +319,7 @@ class TestAlasccaClassRule(unittest.TestCase):
 
     def test_apply_pik3ca_class_a_test2(self):
         input_symbol2gene = {"PIK3CA": self._pik3ca_gene_missense_a_and_b}
-        rule = AlasccaClassRule("ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
+        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
             AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
