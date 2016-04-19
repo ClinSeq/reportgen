@@ -107,7 +107,7 @@ def compileAlasccaGenomicReport():
     # Parse the command-line arguments...
     # FIXME: Need to add msi file input too once we've decided on the format for this information.
     # FIXME: ADD MORE PRECISE DESCRIPTION of CNV file ONCE WE HAVE AGREED ON THE FILE FORMAT
-    description = """usage: %prog [options] <vcfFile> <cnvFile> <msiFile> <crcMutationRules> <alasscaMutationRules>\n
+    description = """usage: %prog [options] <vcfFile> <cnvFile> <msiFile>\n
 Inputs:
 - VCF file specifying somatic mutations
 - Text file specifying CNVs
@@ -124,6 +124,12 @@ of this file's format.
     parser.add_option("--output", dest = "output_file",
                       default = "GenomicOutput.json",
                       help = "Output location. Default=[%default]")
+    parser.add_option("--crcMutationRules", dest = "crc_mutation_rules_file",
+                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/COLORECTAL_MUTATION_TABLE.xlsx"),
+                      help = "Rules for flagging mutations in colorectal cancer. Default=[%default]")
+    parser.add_option("--alasccaMutationRules", dest = "alascca_mutation_rules_file",
+                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx"),
+                      help = "Rules for determining ALASCCA class status. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -134,7 +140,7 @@ of this file's format.
         pdb.set_trace()
 
     # Make sure the required input arguments exist:
-    if (len(args) != 5):
+    if (len(args) != 3):
         print >> sys.stderr, "WRONG # ARGS: ", len(args)
         parser.print_help()
         sys.exit(1)
@@ -157,8 +163,8 @@ of this file's format.
     msi_status = MSIStatus()
     msi_status.set_from_file(msi_file)
 
-    crc_mutations_spreadsheet = args[3]
-    alascca_class_spreadsheet = args[4]
+    crc_mutations_spreadsheet = options.crc_mutation_rules_file
+    alascca_class_spreadsheet = options.alascca_mutation_rules_file
 
     # FIXME/ISSUE:
     # It seems like we should be passing the genomic features to the rule
