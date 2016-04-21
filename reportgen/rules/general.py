@@ -295,30 +295,66 @@ class Alteration:
 
 class AlterationExtractor:
     def __init__(self):
-        self.symbol2gene = {}
+        self._symbol2gene = {}
+        self._symbol_idx = None
+        self._gene_id_idx = None
+        self._transcript_id_idx = None
+        self._alteration_type_idx = None
+        self._aa_position_idx = None
+
+    def extract_field_idxs(self, vcf_info_fieldnames):
+        self._symbol_idx = vcf_info_fieldnames.index("SYMBOL")
+        self._gene_id_idx = vcf_info_fieldnames.index("Gene")
+        self._transcript_id_idx = vcf_info_fieldnames.index("Feature")
+        self._alteration_type_idx = vcf_info_fieldnames.index("Consequence")
+        self._aa_position_idx = vcf_info_fieldnames.index("HGVSp")
+
+    def extract_symbol(self, annotation):
+        fields = annotation.split("|")
+        return fields[self._symbol_idx]
+
+    def extract_gene_id(self, annotation):
+        fields = annotation.split("|")
+        return fields[self._gene_id_idx]
+
+    def extract_transcript_id(self, annotation):
+        fields = annotation.split("|")
+        return fields[self._transcript_id_idx]
+
+    def extract_alteration_type(self, annotation):
+        fields = annotation.split("|")
+        return fields[self._alteration_type_idx].split("&")[0]
+
+    def extract_aa_position(self, annotation):
+        fields = annotation.split("|")
+        return fields[self._aa_position_idx].split(":")[-1]
 
     def extract_mutations(self, vcf_file):
         vcf_reader = vcf.Reader(vcf_file)
+
+        # Retrieve the indexes of the relevant fields from the list of INFO
+        # fields:
+        self.extract_field_idxs(vcf_reader.infos["CSQ"].desc.split("|"))
+
         for mutation in vcf_reader:
             vep_annotations = mutation.INFO['CSQ']
 
             for annotation in vep_annotations:
                 # Extract gene symbol, ID, transcript_ID, alteration position and alteration type:
-                fields = annotation.split("|")
-                symbol = fields[25]
-                gene_id = fields[1]
-                transcript_id = fields[2]
-                alteration_type = fields[4].split("&")[0]
-                aa_position = fields[35].split(":")[-1]
+                symbol = self.extract_symbol(annotation)
+                gene_id = self.extract_gene_id(annotation)
+                transcript_id = self.extract_transcript_id(annotation)
+                alteration_type = self.extract_alteration_type(annotation)
+                aa_position = self.extract_aa_position(annotation)
 
                 # Add this gene if it has not already been added:
-                if not self.symbol2gene.has_key(symbol):
+                if not self._symbol2gene.has_key(symbol):
                     curr_gene = Gene(symbol)
                     curr_gene.set_ID(gene_id)
                     altered_gene = AlteredGene(curr_gene)
-                    self.symbol2gene[symbol] = altered_gene
+                    self._symbol2gene[symbol] = altered_gene
 
-                altered_gene = self.symbol2gene[symbol]
+                altered_gene = self._symbol2gene[symbol]
 
                 # Record the current alteration:
                 curr_alteration = Alteration(altered_gene, transcript_id, alteration_type, aa_position)
@@ -335,7 +371,7 @@ class AlterationExtractor:
         pass
 
     def to_dict(self):
-        return self.symbol2gene
+        return self._symbol2gene
 
 
 class MSIStatus:
