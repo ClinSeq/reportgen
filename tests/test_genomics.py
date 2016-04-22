@@ -37,6 +37,12 @@ class TestAlterationExtractor(unittest.TestCase):
 
         expected_dict = {"NRAS": self._nras_gene}
 
+    def test_extract_mutations_empty_input(self):
+        self._extractor.extract_mutations(open("tests/empty_input.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        expected_dict = {}
+
         self.assertDictEqual(output_dict, expected_dict)
 
     def test_extract_mutations_multiple_mutations(self):

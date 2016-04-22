@@ -1,4 +1,4 @@
-import pdb, re
+import pdb, re, sys
 
 import vcf
 
