@@ -387,9 +387,6 @@ Tumörer med MSI-H i stadium II har en god prognos med lägre recidivrisk än tu
 \\textbf{Aktiverande mutationer i \\textit{BRAF}, \\textit{KRAS} och \\textit{NRAS}}\\\\
 \\textbf{\\textsuperscript{3} För \\textit{BRAF}} rapporteras den mutation som med nuvarande kunskap betraktas som aktiverande (V600E). Tumörer med denna \\textit{BRAF}-mutation är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\textit{BRAF}-mutation är vid avancerade tumörer (stadium IV) en negativ prognostisk faktor. \\\\
 \\textbf{\\textsuperscript{4} För \\textit{KRAS} och \\textit{NRAS}} rapporteras de mutationer som med nuvarande kunskap betraktas som aktiverande (kodon 12, 13, 59, 61, 117 och 146). Tumörer med dessa \\textit{KRAS}/\\textit{NRAS}-mutationer är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\\\
-
-\\textbf{Kontakt}\\\\
-Frågor om analysmetoden i ALASCCA-studien kan skickas till ALASCCA@meb.ki.se
 }
 \\par
 '''
