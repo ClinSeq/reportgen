@@ -170,7 +170,7 @@ class TestMisc(unittest.TestCase):
     def test_retrieve_report_metadata_valid_input(self):
         # Inputting a valid blood and tumor ID should produce a ReportMetadata
         # object:
-        report_metadata = retrieve_report_metadata("3098121", "3098849", self.cnxn)
+        report_metadata = retrieve_report_metadata("03098121", "03098849", self.cnxn)
         self.assertTrue(isinstance(report_metadata, ReportMetadata))
 
 #    def test_retrieve_report_metadata_differing_personnummers(self):
