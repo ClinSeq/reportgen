@@ -49,9 +49,9 @@ class ReportMetadata(object):
                 "blood_sample_ID": self._blood_sample_ID,
                 "blood_referral_ID": self._blood_referral_ID,
                 "blood_sample_date": self._blood_sample_date,
-                "tumor_sample_ID": self._blood_sample_ID,
+                "tumor_sample_ID": self._tumor_sample_ID,
                 "tumor_referral_ID": self._tumor_referral_ID,
-                "tumor_sample_date": self._blood_sample_date}
+                "tumor_sample_date": self._tumor_sample_date}
 
     def set_from_dict(self, metadata_dict):
         '''
