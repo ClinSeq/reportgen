@@ -81,9 +81,8 @@ clinseqalascca.tissueref where barcode1 = '%s' or barcode2 = '%s' ''' % (tissue_
     output_metadata.set_blood_referral_ID(blood_referral_ID)
     output_metadata.set_blood_sample_date(blood_date_str)
     output_metadata.set_tumor_sample_ID(tissue_sample_ID)
-    output_metadata.set_tumor_referral_ID(blood_referral_ID)
+    output_metadata.set_tumor_referral_ID(tissue_referral_ID)
     output_metadata.set_tumor_sample_date(tumor_date_str)
-
     return output_metadata
 
 
