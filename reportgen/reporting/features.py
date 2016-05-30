@@ -192,19 +192,19 @@ class MsiReport(ReportFeature):
         if doc_format.get_language() == doc_format.ENGLISH:
             return u'''$\\begin{array}{ p{1cm} p{3cm} }
   \\toprule
-  \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
   \\includegraphics{%s} & MSI-H \\tabularnewline
+  \\includegraphics{%s} & MSS/MSI-L \\tabularnewline
   \\includegraphics{%s} & Not determined \\tabularnewline
   \\bottomrule
 \\end{array}$
-''' % (mss_box, msi_box, not_determined_box)
+''' % (msi_box, mss_box, not_determined_box)
         else:
             assert doc_format.get_language() == doc_format.SWEDISH
             return u'''  \\begin{tabular}{l | l}
 MSI-H\\textsuperscript{1} & \\includegraphics{%s} \\\\
 MSS/MSI-L\\textsuperscript{2} & \\includegraphics{%s} \\\\
 Ej bedömbar & \\includegraphics{%s} \\\\
-  \\end{tabular}''' % (mss_box, msi_box, not_determined_box)
+  \\end{tabular}''' % (msi_box, mss_box, not_determined_box)
 
 
 class SimpleSomaticMutationsReport(ReportFeature):
