@@ -92,20 +92,23 @@ class ReportMetadata(object):
     def get_tumor_sample_date(self):
         return self._tumor_sample_date
 
-    def make_latex(self, doc_format):
+    def make_latex_strings(self, doc_format):
         '''
-        Generate a table to display relevant metadata fields:
+        Returns an array of latex tables, one for each of the separate return
+        addresses.
         '''
-        table_latex = None
-        if doc_format.get_language() == doc_format.ENGLISH:
-            table_latex = u'''$\\begin{array}{ p{11cm} p{7cm} }
-Pnr %s & %s \\tabularnewline
-Analysis performed %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
-\\end{array}$''' % (util.format_personnummer(self._personnummer), self._doctor, self._tumor_sample_date, self._doctor_address_line1,
-                    self._doctor_address_line2, self._doctor_address_line3)
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            table_latex = u'''\\begin{tabular}{ l l }
+        latex_tables = []
+
+        # FIXME: Hard-coding keys in the dictionary _return_addresses here.
+        # This seems nasty. Perhaps use some "address" class instead of
+        # a dictionary, but then need to fix json/dict conversion for that
+        # object:
+        for address in self._return_addresses:
+            attn = address["attn"]
+            line1 = address["line1"]
+            line2 = address["line2"]
+            line3 = address["line3"]
+            curr_latex_table = u'''\\begin{tabular}{ l l }
 \\multirow{2}{10.5cm}{\\begin{tabular}{l}Personnummer %s \\\\
 Analys genomförd %s\\\\
 \\end{tabular}} &
@@ -119,7 +122,7 @@ Analys genomförd %s\\\\
  & \\\\
  & \\\\
 \\end{tabular}''' % (util.format_personnummer(self._personnummer),
-                     self._tumor_sample_date, self._doctor,
-                     self._doctor_address_line1, self._doctor_address_line2,
-                     self._doctor_address_line3)
-        return table_latex
+                     self._tumor_sample_date, attn, line1, line2, line3)
+            latex_tables.append(curr_latex_table)
+
+        return latex_tables

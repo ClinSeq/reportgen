@@ -75,9 +75,9 @@ def parse_address_table(address_table_filename):
             if not id2addresses.has_key(id):
                 id2addresses[id] = []
             id2addresses[id].append({"attn": attn,
-                                     "address_line1": address_line1,
-                                     "address_line2": address_line2,
-                                     "address_line3": address_line3})
+                                     "line1": address_line1,
+                                     "line2": address_line2,
+                                     "line3": address_line3})
 
 
 def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection, id2addresses):
