@@ -15,10 +15,7 @@ class ReportMetadata(object):
         self._tumor_sample_ID = None
         self._blood_sample_date = None
         self._tumor_sample_date = None
-        self._doctor = None
-        self._doctor_address_line1 = None
-        self._doctor_address_line2 = None
-        self._doctor_address_line3 = None
+        self._return_addresses = None
 
     def set_pnr(self, pnr):
         self._personnummer = pnr
@@ -75,12 +72,7 @@ class ReportMetadata(object):
         self._tumor_sample_id = metadata_dict["tumor_sample_ID"]
         self._tumor_sample_date = metadata_dict["tumor_sample_date"]
         self._tumor_referral_ID = metadata_dict["tumor_referral_ID"]
-
-        # FIXME: Add extraction of address information once it's included.
-        self._doctor = "Dr Namn Namnsson"  # metadata_json["doctor"]
-        self._doctor_address_line1 = "Onkologimottagningen"  # metadata_json["doctor_address_line1"]
-        self._doctor_address_line2 = "Stora Lasaretet"  # metadata_json["doctor_address_line2"]
-        self._doctor_address_line3 = "123 45 Stadsby"  # metadata_json["doctor_address_line3"]
+        self._return_addresses = metadata_dict["return_addresses"]
 
     def generate_dates_report(self):
         dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,

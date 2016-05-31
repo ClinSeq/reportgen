@@ -48,6 +48,38 @@ def get_addresses(id2addresses, ids):
     return [id2addresses[id] for id in ids]
 
 
+class AddressFileParseException(Exception):
+    pass
+
+
+def parse_address_table(address_table_filename):
+    id2addresses = []
+
+    # NOTE: Using custom csv parsing code here, as it seems ridiculous to import
+    # pandas to do rudimentary parsing of one small csv file.
+    with open(address_table_filename) as address_table_file:
+        currline = address_table_filename.readline().strip("\n")
+        elems = currline.split("\t")
+        if not elems[0] == "Nr":
+            raise AddressFileParseException("Invalid header line for address table:\n" + currline)
+        currline = address_table_filename.readline()
+        while currline != "":
+            elems = currline.strip().split("\t")
+            if not len(elems) == 7:
+                raise AddressFileParseException("Invalid line for address table:\n" + currline)
+            id = elems[0]
+            attn = elems[2]
+            address_line1 = elems[4]
+            address_line2 = elems[5]
+            address_line3 = elems[6]
+            if not id2addresses.has_key(id):
+                id2addresses[id] = []
+            id2addresses[id].append({"attn": attn,
+                                     "address_line1": address_line1,
+                                     "address_line2": address_line2,
+                                     "address_line3": address_line3})
+
+
 def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection, id2addresses):
     '''Returns a ReportMetadata object containing the metadata information to
     include in a report for a paired blood and tumor sample.
