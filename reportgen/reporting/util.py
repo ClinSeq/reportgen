@@ -53,7 +53,7 @@ class AddressFileParseException(Exception):
 
 
 def parse_address_table(address_table_filename):
-    id2addresses = []
+    id2addresses = {}
 
     # NOTE: Using custom csv parsing code here, as it seems ridiculous to import
     # pandas to do rudimentary parsing of one small csv file.
