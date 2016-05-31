@@ -41,6 +41,9 @@ class ReportMetadata(object):
     def set_tumor_referral_ID(self, tumor_referral_ID):
         self._tumor_referral_ID = tumor_referral_ID
 
+    def set_return_addresses(self, addresses):
+        self._return_addresses = addresses
+
     def get_name(self):
         return "Report Metadata"
 
@@ -51,7 +54,8 @@ class ReportMetadata(object):
                 "blood_sample_date": self._blood_sample_date,
                 "tumor_sample_ID": self._tumor_sample_ID,
                 "tumor_referral_ID": self._tumor_referral_ID,
-                "tumor_sample_date": self._tumor_sample_date}
+                "tumor_sample_date": self._tumor_sample_date,
+                "return_addresses:": self._return_addresses}
 
     def set_from_dict(self, metadata_dict):
         '''

@@ -43,6 +43,9 @@ hard-coded.
                       default = "~/.dbconfig.json",
                       help = "Configuration file for logging into the " + \
                           "database, including password. Default=[%default]")
+    parser.add_option("--address_table_file", dest = "address_table_file",
+                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/addresses.csv"),
+                      help = "File specifying addresses. Default=[%default]")
     parser.add_option("--output", dest = "output_file",
                       default = "MetadataOutput.json",
                       help = "Output location. Default=[%default]")
@@ -93,7 +96,10 @@ hard-coded.
                              options.output_file + "."
         sys.exit(1)
 
-    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID, connection)
+    id2addresses = reportgen.reporting.util.parse_address_table(options.address_table_file)
+
+    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID,
+                                                                       connection, id2addresses)
 
     # Output the report to a dictionary and write that dictionary to a JSON
     # file:

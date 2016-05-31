@@ -29,9 +29,30 @@ def id_valid(id_string):
         return False
 
 
-def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection):
+def query_unique_row(cursor, query_str):
+    cursor.execute(query_str)
+    matching_rows = cursor.fetchall()
+
+    if not len(matching_rows) == 1:
+        raise ValueError("Query does not yield a single unique entry: "
+                         + query_str)
+
+    return(tuple(matching_rows[0]))
+
+
+def get_addresses(id2addresses, ids):
+    for id in ids:
+        if not id2addresses.has_key(id):
+            raise ValueError("Address ID {} is not in id2addresses.".format(id))
+
+    return [id2addresses[id] for id in ids]
+
+
+def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection, id2addresses):
     '''Returns a ReportMetadata object containing the metadata information to
-    include in a report for a paired blood and tumor sample.'''
+    include in a report for a paired blood and tumor sample.
+
+    id2addresses is a dictionary with address ID keys and address array values.'''
 
     # Retrieve the relevant records from the tables clinseqalascca.bloodref and
     # clinseqalascca.tissueref, by issuing queries with the input database
@@ -43,26 +64,12 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, connection):
 clinseqalascca.bloodref where barcode1 = '%s' or barcode2 = '%s' or barcode3 = '%s' ''' % \
              (blood_sample_ID, blood_sample_ID, blood_sample_ID)
 
-    cursor.execute(query1)
-    matching_rows = cursor.fetchall()
-
-    if not len(matching_rows) == 1:
-        raise ValueError("Blood sample ID does not yield a single unique entry: "
-                         + blood_sample_ID)
-
-    (blood_pnr, blood_referral_ID, blood_date) = tuple(matching_rows[0])
+    (blood_pnr, blood_referral_ID, blood_date) = query_unique_row(connection, query1)
 
     query2 = '''SELECT pnr, crid, collection_date FROM
 clinseqalascca.tissueref where barcode1 = '%s' or barcode2 = '%s' ''' % (tissue_sample_ID, tissue_sample_ID)
 
-    cursor.execute(query2)
-    matching_rows = cursor.fetchall()
-
-    if not len(matching_rows) == 1:
-        raise ValueError("Tissue sample ID does not yield a single unique entry: "
-                         + tissue_sample_ID)
-
-    (tissue_pnr, tissue_referral_ID, tissue_date) = tuple(matching_rows[0])
+    (tissue_pnr, tissue_referral_ID, tissue_date) = query_unique_row(connection, query2)
 
     # Do a sanity check that the personnnummer is the same from both the blood
     # and tumor ID. Exit and report an error if this is not the case:
@@ -73,16 +80,24 @@ clinseqalascca.tissueref where barcode1 = '%s' or barcode2 = '%s' ''' % (tissue_
     blood_date_str = str(blood_date)
     tumor_date_str = str(tissue_date)
 
+    # Obtain the address information for those two referrals:
+    return_addresses = get_addresses(id2addresses, list({blood_referral_ID, tissue_referral_ID}))
+
     # Generate a ReportMetadata object, and specify the extracted fields to the
     # relevant setter methods:
     output_metadata = ReportMetadata()
     output_metadata.set_pnr(blood_pnr)
+
     output_metadata.set_blood_sample_ID(blood_sample_ID)
     output_metadata.set_blood_referral_ID(blood_referral_ID)
     output_metadata.set_blood_sample_date(blood_date_str)
+
     output_metadata.set_tumor_sample_ID(tissue_sample_ID)
     output_metadata.set_tumor_referral_ID(tissue_referral_ID)
     output_metadata.set_tumor_sample_date(tumor_date_str)
+
+    output_metadata.set_return_addresses(return_addresses)
+
     return output_metadata
 
 
