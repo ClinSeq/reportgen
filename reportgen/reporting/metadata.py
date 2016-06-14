@@ -44,15 +44,17 @@ class ReportMetadata(object):
     def get_name(self):
         return "Report Metadata"
 
+    # FIXME: I don't like these two methods as the hard-coded
+    # keys seem to represent duplication of data.
     def to_dict(self):
-        return {"personnnummer": self._personnummer,
+        return {"personnummer": self._personnummer,
                 "blood_sample_ID": self._blood_sample_ID,
                 "blood_referral_ID": self._blood_referral_ID,
                 "blood_sample_date": self._blood_sample_date,
                 "tumor_sample_ID": self._tumor_sample_ID,
                 "tumor_referral_ID": self._tumor_referral_ID,
                 "tumor_sample_date": self._tumor_sample_date,
-                "return_addresses:": self._return_addresses}
+                "return_addresses": self._return_addresses}
 
     def set_from_dict(self, metadata_dict):
         '''
@@ -65,7 +67,7 @@ class ReportMetadata(object):
 
         # FIXME: Check the fields for validty and report ValueError if not valid.
 
-        self._personnummer = metadata_dict["personnnummer"]
+        self._personnummer = metadata_dict["personnummer"]
         self._blood_sample_id = metadata_dict["blood_sample_ID"]
         self._blood_referral_ID = metadata_dict["blood_referral_ID"]
         self._blood_sample_date = metadata_dict["blood_sample_date"]
@@ -108,7 +110,8 @@ class ReportMetadata(object):
             line1 = address["line1"]
             line2 = address["line2"]
             line3 = address["line3"]
-            curr_latex_table = u'''\\begin{tabular}{ l l }
+            curr_latex_table = u'''\\rowcolors{1}{}{}
+\\begin{tabular}{ l l }
 \\multirow{2}{10.5cm}{\\begin{tabular}{l}Personnummer %s \\\\
 Analys genomförd %s\\\\
 \\end{tabular}} &

@@ -98,6 +98,7 @@ class AlasccaReport(GenomicReport):
         # FIXME: This is getting a bit hacky (adding mybox and other such things here):
         # Just got even worse (31st May 2016), by adding code to generate multiple
         # pages here. Need to rethink this and probably re-implement using jinja templates.
+
         body_latex = ""
         for metadata_latex in metadata_latex_strings:
             curr_page = title_latex + \
