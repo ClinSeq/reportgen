@@ -16,6 +16,11 @@ import reportgen.rules.msi
 import reportgen.rules.simple_somatic_mutations
 import formatting
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from referralmanager.cli.models.referrals import Base
+
 
 def compileMetadata():
     description = """usage: %prog [options] <bloodID> <tumorID>\n
@@ -40,9 +45,12 @@ hard-coded.
 
     parser = OptionParser(usage = description)
     parser.add_option("--db_config_file", dest = "db_config_file",
-                      default = "~/.dbconfig.json",
+                      default = "/nfs/ALASCCA/clinseq-referraldb-config.json",
                       help = "Configuration file for logging into the " + \
                           "database, including password. Default=[%default]")
+    parser.add_option("--address_table_file", dest = "address_table_file",
+                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/addresses.csv"),
+                      help = "File specifying addresses. Default=[%default]")
     parser.add_option("--output", dest = "output_file",
                       default = "MetadataOutput.json",
                       help = "Output location. Default=[%default]")
@@ -72,17 +80,21 @@ hard-coded.
         print >> sys.stderr, "Invalid tumor sample ID:", tumor_sample_ID
         sys.exit(1)
 
-    # Establish a connection to the KI biobank database:
+    # Establish an sqlalchemy session connecting to the KI biobank database:
+
     config_dict = None
     try:
-        path = os.path.expanduser(options.db_config_file)
-        config_dict = json.load(open(path))
+        cred_conf = json.load(open(options.db_config_file))
+        uri = cred_conf['dburi']
+        engine = create_engine(uri, echo=True)
+        Base.metadata.create_all(engine)
+
+        Session = sessionmaker(bind=engine)
+        session = Session()
     except Exception, e:
         print >> sys.stderr, "Could not load/parse JSON database config file, " + \
                              options.db_config_file + "."
         sys.exit(1)
-
-    connection = reportgen.reporting.util.connect_clinseq_db(config_dict)
 
     # Open the output file:
     output_file = None
@@ -93,7 +105,12 @@ hard-coded.
                              options.output_file + "."
         sys.exit(1)
 
-    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(blood_sample_ID, tumor_sample_ID, connection)
+    id2addresses = reportgen.reporting.util.parse_address_table(options.address_table_file)
+
+    # FIXME: Casting the blood and tumor IDs to ints here. Not sure if they should be ints,
+    # but even if they are, I'm not sure if the casting should occur here:
+    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(int(blood_sample_ID), int(tumor_sample_ID),
+                                                                       session, id2addresses)
 
     # Output the report to a dictionary and write that dictionary to a JSON
     # file:
@@ -346,6 +363,8 @@ Outputs:
     # -job-name=Report
     call_result = subprocess.call(["pdflatex", "-jobname", options.output_name,
                                    "-output-directory", options.output_dir, tmp_latex_filename])
+
+    print >> sys.stderr, tmp_latex_filename
 
     # Delete the temporary latex file unless told to retain it in the command line options:
     #if not options.keep_latex:
