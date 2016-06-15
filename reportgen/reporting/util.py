@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-import openpyxl, pyodbc
+import openpyxl
 
 from reportgen.reporting.metadata import ReportMetadata
 from reportgen.rules.general import AlterationClassification
