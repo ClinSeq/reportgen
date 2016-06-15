@@ -1,4 +1,3 @@
 pyvcf
 openpyxl
-pyodbc
 git+https://github.com/ClinSeq/referral-manager

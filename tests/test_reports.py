@@ -1,5 +1,4 @@
 import json, os, unittest
-import pyodbc
 from reportgen.rules.msi import MsiStatusRule
 
 from reportgen.reporting.features import AlasccaClassReport, MsiReport
