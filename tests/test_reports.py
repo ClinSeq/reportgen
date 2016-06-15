@@ -142,10 +142,11 @@ class TestMisc(unittest.TestCase):
     '''Tests for miscellaneous functions in the reports module.'''
 
     def setUp(self):
+        pass
         # NOTE: Reading config rather than explicitly defining dictionary here,
         # since the password is included in this information:
-        path = os.path.expanduser("~/.dbconfig.json")
-        self.config_dict = json.load(open(path))
+        #path = os.path.expanduser("~/.dbconfig.json")
+        #self.config_dict = json.load(open(path))
 
 #        self.cnxn = connect_clinseq_db(self.config_dict)
 
