@@ -93,19 +93,24 @@ class AlasccaReport(GenomicReport):
         somatic_mutations_latex = self._somatic_mutations_report.make_latex(self._doc_format)
         msi_latex = self._msi_report.make_latex(self._doc_format)
         report_legend_latex = self._report_legend.make_latex(self._doc_format)
-        metadata_latex = self._metadata.make_latex(self._doc_format)
+        metadata_latex_strings = self._metadata.make_latex_strings(self._doc_format)
 
         # FIXME: This is getting a bit hacky (adding mybox and other such things here):
-        return title_latex + \
-            "\n\n\\vspace{-0.3cm}\n" + \
-            logos_latex + \
-            "\n\\vspace{0.3cm}\n\n" + \
-            metadata_latex + \
-            '''\n\n\\vspace{1cm}\n
+        # Just got even worse (31st May 2016), by adding code to generate multiple
+        # pages here. Need to rethink this and probably re-implement using jinja templates.
+
+        body_latex = ""
+        for metadata_latex in metadata_latex_strings:
+            curr_page = title_latex + \
+                "\n\n\\vspace{-0.3cm}\n" + \
+                logos_latex + \
+                "\n\\vspace{0.3cm}\n\n" + \
+                metadata_latex + \
+                '''\n\n\\vspace{1cm}\n
 \\onehalfspacing
 {''' + \
-            dates_latex + \
-            '''
+                dates_latex + \
+                '''
 }
 \\par
 \singlespacing
@@ -118,14 +123,14 @@ class AlasccaReport(GenomicReport):
   \\parbox{18.9cm}{%
 \\centering
 ''' + \
-            alascca_title_latex + \
-            " \\par\n\\vspace{0.2cm}" + \
-            alascca_class_latex + \
-            '''
+                alascca_title_latex + \
+                " \\par\n\\vspace{0.2cm}" + \
+                alascca_class_latex + \
+                '''
 }
 }
 \\begin{center}\n''' + \
-            clinseq_title_latex + \
+                clinseq_title_latex + \
 '''\n\\end{center}
 
 \\begin{minipage}{.3\\linewidth}
@@ -134,15 +139,15 @@ class AlasccaReport(GenomicReport):
 \\centering
 
 {''' + \
-            msi_title_latex + \
-            '''} \\par
+                msi_title_latex + \
+                '''} \\par
 \\vspace{0.4cm}
 
 \\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
   boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
 {''' + \
-            msi_latex + \
-            '''
+                msi_latex + \
+                '''
 }
 }}
 \\end{minipage}
@@ -154,19 +159,21 @@ class AlasccaReport(GenomicReport):
     \\rowcolors{2}{}{ratherlightgrey}
 
     {''' + \
-            somatic_mutations_title_latex + \
-            '''} \par
+                somatic_mutations_title_latex + \
+                '''} \par
 \\vspace{0.3cm}
 
 \\tcbox[left=0mm,right=0mm,top=0mm,bottom=0mm,boxsep=0mm,
   boxrule=0.4pt, colframe=grey, colback=white]% set to your wish
 {
   ''' + \
-            somatic_mutations_latex + \
-            '''}
+                somatic_mutations_latex + \
+                '''}
 }}
     \\end{minipage}%
 
 \\vspace{0.3cm}
 ''' + \
-            report_legend_latex
+                report_legend_latex
+            body_latex += curr_page
+        return body_latex

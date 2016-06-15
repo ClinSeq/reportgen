@@ -15,10 +15,7 @@ class ReportMetadata(object):
         self._tumor_sample_ID = None
         self._blood_sample_date = None
         self._tumor_sample_date = None
-        self._doctor = None
-        self._doctor_address_line1 = None
-        self._doctor_address_line2 = None
-        self._doctor_address_line3 = None
+        self._return_addresses = None
 
     def set_pnr(self, pnr):
         self._personnummer = pnr
@@ -41,17 +38,23 @@ class ReportMetadata(object):
     def set_tumor_referral_ID(self, tumor_referral_ID):
         self._tumor_referral_ID = tumor_referral_ID
 
+    def set_return_addresses(self, addresses):
+        self._return_addresses = addresses
+
     def get_name(self):
         return "Report Metadata"
 
+    # FIXME: I don't like these two methods as the hard-coded
+    # keys seem to represent duplication of data.
     def to_dict(self):
-        return {"personnnummer": self._personnummer,
+        return {"personnummer": self._personnummer,
                 "blood_sample_ID": self._blood_sample_ID,
                 "blood_referral_ID": self._blood_referral_ID,
                 "blood_sample_date": self._blood_sample_date,
                 "tumor_sample_ID": self._tumor_sample_ID,
                 "tumor_referral_ID": self._tumor_referral_ID,
-                "tumor_sample_date": self._tumor_sample_date}
+                "tumor_sample_date": self._tumor_sample_date,
+                "return_addresses": self._return_addresses}
 
     def set_from_dict(self, metadata_dict):
         '''
@@ -64,19 +67,14 @@ class ReportMetadata(object):
 
         # FIXME: Check the fields for validty and report ValueError if not valid.
 
-        self._personnummer = metadata_dict["personnnummer"]
+        self._personnummer = metadata_dict["personnummer"]
         self._blood_sample_id = metadata_dict["blood_sample_ID"]
         self._blood_referral_ID = metadata_dict["blood_referral_ID"]
         self._blood_sample_date = metadata_dict["blood_sample_date"]
         self._tumor_sample_id = metadata_dict["tumor_sample_ID"]
         self._tumor_sample_date = metadata_dict["tumor_sample_date"]
         self._tumor_referral_ID = metadata_dict["tumor_referral_ID"]
-
-        # FIXME: Add extraction of address information once it's included.
-        self._doctor = "Dr Namn Namnsson"  # metadata_json["doctor"]
-        self._doctor_address_line1 = "Onkologimottagningen"  # metadata_json["doctor_address_line1"]
-        self._doctor_address_line2 = "Stora Lasaretet"  # metadata_json["doctor_address_line2"]
-        self._doctor_address_line3 = "123 45 Stadsby"  # metadata_json["doctor_address_line3"]
+        self._return_addresses = metadata_dict["return_addresses"]
 
     def generate_dates_report(self):
         dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,
@@ -96,20 +94,24 @@ class ReportMetadata(object):
     def get_tumor_sample_date(self):
         return self._tumor_sample_date
 
-    def make_latex(self, doc_format):
+    def make_latex_strings(self, doc_format):
         '''
-        Generate a table to display relevant metadata fields:
+        Returns an array of latex tables, one for each of the separate return
+        addresses.
         '''
-        table_latex = None
-        if doc_format.get_language() == doc_format.ENGLISH:
-            table_latex = u'''$\\begin{array}{ p{11cm} p{7cm} }
-Pnr %s & %s \\tabularnewline
-Analysis performed %s & \\begin{tabular}[t]{@{}l@{}}%s\\\\%s\\\\%s\\end{tabular} \\tabularnewline
-\\end{array}$''' % (util.format_personnummer(self._personnummer), self._doctor, self._tumor_sample_date, self._doctor_address_line1,
-                    self._doctor_address_line2, self._doctor_address_line3)
-        else:
-            assert doc_format.get_language() == doc_format.SWEDISH
-            table_latex = u'''\\begin{tabular}{ l l }
+        latex_tables = []
+
+        # FIXME: Hard-coding keys in the dictionary _return_addresses here.
+        # This seems nasty. Perhaps use some "address" class instead of
+        # a dictionary, but then need to fix json/dict conversion for that
+        # object:
+        for address in self._return_addresses:
+            attn = address["attn"]
+            line1 = address["line1"]
+            line2 = address["line2"]
+            line3 = address["line3"]
+            curr_latex_table = u'''\\rowcolors{1}{}{}
+\\begin{tabular}{ l l }
 \\multirow{2}{10.5cm}{\\begin{tabular}{l}Personnummer %s \\\\
 Analys genomförd %s\\\\
 \\end{tabular}} &
@@ -123,7 +125,7 @@ Analys genomförd %s\\\\
  & \\\\
  & \\\\
 \\end{tabular}''' % (util.format_personnummer(self._personnummer),
-                     self._tumor_sample_date, self._doctor,
-                     self._doctor_address_line1, self._doctor_address_line2,
-                     self._doctor_address_line3)
-        return table_latex
+                     self._tumor_sample_date, attn, line1, line2, line3)
+            latex_tables.append(curr_latex_table)
+
+        return latex_tables
