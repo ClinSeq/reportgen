@@ -49,7 +49,7 @@ hard-coded.
                       help = "Configuration file for logging into the " + \
                           "database, including password. Default=[%default]")
     parser.add_option("--address_table_file", dest = "address_table_file",
-                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/addresses.csv"),
+                      default = "/nfs/ALASCCA/referrals/addresses.csv",
                       help = "File specifying addresses. Default=[%default]")
     parser.add_option("--output", dest = "output_file",
                       default = "MetadataOutput.json",
