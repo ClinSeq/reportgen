@@ -1,0 +1,3 @@
+{
+  "dburi": "sqlite:///tests/referrals.db"
+}
