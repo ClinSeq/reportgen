@@ -48,20 +48,20 @@ class AlterationClassification:
         return self._output_flag
 
     def match(self, alteration):
-        match = True
         if not alteration.get_sequence_ontology() in self.get_consequences():
-            match = False
+            return False
         if not alteration.get_transcript_ID() == self.get_transcript_ID():
-            match = False
+            return False
+
         # FIXME: Perhaps I should make this mechanism more robust?
         # Absence of position information fields means that position is not
         # specified and will not be used to discount a match:
         if len(self.get_position_information()) > 0:
             position_matches = self.matches_positions(alteration)
             if not position_matches:
-                match = False
+                return False
 
-        return match
+        return True
 
     def matches_positions(self, alteration):
         '''Returns true if the specified alteration's positional information
