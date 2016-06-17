@@ -67,6 +67,9 @@ class SimpleSomaticMutationsRule:
                     flag = None
                     if classification.match(alteration):
                         flag = classification.get_output_flag()
-                    report.add_mutation(alteration, flag)
+
+                    # Only add a mutation if it corresponds to a flag:
+                    if flag != None:
+                        report.add_mutation(alteration, flag)
 
         return report

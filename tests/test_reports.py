@@ -133,8 +133,7 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
                             'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
                             'KRAS': {"Status": 'Mutated', "Alterations" : [{"HGVSp": 'p.Ala146Pro', "Flag": u'KRAS_COMMON'},
-                                                                           {"HGVSp": 'p.Lys117Asn', "Flag": u'KRAS_COMMON'},
-                                                                           {"HGVSp": 'p.Lys1Asn', "Flag": None}]}}
+                                                                           {"HGVSp": 'p.Lys117Asn', "Flag": u'KRAS_COMMON'}]}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
