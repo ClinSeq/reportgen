@@ -4,6 +4,9 @@
 
 `reportgen` creates beautiful reports from clinseq data. 
 
+
+[![Coverage Status](https://coveralls.io/repos/github/ClinSeq/reportgen/badge.svg?branch=master)](https://coveralls.io/github/ClinSeq/reportgen?branch=master)
+
 ## Setup
 
 ~~~bash
