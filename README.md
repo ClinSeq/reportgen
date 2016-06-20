@@ -1,4 +1,6 @@
-# reportgen
+# reportgen 
+
+[![Build Status](https://travis-ci.org/ClinSeq/reportgen.svg?branch=master)](https://travis-ci.org/ClinSeq/reportgen)
 
 `reportgen` creates beautiful reports from clinseq data. 
 
