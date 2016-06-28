@@ -101,9 +101,9 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         # E.g. Test if there are three elements in the first nras gene alteration.
         self.assertEqual(rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
 
-    def test_symbol2classification_is_same(self):
-        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
-        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
+#    def test_symbol2classification_is_same(self):
+#        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
+#        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     # Test empty input symbol2gene dictionary:
     def test_apply_empty_input(self):

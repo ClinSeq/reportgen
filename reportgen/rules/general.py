@@ -14,24 +14,6 @@ class AlterationClassification:
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        if not self.get_consequences() == other.get_consequences():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_position_information() == other.get_position_information():
-            return False
-        if not self.get_output_flag() == other.get_output_flag():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def get_symbol(self):
         return self._symbol
 
