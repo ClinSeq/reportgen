@@ -18,7 +18,7 @@ class AlasccaClassReport(ReportFeature):
     '''
     '''
 
-    NAME = "ALASCCA class"
+    NAME = "alascca_class"
 
     MUTN_CLASS_A = "Mutation class A"
     MUTN_CLASS_B = "Mutation class B"
@@ -31,7 +31,7 @@ class AlasccaClassReport(ReportFeature):
 
     @staticmethod
     def get_name():
-        return "ALASCCA Class Report"
+        return "alascca_class_report"
 
     def set_class(self, pathway_class):
         assert pathway_class in self.VALID_STRINGS
@@ -50,7 +50,7 @@ class MsiReport(ReportFeature):
     NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
-    NAME = "MSI Status"
+    NAME = "msi_status"
 
     def __init__(self):
         self._msi_status = None
@@ -66,7 +66,7 @@ class MsiReport(ReportFeature):
 
     @staticmethod
     def get_name():
-        return "MSI Report"
+        return "msi_report"
 
 
 class SimpleSomaticMutationsReport(ReportFeature):
@@ -83,7 +83,7 @@ class SimpleSomaticMutationsReport(ReportFeature):
 
     @staticmethod
     def get_name():
-        return "Simple Somatic Mutations Report"
+        return "simple_somatic_mutations_report"
 
     def add_gene(self, gene_name):
         # Adds a gene, with mutationStatus as "NoMutation" and mutationList as

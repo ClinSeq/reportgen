@@ -27,6 +27,10 @@
 
 \begin{document}
 
+%# Nesting the entire document body in a for loop, in order to generate
+%# a separate report for each return address:
+\BLOCK{ for address in metaJSON.return_addresses }
+
 \pagenumbering{gobble}
 
 \vspace{0cm}
@@ -53,10 +57,10 @@
 Analys genomförd \VAR{reportDate}\\
 \end{tabular}} &
 \multirow{4}{7cm}{
-\begin{tabular}{l}\\
-\\
-\\
-\\
+\begin{tabular}{l}\VAR{address.attn}\\
+\VAR{address.line1}\\
+\VAR{address.line2}\\
+\VAR{address.line3}\\
 \end{tabular}} \\
  & \\
  & \\
@@ -187,7 +191,7 @@ Ej bedömbar & \includegraphics{\VAR{msi_not_determined_box}} \\
 
   %# PROBLEM: The comment string does not work here. This is due to scoping in jinja2.
   %# Perhaps I am trying to do something too complicated, which should not be attempted here?
-  \BLOCK{ set comment_string = info.alterations | map(attribute="HGVSp") | join(" ") }
+  \BLOCK{ set comment_string = info.alterations | map(attribute="hgvsp") | join(" ") }
 %#  \BLOCK{ set comment_string = "" }
 %#  \BLOCK{ for alteration in info.alterations }
 %#  \VAR{comment_string}
@@ -235,5 +239,7 @@ Tumörer med MSI-H i stadium II har en god prognos med lägre recidivrisk än tu
 \textbf{\textsuperscript{4} För \textit{KRAS} och \textit{NRAS}} rapporteras de mutationer som med nuvarande kunskap betraktas som aktiverande (kodon 12, 13, 59, 61, 117 och 146). Tumörer med dessa \textit{KRAS}/\textit{NRAS}-mutationer är resistenta mot EGFR-hämmande behandling med antikropparna cetuximab och panitumumab, och denna behandling skall enligt nationellt vårdprogram då inte användas. \\
 }
 \par
+
+\BLOCK{ endfor }
 
 \end{document}

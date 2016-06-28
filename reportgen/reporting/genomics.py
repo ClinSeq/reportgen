@@ -28,7 +28,7 @@ class GenomicReport(object):
         return self._doc_format
 
     def make_latex(self):
-        return self.jinja_template.render(metaJSON=self.metadata_json,
-                                          genomicJSON=self.report_json,
+        return self.jinja_template.render(metaJSON=self._metadata_json,
+                                          genomicJSON=self._report_json,
                                           reportDate=unicode(datetime.date.today()),
-                                          docFormat=self.doc_format)
+                                          docFormat=self._doc_format)

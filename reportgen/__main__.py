@@ -287,9 +287,6 @@ Outputs:
                       default = "/tmp",
                       help = "Folder for containing temporary files. " + \
                           "Default=[%default]")
-    parser.add_option("--jinja_template", dest = "jinja_template",
-                      default = os.path.abspath(os.path.dirname(__file__) + "/assets/templates/alascca.tex"),
-                      help = "jinja2 template for the report. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -358,10 +355,11 @@ Outputs:
     	line_comment_prefix = '%#',
     	trim_blocks = True,
     	autoescape = False,
-    	loader = jinja2.FileSystemLoader(os.path.abspath('.'))
+    	loader = jinja2.FileSystemLoader(os.path.abspath(os.path.dirname(__file__) +
+                                                         "/assets/templates"))
     )
 
-    jinja_template = jinja_env.get_template(options.jinja_template)
+    jinja_template = jinja_env.get_template("alascca.tex")
 
     try:
         alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
