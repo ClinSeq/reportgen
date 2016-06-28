@@ -56,32 +56,6 @@ class ReportMetadata(object):
                 "tumor_sample_date": self._tumor_sample_date,
                 "return_addresses": self._return_addresses}
 
-    def set_from_dict(self, metadata_dict):
-        '''
-        Extracts the metadata fields from an input JSON object.
-        '''
-
-        # FIXME: Inconsistent use of "set_from_dict" for the report metadata
-        # compared with the report feature concrete classes. Not sure whether
-        # to unify these somehow.
-
-        # FIXME: Check the fields for validty and report ValueError if not valid.
-
-        self._personnummer = metadata_dict["personnummer"]
-        self._blood_sample_id = metadata_dict["blood_sample_ID"]
-        self._blood_referral_ID = metadata_dict["blood_referral_ID"]
-        self._blood_sample_date = metadata_dict["blood_sample_date"]
-        self._tumor_sample_id = metadata_dict["tumor_sample_ID"]
-        self._tumor_sample_date = metadata_dict["tumor_sample_date"]
-        self._tumor_referral_ID = metadata_dict["tumor_referral_ID"]
-        self._return_addresses = metadata_dict["return_addresses"]
-
-    def generate_dates_report(self):
-        dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,
-                                   self._blood_sample_date, self._tumor_sample_date,
-                                   self._blood_referral_ID, self._tumor_referral_ID)
-        return dates_report
-
     def get_blood_sample_id(self):
         return self._blood_sample_id
 
@@ -93,39 +67,3 @@ class ReportMetadata(object):
 
     def get_tumor_sample_date(self):
         return self._tumor_sample_date
-
-    def make_latex_strings(self, doc_format):
-        '''
-        Returns an array of latex tables, one for each of the separate return
-        addresses.
-        '''
-        latex_tables = []
-
-        # FIXME: Hard-coding keys in the dictionary _return_addresses here.
-        # This seems nasty. Perhaps use some "address" class instead of
-        # a dictionary, but then need to fix json/dict conversion for that
-        # object:
-        for address in self._return_addresses:
-            attn = address["attn"]
-            line1 = address["line1"]
-            line2 = address["line2"]
-            line3 = address["line3"]
-            curr_latex_table = u'''\\rowcolors{1}{}{}
-\\begin{tabular}{ l l }
-\\multirow{2}{10.5cm}{\\begin{tabular}{l}Personnummer %s \\\\
-Analys genomförd %s\\\\
-\\end{tabular}} &
-\\multirow{4}{7cm}{
-\\begin{tabular}{l}%s\\\\
-%s\\\\
-%s\\\\
-%s\\\\
-\\end{tabular}} \\\\
- & \\\\
- & \\\\
- & \\\\
-\\end{tabular}''' % (util.format_personnummer(self._personnummer),
-                     self._tumor_sample_date, attn, line1, line2, line3)
-            latex_tables.append(curr_latex_table)
-
-        return latex_tables
