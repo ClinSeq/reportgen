@@ -133,15 +133,6 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addr
     return output_metadata
 
 
-def extract_feature(genomics_dict, reportFeatureClassname):
-    feature_name = reportFeatureClassname.get_name()
-    feature_contents = genomics_dict[feature_name]
-
-    extracted_feature = reportFeatureClassname()
-    extracted_feature.set_from_dict(feature_contents)
-    return extracted_feature
-
-
 def parse_mutation_table(spreadsheet_filename):
     '''Parses a given excel spreadsheet, extracting mutation classification
     rows from the mutation table. Returns a dictionary of gene symbol to
@@ -226,16 +217,3 @@ class ReportCompiler:
             output_dict[name] = feature.to_dict()
 
         return output_dict
-
-
-'''$\\begin{array}{ p{1cm} p{10cm} }
-  \\toprule
-  \\includegraphics{%s} & Mutation klass A, patienten kan randomiseras \\tabularnewline
-  \\includegraphics{%s} & Mutation klass B, patienten kan randomiseras \\tabularnewline
-  \\tabularnewline
-  \\includegraphics{%s} & Inga mutationer, patienten kan \emph{ej} randomiseras \\tabularnewline
-  \\includegraphics{%s} & Ej utförd/Ej bedömbar, patienten kan \emph{ej} randomiseras \\tabularnewline
-  \\bottomrule
-\\end{array}$'''
-
-

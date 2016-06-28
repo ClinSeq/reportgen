@@ -150,12 +150,12 @@ class MutationStatus:
         output_list = []
         for mutation_tup in self._mutation_list:
             output_list.append({
-                "HGVSp" : mutation_tup[0].get_hgvsp(),
-                "Flag" : mutation_tup[1]
+                "hgvsp" : mutation_tup[0].get_hgvsp(),
+                "flag" : mutation_tup[1]
             })
         return {
-            "Status" : self._status,
-            "Alterations" : output_list
+            "status" : self._status,
+            "alterations" : output_list
         }
 
     def get_status(self):

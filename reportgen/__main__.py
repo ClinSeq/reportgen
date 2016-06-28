@@ -5,6 +5,8 @@ Created on Dec 1, 2015
 '''
 
 import json, os, pdb, subprocess, sys, tempfile
+import jinja2
+
 from optparse import OptionParser
 
 import reportgen.reporting.genomics
@@ -342,8 +344,26 @@ Outputs:
                                            options.rmargin, options.sansfont,
                                            options.logos)
 
+    jinja_env = jinja2.Environment(
+	    block_start_string = '\BLOCK{',
+	    block_end_string = '}',
+    	variable_start_string = '\VAR{',
+    	variable_end_string = '}',
+    	comment_start_string = '\#{',
+    	comment_end_string = '}',
+    	line_statement_prefix = '%%',
+    	line_comment_prefix = '%#',
+    	trim_blocks = True,
+    	autoescape = False,
+    	loader = jinja2.FileSystemLoader(os.path.abspath(os.path.dirname(__file__) +
+                                                         "/assets/templates"))
+    )
+
+    jinja_template = jinja_env.get_template("alascca.tex")
+
     try:
-        alascca_report = reportgen.reporting.genomics.AlasccaReport(report_json, meta_json, doc_format)
+        alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
+                                                                    jinja_env, jinja_template)
     except ValueError, e:
         print >> sys.stderr, "ERROR: Invalid report."
         print >> sys.stderr, e

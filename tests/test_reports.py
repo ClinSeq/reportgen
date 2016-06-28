@@ -109,9 +109,9 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
     def test_apply_empty_input(self):
         rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
         test_report = rule.apply()
-        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
-                            'BRAF': {"Status" : 'Not mutated', "Alterations": []},
-                            'KRAS': {"Status": 'Not mutated', "Alterations" : []}}
+        expected_outdict = {'NRAS': {"status" : 'Not mutated', "alterations": []},
+                            'BRAF': {"status" : 'Not mutated', "alterations": []},
+                            'KRAS': {"status": 'Not mutated', "alterations" : []}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test single mutation symbol2gene input dictionary:
@@ -119,9 +119,9 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         input_symbol2gene = {"BRAF": self._braf_gene_single_mutation}
         rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
-        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
-                            'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
-                            'KRAS': {"Status": 'Not mutated', "Alterations" : []}}
+        expected_outdict = {'NRAS': {"status" : 'Not mutated', "alterations": []},
+                            'BRAF': {"status": 'Mutated', "alterations": [{"hgvsp": 'p.Val600Glu', "flag": u'BRAF_COMMON'}]},
+                            'KRAS': {"status": 'Not mutated', "alterations" : []}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test multiple genes and multiple mutations symbol2gene input dictionary:
@@ -130,10 +130,10 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", input_symbol2gene)
         test_report = rule.apply()
 
-        expected_outdict = {'NRAS': {"Status" : 'Not mutated', "Alterations": []},
-                            'BRAF': {"Status": 'Mutated', "Alterations": [{"HGVSp": 'p.Val600Glu', "Flag": u'BRAF_COMMON'}]},
-                            'KRAS': {"Status": 'Mutated', "Alterations" : [{"HGVSp": 'p.Ala146Pro', "Flag": u'KRAS_COMMON'},
-                                                                           {"HGVSp": 'p.Lys117Asn', "Flag": u'KRAS_COMMON'}]}}
+        expected_outdict = {'NRAS': {"status" : 'Not mutated', "alterations": []},
+                            'BRAF': {"status": 'Mutated', "alterations": [{"hgvsp": 'p.Val600Glu', "flag": u'BRAF_COMMON'}]},
+                            'KRAS': {"status": 'Mutated', "alterations" : [{"hgvsp": 'p.Ala146Pro', "flag": u'KRAS_COMMON'},
+                                                                           {"hgvsp": 'p.Lys117Asn', "flag": u'KRAS_COMMON'}]}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
 
