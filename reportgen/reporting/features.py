@@ -45,6 +45,11 @@ class MsiReport(ReportFeature):
     '''
     '''
 
+    MSS = "MSS/MSI-L"
+    MSI = "MSI-H"
+    NOT_DETERMINED = "Not determined"
+    VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
+
     NAME = "MSI Status"
 
     def __init__(self):
