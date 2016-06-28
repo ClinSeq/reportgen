@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from reportgen.reporting.features import DatesReport
-import util
-
 
 class ReportMetadata(object):
     '''
