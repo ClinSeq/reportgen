@@ -20,17 +20,6 @@ def id_valid(id_string):
         return False
 
 
-def query_unique_row(cursor, query_str):
-    cursor.execute(query_str)
-    matching_rows = cursor.fetchall()
-
-    if not len(matching_rows) == 1:
-        raise ValueError("Query does not yield a single unique entry: "
-                         + query_str)
-
-    return(tuple(matching_rows[0]))
-
-
 def get_addresses(id2addresses, ids):
     for id in ids:
         if not id2addresses.has_key(id):
@@ -133,13 +122,9 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addr
     return output_metadata
 
 
-def parse_mutation_table(spreadsheet_filename):
-    '''Parses a given excel spreadsheet, extracting mutation classification
-    rows from the mutation table. Returns a dictionary of gene symbol to
-    classification.'''
-
-    # Break each row up and add it to the above dictionary of gene
-    # decisions...
+def extract_mutation_spreadsheet_contents(spreadsheet_filename):
+    # Break each row up, generating a data structure representing
+    # the spreadsheet...
 
     # Use openpyxl to parse the input file:
     workbook = openpyxl.load_workbook(filename=spreadsheet_filename)
@@ -149,18 +134,15 @@ def parse_mutation_table(spreadsheet_filename):
     rows_of_interest = []
     row_iter = mutation_table.iter_rows()
 
-    # FIXME: This excel spreadsheet parsing may not be robust enough...
     # Skip over the first header row:
     curr_row = row_iter.next()
+
     for curr_row in row_iter:
         if curr_row[0].value != None:
             rows_of_interest.append(curr_row)
 
-    gene_symbol2classifications = {}
-
+    extracted_content = []
     for row in rows_of_interest:
-        # Extract consequence set, symbol, geneID, transcriptID, amino
-        # acid change set, and flag from the current row:
         consequences = row[0].value.split(",")
         symbol = row[1].value
         gene_ID = row[2].value  # Not currently used.
@@ -169,6 +151,30 @@ def parse_mutation_table(spreadsheet_filename):
         if row[4].value != None:
             amino_acid_changes = row[4].value.split(",")
         flag = row[5].value
+        extracted_content.append([consequences, symbol, gene_ID, transcript_ID,
+                                 amino_acid_changes, flag])
+
+    return extracted_content
+
+
+def parse_mutation_table(spreadsheet_filename):
+    '''Parses a given excel spreadsheet, extracting mutation classification
+    rows from the mutation table. Returns a dictionary of gene symbol to
+    classification.'''
+
+    spreadsheet_contents = extract_mutation_spreadsheet_contents(spreadsheet_filename)
+
+    gene_symbol2classifications = {}
+
+    for row in spreadsheet_contents:
+        # Extract consequence set, symbol, geneID, transcriptID, amino
+        # acid change set, and flag from the current row:
+        consequences = row[0]
+        symbol = row[1]
+        gene_ID = row[2]
+        transcript_ID = row[3]
+        amino_acid_changes = row[4]
+        flag = row[5]
 
         curr_classification = \
             AlterationClassification(symbol, consequences, transcript_ID,
