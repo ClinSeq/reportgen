@@ -66,7 +66,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertFalse(util.id_valid("ABCDEFGH"))
 
     def test_get_addresses_all_unique(self):
-        id2addresses = {"01234567": [{"attn": "name1",
+        id2addresses = {"100": [{"attn": "name1",
                                      "line1": "street1",
                                      "line2": "city1",
                                      "line3": "0123"},
@@ -74,18 +74,18 @@ class TestStandaloneFunctions(unittest.TestCase):
                                      "line1": "street2",
                                      "line2": "city2",
                                      "line3": "0124"}],
-                        "12345678": [{"attn": "name3",
+                        "101": [{"attn": "name3",
                                      "line1": "street3",
                                      "line2": "city3",
                                      "line3": "0125"}]}
 
-        addresses = util.get_addresses(id2addresses, ["01234567", "12345678"])
+        addresses = util.get_addresses(id2addresses, ["100", "101"])
         self.assertEqual(addresses, [{"attn": "name1", "line1": "street1", "line2": "city1", "line3": "0123"},
                                      {"attn": "name2", "line1": "street2", "line2": "city2", "line3": "0124"},
                                      {"attn": "name3", "line1": "street3", "line2": "city3", "line3": "0125"}])
 
     def test_get_addresses_non_unique(self):
-        id2addresses = {"01234567": [{"attn": "name1",
+        id2addresses = {"100": [{"attn": "name1",
                                      "line1": "street1",
                                      "line2": "city1",
                                      "line3": "0123"},
@@ -93,7 +93,7 @@ class TestStandaloneFunctions(unittest.TestCase):
                                      "line1": "street2",
                                      "line2": "city2",
                                      "line3": "0124"}],
-                        "12345678": [{"attn": "name3",
+                        "101": [{"attn": "name3",
                                      "line1": "street3",
                                      "line2": "city3",
                                      "line3": "0125"},
@@ -102,10 +102,23 @@ class TestStandaloneFunctions(unittest.TestCase):
                                      "line2": "city2",
                                      "line3": "0124"}]}
 
-        addresses = util.get_addresses(id2addresses, ["01234567", "12345678"])
+        addresses = util.get_addresses(id2addresses, ["100", "101"])
+
         self.assertEqual(addresses, [{"attn": "name1", "line1": "street1", "line2": "city1", "line3": "0123"},
                                      {"attn": "name2", "line1": "street2", "line2": "city2", "line3": "0124"},
                                      {"attn": "name3", "line1": "street3", "line2": "city3", "line3": "0125"}])
+
+    def test_get_addresses_id_missing(self):
+        id2addresses = {"100": [{"attn": "name1",
+                                     "line1": "street1",
+                                     "line2": "city1",
+                                     "line3": "0123"},
+                                     {"attn": "name2",
+                                     "line1": "street2",
+                                     "line2": "city2",
+                                     "line3": "0124"}]}
+
+        self.assertRaises(ValueError, util.get_addresses(id2addresses, ["100", "101"]))
 
 
 #class TestMisc(unittest.TestCase):
