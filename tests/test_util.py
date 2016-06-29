@@ -118,7 +118,7 @@ class TestStandaloneFunctions(unittest.TestCase):
                                      "line2": "city2",
                                      "line3": "0124"}]}
 
-        self.assertRaises(ValueError, util.get_addresses(id2addresses, ["100", "101"]))
+        self.assertRaises(ValueError, util.get_addresses, id2addresses, ["100", "101"])
 
 
 #class TestMisc(unittest.TestCase):
