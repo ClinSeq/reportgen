@@ -13,6 +13,7 @@ from reportgen.rules.simple_somatic_mutations import SimpleSomaticMutationsRule
 
 from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 
+from mock import mock_open, patch, Mock, MagicMock
 
 class TestAlterationClassification(unittest.TestCase):
     _single_consequence_classification = None
@@ -95,24 +96,28 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
         self._kras_alteration3 = Alteration(self._kras_gene_multiple_mutations, "ENST00000256078", "missense_variant", "p.Lys1Asn")
         self._kras_gene_multiple_mutations.add_alteration(self._kras_alteration3)
 
-    def test_classification_is_same(self):
-        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
-        # FIXME (MAYBE): COULD HAVE THE RIGHT HAND SIDE OF THESE TESTS HARD-CODED INSTEAD OF READ FROM ABOVE.
-        # E.g. Test if there are three elements in the first nras gene alteration.
-        self.assertEqual(rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
+#    def test_classification_is_same(self):
+#        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
+#        # FIXME (MAYBE): COULD HAVE THE RIGHT HAND SIDE OF THESE TESTS HARD-CODED INSTEAD OF READ FROM ABOVE.
+#        # E.g. Test if there are three elements in the first nras gene alteration.
+#        # XXX CONTINUE HERE: INVESTIGATE THIS APPROACH AS AN ALTERNATIVE TO USING ASSERTDICTEQUAL COMBINED WITH
+#        # CUSTOM __EQ__ AND __NE__ METHODS.
+#        self.assertEqual(rule._gene_symbol2classifications["NRAS"][0], self._symbol2classifications["NRAS"][0])
 
 #    def test_symbol2classification_is_same(self):
 #        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
 #        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
-    # Test empty input symbol2gene dictionary:
-    def test_apply_empty_input(self):
-        rule = SimpleSomaticMutationsRule("reportgen/assets/COLORECTAL_MUTATION_TABLE.xlsx", {})
-        test_report = rule.apply()
-        expected_outdict = {'NRAS': {"status" : 'Not mutated', "alterations": []},
-                            'BRAF': {"status" : 'Not mutated', "alterations": []},
-                            'KRAS': {"status": 'Not mutated', "alterations" : []}}
-        self.assertDictEqual(test_report.to_dict(), expected_outdict)
+#    # Test empty input symbol2gene dictionary:
+#    def test_apply_empty_input(self):
+#        # Mock the extract_mutation_spreadsheet_contents function XXX
+
+#        rule = SimpleSomaticMutationsRule("dummy_filename", {})
+#        test_report = rule.apply()
+#        expected_outdict = {'NRAS': {"status" : 'Not mutated', "alterations": []},
+#                            'BRAF': {"status" : 'Not mutated', "alterations": []},
+#                            'KRAS': {"status": 'Not mutated', "alterations" : []}}
+#        self.assertDictEqual(test_report.to_dict(), expected_outdict)
 
     # Test single mutation symbol2gene input dictionary:
     def test_apply_single_mutation_input(self):
@@ -135,39 +140,6 @@ class TestSimpleSomaticMutationsRule(unittest.TestCase):
                             'KRAS': {"status": 'Mutated', "alterations" : [{"hgvsp": 'p.Ala146Pro', "flag": u'KRAS_COMMON'},
                                                                            {"hgvsp": 'p.Lys117Asn', "flag": u'KRAS_COMMON'}]}}
         self.assertDictEqual(test_report.to_dict(), expected_outdict)
-
-
-class TestMisc(unittest.TestCase):
-    '''Tests for miscellaneous functions in the reports module.'''
-
-    def setUp(self):
-        pass
-        # NOTE: Reading config rather than explicitly defining dictionary here,
-        # since the password is included in this information:
-        #path = os.path.expanduser("~/.dbconfig.json")
-        #self.config_dict = json.load(open(path))
-
-#        self.cnxn = connect_clinseq_db(self.config_dict)
-
-    def test_id_valid_valid_input(self):
-        self.assertTrue(id_valid("01234567"))
-
-    def test_id_valid_letter_input(self):
-        self.assertFalse(id_valid("ABCDEFGH"))
-
-#    def test_retrieve_report_metadata_missing_sampleID(self):
-#        self.assertRaises(ValueError, lambda: retrieve_report_metadata("12345678", "3098849", self.cnxn))
-
-#    def test_retrieve_report_metadata_valid_input(self):
-#        # Inputting a valid blood and tumor ID should produce a ReportMetadata
-#        # object:
-#        report_metadata = retrieve_report_metadata("03098121", "03098849", self.cnxn)
-#        self.assertTrue(isinstance(report_metadata, ReportMetadata))
-
-#    def test_retrieve_report_metadata_differing_personnummers(self):
-#        # Inputting a valid blood and tumor ID should produce a ReportMetadata
-#        # object:
-#        self.assertRaises(ValueError, lambda: retrieve_report_metadata("02871131", "03019438", self.cnxn))
 
 
 class TestAlasccaClassRule(unittest.TestCase):
@@ -240,9 +212,9 @@ class TestAlasccaClassRule(unittest.TestCase):
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense3)
         self._pik3ca_gene_missense_a_and_b.add_alteration(self._pik3ca_missense4)
 
-    def test_init(self):
-        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", {})
-        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
+#    def test_init(self):
+#        rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", {})
+#        self.assertDictEqual(rule._gene_symbol2classifications, self._symbol2classifications)
 
     def test_apply_single_pten(self):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation}

@@ -21,11 +21,23 @@ def id_valid(id_string):
 
 
 def get_addresses(id2addresses, ids):
+    '''Retrieves the unique set of return addresses for the given IDs, from
+    the id2addresses dictionary.'''
+
     for id in ids:
         if not id2addresses.has_key(id):
             raise ValueError("Address ID {} is not in id2addresses.".format(id))
 
-    return reduce(lambda list1, list2: list1 + list2, map(lambda id: id2addresses[id], ids))
+    all_addresses = reduce(lambda list1, list2: list1 + list2, map(lambda id: id2addresses[id], ids))
+    all_addresses.sort()
+
+    # O(N^^2) algorithm, but ok since list of addresses will be small:
+    def reduce_pair(curr_list, next_item):
+        if next_item not in curr_list:
+            curr_list.append(next_item)
+        return curr_list
+
+    return reduce(reduce_pair, all_addresses, [])
 
 
 class AddressFileParseException(Exception):
