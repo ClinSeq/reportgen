@@ -1,6 +1,7 @@
 import reportgen.rules.general as general
 import unittest
 from mock import mock_open, patch, Mock, MagicMock
+import reportgen.reporting.metadata as metadata
 
 class TestStandaloneFunctions(unittest.TestCase):
     def setUp(self):

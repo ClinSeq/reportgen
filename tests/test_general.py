@@ -3,6 +3,7 @@ import unittest
 
 from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 
+
 class TestAlterationClassification(unittest.TestCase):
     _single_consequence_classification = None
 
@@ -57,3 +58,14 @@ class TestAlterationClassification(unittest.TestCase):
 
     def test_match_position_in_range(self):
         self.assertTrue(self._pik3r1_range_classification.match(self._pik3r1_alteration1))
+
+    def test_match_transcript_mismatch(self):
+        mock_alteration = Mock()
+        mock_alteration.get_sequence_ontology = Mock(return_value="inframe_insertion")
+        mock_alteration.get_transcript_ID = Mock(return_value="ENST00000521382")
+        self.assertFalse(self._pik3r1_range_classification.match(mock_alteration))
+
+    def test_matches_positions_no_hgvsp(self):
+        mock_alteration = Mock()
+        mock_alteration.get_hgvsp = Mock(return_value=None)
+        self.assertFalse(self._pik3r1_range_classification.match(mock_alteration))
