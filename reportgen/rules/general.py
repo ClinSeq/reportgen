@@ -147,11 +147,6 @@ class MutationStatus:
         self._status = self.MUT
         self._mutation_list.append((mutation, flag))
 
-    def set_not_determined(self):
-        assert self._status == self.NO_MUT
-        assert self._mutation_list == []
-        self._status = self.NOT_DETERMINED
-
 
 class Gene:
     def __init__(self, symbol):
