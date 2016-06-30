@@ -18,15 +18,6 @@ class GenomicReport(object):
         self.jinja_env = jinja_env
         self.jinja_template = jinja_template
 
-    def get_metadata_json(self):
-        return self._metadata_json
-
-    def get_report_json(self):
-        return self._report_json
-
-    def get_doc_format(self):
-        return self._doc_format
-
     def make_latex(self):
         return self.jinja_template.render(metaJSON=self._metadata_json,
                                           genomicJSON=self._report_json,

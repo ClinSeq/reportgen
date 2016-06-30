@@ -16,7 +16,6 @@ from reportgen.rules.general import AlterationExtractor, MSIStatus
 import reportgen.rules.alascca
 import reportgen.rules.msi
 import reportgen.rules.simple_somatic_mutations
-import formatting
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -337,12 +336,9 @@ Outputs:
         print >> sys.stderr, e
         sys.exit(1)
 
-    doc_format = formatting.DocumentFormat(options.checked, options.unchecked,
-                                           options.fontfamily, options.fontsize,
-                                           options.tablepos, options.language,
-                                           options.margin, options.lmargin,
-                                           options.rmargin, options.sansfont,
-                                           options.logos)
+    doc_format = {"_checked": options.checked,
+                  "_unchecked": options.unchecked,
+                  "_logo_files": options.logos.split(",")}
 
     jinja_env = jinja2.Environment(
 	    block_start_string = '\BLOCK{',
