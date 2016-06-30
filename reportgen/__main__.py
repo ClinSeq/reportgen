@@ -10,6 +10,7 @@ import jinja2
 from optparse import OptionParser
 
 import reportgen.reporting.genomics
+import reportgen.reporting.metadata
 import reportgen.reporting.util
 from reportgen.rules.general import AlterationExtractor, MSIStatus
 
@@ -110,14 +111,10 @@ hard-coded.
 
     # FIXME: Casting the blood and tumor IDs to ints here. Not sure if they should be ints,
     # but even if they are, I'm not sure if the casting should occur here:
-    reportMetadata = reportgen.reporting.util.retrieve_report_metadata(int(blood_sample_ID), int(tumor_sample_ID),
-                                                                       session, id2addresses)
+    report_metdata = reportgen.reporting.metadata.retrieve_report_metadata(int(blood_sample_ID), int(tumor_sample_ID),
+                                                                           session, id2addresses)
 
-    # Output the report to a dictionary and write that dictionary to a JSON
-    # file:
-    metadata_json = reportMetadata.to_dict()
-
-    json.dump(metadata_json, output_file, indent=4, sort_keys=True)
+    json.dump(report_metdata, output_file, indent=4, sort_keys=True)
     output_file.close()
 
 
@@ -336,9 +333,9 @@ Outputs:
         print >> sys.stderr, e
         sys.exit(1)
 
-    doc_format = {"_checked": options.checked,
-                  "_unchecked": options.unchecked,
-                  "_logo_files": options.logos.split(",")}
+    doc_format = {"checked": options.checked,
+                  "unchecked": options.unchecked,
+                  "logo_files": options.logos.split(",")}
 
     jinja_env = jinja2.Environment(
 	    block_start_string = '\BLOCK{',
