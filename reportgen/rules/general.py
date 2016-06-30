@@ -225,15 +225,6 @@ class Alteration:
     def get_hgvsp(self):
         return self._hgvsp
 
-    def get_position_string(self):
-        # FIXME: Splitting the HGVSp string on "." to retrieve the position
-        # string. I think this is valid but it seems like a hack:
-        hgvsp_value = self.get_hgvsp()
-        if hgvsp_value == None:
-            return None
-        else:
-            return hgvsp_value.split(".")[1]
-
     def get_altered_gene(self):
         return self._altered_gene
 
