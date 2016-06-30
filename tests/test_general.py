@@ -68,4 +68,4 @@ class TestAlterationClassification(unittest.TestCase):
     def test_matches_positions_no_hgvsp(self):
         mock_alteration = Mock()
         mock_alteration.get_hgvsp = Mock(return_value=None)
-        self.assertFalse(self._pik3r1_range_classification.match(mock_alteration))
+        self.assertFalse(self._pik3r1_range_classification.matches_positions(mock_alteration))
