@@ -5,9 +5,6 @@ from reportgen.reporting.features import AlasccaClassReport, MsiReport
 
 from reportgen.rules.alascca import AlasccaClassRule
 
-from reportgen.reporting.metadata import ReportMetadata, retrieve_report_metadata
-
-from reportgen.reporting.util import id_valid, retrieve_report_metadata
 from reportgen.reporting.genomics import ReportCompiler
 
 from reportgen.rules.simple_somatic_mutations import SimpleSomaticMutationsRule
