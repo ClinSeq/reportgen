@@ -14,9 +14,6 @@ class AlterationClassification:
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
 
-    def get_symbol(self):
-        return self._symbol
-
     def get_position_information(self):
         return self._position_strings
 
