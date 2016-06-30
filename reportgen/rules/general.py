@@ -222,13 +222,6 @@ class Alteration:
         # not imply positional information.
         self._hgvsp = positionalString
 
-    # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:
-    def to_dict(self):
-        if self._hgvsp != None:
-            return self._hgvsp + "_" + self._sequence_ontology_term
-        else:
-            return self._sequence_ontology_term
-
     def get_hgvsp(self):
         return self._hgvsp
 
