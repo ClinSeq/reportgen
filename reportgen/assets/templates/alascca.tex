@@ -42,7 +42,7 @@
 \vspace{-0.3cm}
 
 \begin{tabular}[t]{  c  c  }
-  \BLOCK{ for logo in docFormat._logo_files }
+  \BLOCK{ for logo in docFormat.logo_files }
     \includegraphics[width=35mm]{\VAR{logo}}
     \BLOCK{ if not loop.last } &
     \BLOCK{ endif }
@@ -85,18 +85,18 @@ Tumörprov taget \VAR{metaJSON.tumor_sample_date}, remiss-ID \VAR{metaJSON.tumor
   \parbox{18.9cm}{%
 \centering
 {\Large Randomisering till ALASCCA-studien} \par
-\BLOCK{ set class_a_box = docFormat._unchecked }
-\BLOCK{ set class_b_box = docFormat._unchecked }
-\BLOCK{ set alascca_no_mutations_box = docFormat._unchecked }
-\BLOCK{ set alascca_not_determined_box = docFormat._unchecked }
+\BLOCK{ set class_a_box = docFormat.unchecked }
+\BLOCK{ set class_b_box = docFormat.unchecked }
+\BLOCK{ set alascca_no_mutations_box = docFormat.unchecked }
+\BLOCK{ set alascca_not_determined_box = docFormat.unchecked }
 \BLOCK{ if genomicJSON.alascca_class_report.alascca_class == "Mutation class A" }
-  \BLOCK{ set class_a_box = docFormat._checked }
+  \BLOCK{ set class_a_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Mutation class B" }
-  \BLOCK{ set class_b_box = docFormat._checked }
+  \BLOCK{ set class_b_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "No mutation" }
-  \BLOCK{ set alascca_no_mutations_box = docFormat._checked }
+  \BLOCK{ set alascca_no_mutations_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Not determined" }
-  \BLOCK{ set alascca_not_determined_box = docFormat._checked }
+  \BLOCK{ set alascca_not_determined_box = docFormat.checked }
 \BLOCK{ endif }
 
 \vspace{0.2cm}
@@ -125,15 +125,15 @@ Tumörprov taget \VAR{metaJSON.tumor_sample_date}, remiss-ID \VAR{metaJSON.tumor
 {{\large Mikrosatellitinstabilitet\\(MSI)}} \par
 \vspace{0.4cm}
 
-\BLOCK{ set mss_box = docFormat._unchecked }
-\BLOCK{ set msi_box = docFormat._unchecked }
-\BLOCK{ set msi_not_determined_box = docFormat._unchecked }
+\BLOCK{ set mss_box = docFormat.unchecked }
+\BLOCK{ set msi_box = docFormat.unchecked }
+\BLOCK{ set msi_not_determined_box = docFormat.unchecked }
 \BLOCK{ if genomicJSON.msi_report.msi_status == "MSS/MSI-L" }
-  \BLOCK{ set mss_box = docFormat._checked }
+  \BLOCK{ set mss_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.msi_report.msi_status == "MSI-H" }
-  \BLOCK{ set msi_box = docFormat._checked }
+  \BLOCK{ set msi_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.msi_report.msi_status == "Not determined" }
-  \BLOCK{ set msi_not_determined_box = docFormat._checked }
+  \BLOCK{ set msi_not_determined_box = docFormat.checked }
 \BLOCK{ endif }
 
 \tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
@@ -169,16 +169,16 @@ Ej bedömbar & \includegraphics{\VAR{msi_not_determined_box}} \\
   \BLOCK{ for gene in genomicJSON.simple_somatic_mutations_report.keys() | sort() }
 
   \BLOCK{ set info = genomicJSON.simple_somatic_mutations_report[gene] }
-  \BLOCK{ set mutated_checkbox = docFormat._unchecked }
-  \BLOCK{ set not_mutated_checkbox = docFormat._unchecked }
-  \BLOCK{ set mutation_not_determined_checkbox = docFormat._unchecked }
+  \BLOCK{ set mutated_checkbox = docFormat.unchecked }
+  \BLOCK{ set not_mutated_checkbox = docFormat.unchecked }
+  \BLOCK{ set mutation_not_determined_checkbox = docFormat.unchecked }
 
   \BLOCK{ if info.status == "Mutated" }
-  \BLOCK{ set mutated_checkbox = docFormat._checked }
+  \BLOCK{ set mutated_checkbox = docFormat.checked }
   \BLOCK{ elif info.status == "Not mutated" }
-  \BLOCK{ set not_mutated_checkbox = docFormat._checked }
+  \BLOCK{ set not_mutated_checkbox = docFormat.checked }
   \BLOCK{ elif info.status == "Not determined" }
-  \BLOCK{ set mutation_not_determined_checkbox = docFormat._checked }
+  \BLOCK{ set mutation_not_determined_checkbox = docFormat.checked }
   \BLOCK{ endif }
 
   \BLOCK{ if gene == "BRAF" }

@@ -14,27 +14,6 @@ class AlterationClassification:
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        if not self.get_consequences() == other.get_consequences():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_position_information() == other.get_position_information():
-            return False
-        if not self.get_output_flag() == other.get_output_flag():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def get_symbol(self):
-        return self._symbol
-
     def get_position_information(self):
         return self._position_strings
 
@@ -134,18 +113,6 @@ class MutationStatus:
         self._status = self.NO_MUT
         self._mutation_list = []
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_status() == other.get_status():
-            return False
-        if not self.get_mutation_list() == other.get_mutation_list():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def to_dict(self):
         output_list = []
         for mutation_tup in self._mutation_list:
@@ -168,11 +135,6 @@ class MutationStatus:
         self._status = self.MUT
         self._mutation_list.append((mutation, flag))
 
-    def set_not_determined(self):
-        assert self._status == self.NO_MUT
-        assert self._mutation_list == []
-        self._status = self.NOT_DETERMINED
-
 
 class Gene:
     def __init__(self, symbol):
@@ -190,18 +152,6 @@ class Gene:
     def get_symbol(self):
         return self._symbol
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_ID() == other.get_ID():
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
 
 class AlteredGene:
     def __init__(self, gene):
@@ -216,22 +166,6 @@ class AlteredGene:
 
     def get_gene(self):
         return self._gene
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self._gene == other._gene:
-            return False
-        for alteration in self.get_alterations():
-            if not alteration in other.get_alterations():
-                return False
-        for alteration in other.get_alterations():
-            if not alteration in self.get_alterations():
-                return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class Alteration:
@@ -248,24 +182,8 @@ class Alteration:
         # not imply positional information.
         self._hgvsp = positionalString
 
-    # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:
-    def to_dict(self):
-        if self._hgvsp != None:
-            return self._hgvsp + "_" + self._sequence_ontology_term
-        else:
-            return self._sequence_ontology_term
-
     def get_hgvsp(self):
         return self._hgvsp
-
-    def get_position_string(self):
-        # FIXME: Splitting the HGVSp string on "." to retrieve the position
-        # string. I think this is valid but it seems like a hack:
-        hgvsp_value = self.get_hgvsp()
-        if hgvsp_value == None:
-            return None
-        else:
-            return hgvsp_value.split(".")[1]
 
     def get_altered_gene(self):
         return self._altered_gene
@@ -275,22 +193,6 @@ class Alteration:
 
     def get_transcript_ID(self):
         return self._transcript_ID
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_altered_gene().get_gene() == other.get_altered_gene().get_gene():
-            return False
-        if not self.get_sequence_ontology() == other.get_sequence_ontology():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_hgvsp() == other.get_hgvsp():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class AlterationExtractor:
@@ -403,9 +305,6 @@ class MSIStatus:
 
     def get_total(self):
         return self._total_sites
-
-    def get_num_somatic(self):
-        return self._somatic_sites
 
     def get_percent(self):
         return self._percent
