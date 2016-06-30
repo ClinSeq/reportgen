@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from sqlalchemy import or_
+import sqlalchemy
+import pdb
+
+from referralmanager.cli.models.referrals import AlasccaBloodReferral, AlasccaTissueReferral
 
 from reportgen.reporting.util import get_addresses
 
@@ -14,15 +17,16 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addr
     # clinseqalascca.tissueref, by issuing queries with the input database
     # connection...
 
-    query1 = session.query(AlasccaBloodReferral).filter(or_(AlasccaBloodReferral.barcode1 == blood_sample_ID,
+    query1 = session.query(AlasccaBloodReferral).filter(sqlalchemy.or_(AlasccaBloodReferral.barcode1 == blood_sample_ID,
                                                         AlasccaBloodReferral.barcode2 == blood_sample_ID,
                                                         AlasccaBloodReferral.barcode3 == blood_sample_ID))
+
     result = query1.all()
     if not len(result) == 1:
         raise ValueError("Query does not yield a single unique entry: " + blood_sample_ID)
     blood_ref = result[0]
 
-    query2 = session.query(AlasccaTissueReferral).filter(or_(AlasccaTissueReferral.barcode1 == tissue_sample_ID,
+    query2 = session.query(AlasccaTissueReferral).filter(sqlalchemy.or_(AlasccaTissueReferral.barcode1 == tissue_sample_ID,
                                                         AlasccaTissueReferral.barcode2 == tissue_sample_ID))
     result = query2.all()
     if not len(result) == 1:
