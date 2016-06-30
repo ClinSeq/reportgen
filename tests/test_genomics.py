@@ -50,14 +50,16 @@ class TestAlterationExtractor(unittest.TestCase):
         output_dict = self._extractor.to_dict()
 
         expected_dict = {"KRAS": self._kras_gene}
-        self.assertDictEqual(output_dict, expected_dict, output_dict)
+        self.assertEqual(len(output_dict.keys()), len(expected_dict.keys()))
+        self.assertEqual(output_dict["KRAS"]._gene._gene_ID, expected_dict["KRAS"]._gene._gene_ID)
 
     def test_extract_mutations_multiple_genes(self):
         self._extractor.extract_mutations(open("tests/multiple_genes_variant_input.vcf"))
         output_dict = self._extractor.to_dict()
 
         expected_dict = {"KRAS": self._kras_gene, "NRAS": self._nras_gene}
-        self.assertDictEqual(output_dict, expected_dict, output_dict)
+        self.assertEqual(len(output_dict.keys()), len(expected_dict.keys()))
+        self.assertEqual(output_dict["NRAS"]._gene._gene_ID, expected_dict["NRAS"]._gene._gene_ID)
 
 
 class TestMSIStatus(unittest.TestCase):

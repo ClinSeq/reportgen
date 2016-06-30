@@ -113,18 +113,6 @@ class MutationStatus:
         self._status = self.NO_MUT
         self._mutation_list = []
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_status() == other.get_status():
-            return False
-        if not self.get_mutation_list() == other.get_mutation_list():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def to_dict(self):
         output_list = []
         for mutation_tup in self._mutation_list:
@@ -164,18 +152,6 @@ class Gene:
     def get_symbol(self):
         return self._symbol
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_ID() == other.get_ID():
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
 
 class AlteredGene:
     def __init__(self, gene):
@@ -190,22 +166,6 @@ class AlteredGene:
 
     def get_gene(self):
         return self._gene
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self._gene == other._gene:
-            return False
-        for alteration in self.get_alterations():
-            if not alteration in other.get_alterations():
-                return False
-        for alteration in other.get_alterations():
-            if not alteration in self.get_alterations():
-                return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class Alteration:
@@ -233,22 +193,6 @@ class Alteration:
 
     def get_transcript_ID(self):
         return self._transcript_ID
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_altered_gene().get_gene() == other.get_altered_gene().get_gene():
-            return False
-        if not self.get_sequence_ontology() == other.get_sequence_ontology():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_hgvsp() == other.get_hgvsp():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class AlterationExtractor:
