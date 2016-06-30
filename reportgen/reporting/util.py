@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import re
+
 import openpyxl
+from referralmanager.cli.models.referrals import AlasccaBloodReferral, AlasccaTissueReferral
+from sqlalchemy import or_
 
 from reportgen.reporting.metadata import ReportMetadata
 from reportgen.rules.general import AlterationClassification
 
-from referralmanager.cli.models.referrals import AlasccaBloodReferral, AlasccaTissueReferral
-
-from sqlalchemy import or_
 
 def id_valid(id_string):
     '''Checks an input blood or tumor ID for validity.'''
@@ -203,35 +203,3 @@ def parse_mutation_table(spreadsheet_filename):
 def format_personnummer(personnummer):
     assert re.match("^[0-9]{12}$", personnummer)
     return personnummer[2:8] + "-" + personnummer[8:]
-
-
-class ReportCompiler:
-    '''Compiles a genomic report given input genomic features and rules. Can then
-    output a JSON formatted representation of the report. NOTE: There is no
-    alascca report subtype: The particular type of report is determined by
-    the composition of rules the compiler is using to generate corresponding
-    report features.'''
-
-    def __init__(self, rules):
-        self._rules = rules
-
-        # This will contain the report features once they have been generated
-        # by applying the rules:
-        self._name2feature = {}
-
-    def extract_features(self):
-        # Apply each rule, generating a corresponding report feature, which is
-        # then stored in this object:
-        for curr_rule in self._rules:
-            curr_feature = curr_rule.apply()
-
-            # Store the current feature under this feature's name:
-            self._name2feature[curr_feature.get_name()] = curr_feature
-
-    def to_dict(self):
-        output_dict = {}
-        for name in self._name2feature.keys():
-            feature = self._name2feature[name]
-            output_dict[name] = feature.to_dict()
-
-        return output_dict

@@ -201,7 +201,7 @@ of this file's format.
                                                            symbol2altered_gene)
     msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    report_compiler = reportgen.reporting.util.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+    report_compiler = reportgen.reporting.genomics.ReportCompiler([mutationsRule, alasccaRule, msiRule])
     report_compiler.extract_features()
 
     # Set output file according to options:
