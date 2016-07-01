@@ -7,7 +7,7 @@ class GenomicReport(object):
     '''
     '''
 
-    def __init__(self, report_json, metadata_json, doc_format, jinja_env, jinja_template):
+    def __init__(self, report_json, metadata_json, doc_format, jinja_template):
         # Save the metadata and report json objects:
         self._report_json = report_json
         self._metadata_json = metadata_json
@@ -15,7 +15,6 @@ class GenomicReport(object):
         # Store the document format object:
         self._doc_format = doc_format
 
-        self.jinja_env = jinja_env
         self.jinja_template = jinja_template
 
     def make_latex(self):

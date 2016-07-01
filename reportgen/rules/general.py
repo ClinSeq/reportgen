@@ -1,4 +1,4 @@
-import pdb, re, sys
+import json, re
 
 import vcf
 
@@ -263,14 +263,34 @@ class AlterationExtractor:
                 altered_gene.add_alteration(curr_alteration)
 
     def extract_cnvs(self, cnvFile):
-        # FIXME: Not sure about the format of the input file: Need to discuss this
-        # with Daniel in more detail. However, the output of this function is clear:
-        # It's a dictionary with gene symbols as keys and Gene objects as keys, with
-        # the Gene objects containing Alteration objects representing the CNVs using
-        # appropriate sequence ontology terms.
-        # FIXME: NOT SURE ABOUT THIS.
+        cnv_dict = json.load(cnvFile)
 
-        pass
+        gene_symbol = cnv_dict["name"]
+        call = cnv_dict["call"]
+        gene_id = cnv_dict["ENSG"]
+        transcript_id = cnv_dict["ENST"]
+        call2sequence_ontology = {
+            "HOMLOSS": "homozygous_loss",
+            "HETLOSS_or_LOH": "loss_of_heterozygosity"
+        }
+
+        # Only record the CNV information if it is one of the CNV events of
+        # interest:
+        if call in call2sequence_ontology.keys():
+            if not self._symbol2gene.has_key(gene_symbol):
+                gene = Gene(gene_symbol)
+                gene.set_ID(gene_id)
+                self._symbol2gene[gene_symbol] = AlteredGene(gene)
+
+            altered_gene = self._symbol2gene[gene_symbol]
+            curr_alteration = Alteration(altered_gene, transcript_id,
+                                         call2sequence_ontology[call],
+                                         None)
+            altered_gene.add_alteration(curr_alteration)
+
+        else:
+            if call != "NOCALL":
+                raise ValueError("Invalid CNV call value: " + call)
 
     def to_dict(self):
         return self._symbol2gene
