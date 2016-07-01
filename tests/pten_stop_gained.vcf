@@ -1,0 +1,65 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##INFO=<ID=SAMPLE,Number=1,Type=String,Description="Sample name">
+##INFO=<ID=TYPE,Number=1,Type=String,Description="Variant Type: SNV Insertion Deletion Complex">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##INFO=<ID=END,Number=1,Type=Integer,Description="Chr End Position">
+##INFO=<ID=VD,Number=1,Type=Integer,Description="Variant Depth">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Allele Frequency">
+##INFO=<ID=SHIFT3,Number=1,Type=Integer,Description="No. of bases to be shifted to 3 prime for deletions due to alternative alignment">
+##INFO=<ID=MSI,Number=1,Type=Float,Description="MicroSattelite. > 1 indicates MSI">
+##INFO=<ID=MSILEN,Number=1,Type=Float,Description="MSI unit repeat length in bp">
+##INFO=<ID=SSF,Number=1,Type=Float,Description="P-value">
+##INFO=<ID=SOR,Number=1,Type=Float,Description="Odds ratio">
+##INFO=<ID=LSEQ,Number=1,Type=String,Description="5' flanking seq">
+##INFO=<ID=RSEQ,Number=1,Type=String,Description="3' flanking seq">
+##INFO=<ID=STATUS,Number=1,Type=String,Description="Somatic or germline status">
+##FILTER=<ID=q25,Description="Mean Base Quality Below 25">
+##FILTER=<ID=Q0,Description="Mean Mapping Quality Below 0">
+##FILTER=<ID=p8,Description="Mean Position in Reads Less than 8">
+##FILTER=<ID=SN1.5,Description="Signal to Noise Less than 1.5">
+##FILTER=<ID=Bias,Description="Strand Bias">
+##FILTER=<ID=pSTD,Description="Position in Reads has STD of 0">
+##FILTER=<ID=MAF0.05,Description="Matched sample has AF > 0.05, thus not somatic">
+##FILTER=<ID=d5,Description="Total Depth < 5">
+##FILTER=<ID=v3,Description="Var Depth < 3">
+##FILTER=<ID=f0.1,Description="Allele frequency < 0.1">
+##FILTER=<ID=P0.9,Description="Not significant with p-value > 0.9">
+##FILTER=<ID=DIFF0.2,Description="Non-somatic or LOH and allele frequency difference < 0.2">
+##FILTER=<ID=P0.01Likely,Description="Likely candidate but p-value > 0.01/5**vd2">
+##FILTER=<ID=InDelLikely,Description="Likely Indels are not considered somatic">
+##FILTER=<ID=MSI12,Description="Variant in MSI region with 12 non-monomer MSI or 12 monomer MSI">
+##FILTER=<ID=NM4.25,Description="Mean mismatches in reads >= 4.25, thus likely false positive">
+##FILTER=<ID=InGap,Description="The somatic variant is in the deletion gap, thus likely false positive">
+##FILTER=<ID=InIns,Description="The somatic variant is adjacent to an insertion variant">
+##FILTER=<ID=Cluster0bp,Description="Two somatic variants are within 0 bp">
+##FILTER=<ID=LongAT,Description="The somatic variant is flanked by long A/T (>=14)">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##FORMAT=<ID=VD,Number=1,Type=Integer,Description="Variant Depth">
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=ALD,Number=2,Type=Integer,Description="Variant forward, reverse reads">
+##FORMAT=<ID=RD,Number=2,Type=Integer,Description="Reference forward, reverse reads">
+##FORMAT=<ID=AF,Number=1,Type=Float,Description="Allele Frequency">
+##FORMAT=<ID=ADJAF,Number=1,Type=Float,Description="Adjusted AF for indels due to local realignment">
+##FORMAT=<ID=BIAS,Number=1,Type=String,Description="Strand Bias Info">
+##FORMAT=<ID=PMEAN,Number=1,Type=Float,Description="Mean position in reads">
+##FORMAT=<ID=PSTD,Number=1,Type=Float,Description="Position STD in reads">
+##FORMAT=<ID=QUAL,Number=1,Type=Float,Description="Mean quality score in reads">
+##FORMAT=<ID=QSTD,Number=1,Type=Float,Description="Quality score STD in reads">
+##FORMAT=<ID=SBF,Number=1,Type=Float,Description="Strand Bias Fisher p-value">
+##FORMAT=<ID=ODDRATIO,Number=1,Type=Float,Description="Strand Bias Oddratio">
+##FORMAT=<ID=MQ,Number=1,Type=Float,Description="Mean Mapping Quality">
+##FORMAT=<ID=SN,Number=1,Type=Float,Description="Signal to noise">
+##FORMAT=<ID=HIAF,Number=1,Type=Float,Description="Allele frequency using only high quality bases">
+##FORMAT=<ID=NM,Number=1,Type=Float,Description="Mean mismatches in reads">
+##bcftools_filterVersion=1.2+htslib-1.2.1
+##bcftools_filterCommand=filter -e 'STATUS !~ ".*Somatic'
+##INFO=<ID=OLD_MULTIALLELIC,Number=1,Type=String,Description="Original chr:pos:ref:alt encoding">
+##INFO=<ID=OLD_VARIANT,Number=.,Type=String,Description="Original chr:pos:ref:alt encoding">
+##bcftools_viewVersion=1.2+htslib-1.2.1
+##bcftools_viewCommand=view --apply-filters .,PASS
+##VEP=v83 cache=. db=homo_sapiens_core_83_37@ensembldb.ensembl.org ESP=20141103 dbSNP=144 genebuild=2011-04 ClinVar=201507 COSMIC=71 assembly=GRCh37.p13 gencode=GENCODE 19 HGMD-PUBLIC=20152
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|ALLELE_NUM|DISTANCE|STRAND|SYMBOL_SOURCE|HGNC_ID|HGVS_OFFSET|CLIN_SIG|SOMATIC|PHENO">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12877-T-03098849-TD1-TT1	NA12877-N-03098121-TD1-TT1
+10	89717672	.	C	T	228	PASS	STATUS=StrongSomatic;SAMPLE=NA12877-T-03098849-TD1-TT1;TYPE=SNV;SHIFT3=1;MSI=2;MSILEN=3;SSF=0;SOR=0;LSEQ=CCTCCAATTCAGGACCCACA;RSEQ=GACGGGAAGACAAGTTCATG;CSQ=T|non_coding_transcript_exon_variant&non_coding_transcript_variant|MODIFIER|PTEN|ENSG00000171862|Transcript|ENST00000472832|processed_transcript|2/3||ENST00000472832.1:n.124C>T||124/644|||||rs121909219&COSM5154|1||1|HGNC|9588||pathogenic|0&1|1&1,T|stop_gained|HIGH|PTEN|ENSG00000171862|Transcript|ENST00000371953|protein_coding|7/9||ENST00000371953.3:c.697C>T|ENSP00000361021.3:p.Arg233Ter|2054/9027|697/1212|233/403|R/*|Cga/Tga|rs121909219&COSM5154|1||1|HGNC|9588||pathogenic|0&1|1&1	GT:DP:VD:ALD:RD:AD:AF:BIAS:PMEAN:PSTD:QUAL:QSTD:SBF:ODDRATIO:MQ:SN:HIAF:ADJAF:NM	0/1:322:71:32,39:130,121:251,71:0.2205:2,2:27:1:37.2:1:0.34812:1.30829:60:34.5:0.2219:0:1.1	0/0:134:0:0,0:68,66:134,0:0:2,0:25.6:1:37.6:1:1:0:60:66:1:0:0.2

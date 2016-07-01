@@ -1,4 +1,4 @@
-import pdb, re, sys
+import json, re
 
 import vcf
 
@@ -13,27 +13,6 @@ class AlterationClassification:
         self._transcript_ID = transcriptID
         self._position_strings = positionInformationStrings
         self._output_flag = outputFlag
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        if not self.get_consequences() == other.get_consequences():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_position_information() == other.get_position_information():
-            return False
-        if not self.get_output_flag() == other.get_output_flag():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def get_symbol(self):
-        return self._symbol
 
     def get_position_information(self):
         return self._position_strings
@@ -134,28 +113,16 @@ class MutationStatus:
         self._status = self.NO_MUT
         self._mutation_list = []
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_status() == other.get_status():
-            return False
-        if not self.get_mutation_list() == other.get_mutation_list():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def to_dict(self):
         output_list = []
         for mutation_tup in self._mutation_list:
             output_list.append({
-                "HGVSp" : mutation_tup[0].get_hgvsp(),
-                "Flag" : mutation_tup[1]
+                "hgvsp" : mutation_tup[0].get_hgvsp(),
+                "flag" : mutation_tup[1]
             })
         return {
-            "Status" : self._status,
-            "Alterations" : output_list
+            "status" : self._status,
+            "alterations" : output_list
         }
 
     def get_status(self):
@@ -167,11 +134,6 @@ class MutationStatus:
     def add_mutation(self, mutation, flag):
         self._status = self.MUT
         self._mutation_list.append((mutation, flag))
-
-    def set_not_determined(self):
-        assert self._status == self.NO_MUT
-        assert self._mutation_list == []
-        self._status = self.NOT_DETERMINED
 
 
 class Gene:
@@ -190,18 +152,6 @@ class Gene:
     def get_symbol(self):
         return self._symbol
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_ID() == other.get_ID():
-            return False
-        if not self.get_symbol() == other.get_symbol():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
 
 class AlteredGene:
     def __init__(self, gene):
@@ -216,22 +166,6 @@ class AlteredGene:
 
     def get_gene(self):
         return self._gene
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self._gene == other._gene:
-            return False
-        for alteration in self.get_alterations():
-            if not alteration in other.get_alterations():
-                return False
-        for alteration in other.get_alterations():
-            if not alteration in self.get_alterations():
-                return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class Alteration:
@@ -248,24 +182,8 @@ class Alteration:
         # not imply positional information.
         self._hgvsp = positionalString
 
-    # FIXME: Not sure where I intend to use this but I'm pretty sure this is broken:
-    def to_dict(self):
-        if self._hgvsp != None:
-            return self._hgvsp + "_" + self._sequence_ontology_term
-        else:
-            return self._sequence_ontology_term
-
     def get_hgvsp(self):
         return self._hgvsp
-
-    def get_position_string(self):
-        # FIXME: Splitting the HGVSp string on "." to retrieve the position
-        # string. I think this is valid but it seems like a hack:
-        hgvsp_value = self.get_hgvsp()
-        if hgvsp_value == None:
-            return None
-        else:
-            return hgvsp_value.split(".")[1]
 
     def get_altered_gene(self):
         return self._altered_gene
@@ -275,22 +193,6 @@ class Alteration:
 
     def get_transcript_ID(self):
         return self._transcript_ID
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        if not self.get_altered_gene().get_gene() == other.get_altered_gene().get_gene():
-            return False
-        if not self.get_sequence_ontology() == other.get_sequence_ontology():
-            return False
-        if not self.get_transcript_ID() == other.get_transcript_ID():
-            return False
-        if not self.get_hgvsp() == other.get_hgvsp():
-            return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
 
 class AlterationExtractor:
@@ -361,14 +263,34 @@ class AlterationExtractor:
                 altered_gene.add_alteration(curr_alteration)
 
     def extract_cnvs(self, cnvFile):
-        # FIXME: Not sure about the format of the input file: Need to discuss this
-        # with Daniel in more detail. However, the output of this function is clear:
-        # It's a dictionary with gene symbols as keys and Gene objects as keys, with
-        # the Gene objects containing Alteration objects representing the CNVs using
-        # appropriate sequence ontology terms.
-        # FIXME: NOT SURE ABOUT THIS.
+        cnv_dict = json.load(cnvFile)
 
-        pass
+        gene_symbol = cnv_dict["name"]
+        call = cnv_dict["call"]
+        gene_id = cnv_dict["ENSG"]
+        transcript_id = cnv_dict["ENST"]
+        call2sequence_ontology = {
+            "HOMLOSS": "homozygous_loss",
+            "HETLOSS_or_LOH": "loss_of_heterozygosity"
+        }
+
+        # Only record the CNV information if it is one of the CNV events of
+        # interest:
+        if call in call2sequence_ontology.keys():
+            if not self._symbol2gene.has_key(gene_symbol):
+                gene = Gene(gene_symbol)
+                gene.set_ID(gene_id)
+                self._symbol2gene[gene_symbol] = AlteredGene(gene)
+
+            altered_gene = self._symbol2gene[gene_symbol]
+            curr_alteration = Alteration(altered_gene, transcript_id,
+                                         call2sequence_ontology[call],
+                                         None)
+            altered_gene.add_alteration(curr_alteration)
+
+        else:
+            if call != "NOCALL":
+                raise ValueError("Invalid CNV call value: " + call)
 
     def to_dict(self):
         return self._symbol2gene
@@ -403,9 +325,6 @@ class MSIStatus:
 
     def get_total(self):
         return self._total_sites
-
-    def get_num_somatic(self):
-        return self._somatic_sites
 
     def get_percent(self):
         return self._percent

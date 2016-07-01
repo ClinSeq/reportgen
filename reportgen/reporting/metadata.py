@@ -1,131 +1,58 @@
 # -*- coding: utf-8 -*-
+import sqlalchemy
+import pdb
 
-from reportgen.reporting.features import DatesReport
-import util
+from referralmanager.cli.models.referrals import AlasccaBloodReferral, AlasccaTissueReferral
+
+from reportgen.reporting.util import get_addresses
 
 
-class ReportMetadata(object):
-    '''
-    metadata for a single sample analysis report
-    '''
+def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addresses):
+    '''Returns a ReportMetadata object containing the metadata information to
+    include in a report for a paired blood and tumor sample.
 
-    def __init__(self):
-        self._personnummer = None
-        self._blood_sample_ID = None
-        self._tumor_sample_ID = None
-        self._blood_sample_date = None
-        self._tumor_sample_date = None
-        self._return_addresses = None
+    id2addresses is a dictionary with address ID keys and address array values.'''
 
-    def set_pnr(self, pnr):
-        self._personnummer = pnr
+    # Retrieve the relevant records from the tables clinseqalascca.bloodref and
+    # clinseqalascca.tissueref, by issuing queries with the input database
+    # connection...
 
-    def set_blood_sample_ID(self, blood_sample_ID):
-        self._blood_sample_ID = blood_sample_ID
+    query1 = session.query(AlasccaBloodReferral).filter(sqlalchemy.or_(AlasccaBloodReferral.barcode1 == blood_sample_ID,
+                                                        AlasccaBloodReferral.barcode2 == blood_sample_ID,
+                                                        AlasccaBloodReferral.barcode3 == blood_sample_ID))
 
-    def set_blood_referral_ID(self, blood_referral_ID):
-        self._blood_referral_ID = blood_referral_ID
+    result = query1.all()
+    if not len(result) == 1:
+        raise ValueError("Query does not yield a single unique entry: " + blood_sample_ID)
+    blood_ref = result[0]
 
-    def set_blood_sample_date(self, blood_sample_date):
-        self._blood_sample_date = blood_sample_date
+    query2 = session.query(AlasccaTissueReferral).filter(sqlalchemy.or_(AlasccaTissueReferral.barcode1 == tissue_sample_ID,
+                                                        AlasccaTissueReferral.barcode2 == tissue_sample_ID))
+    result = query2.all()
+    if not len(result) == 1:
+        raise ValueError("Query does not yield a single unique entry: " + tissue_sample_ID)
+    tissue_ref = result[0]
 
-    def set_tumor_sample_ID(self, tumor_sample_ID):
-        self._tumor_sample_ID = tumor_sample_ID
+    # Do a sanity check that the personnummer is the same from both the `
+    # and tumor ID. Exit and report an error if this is not the case:
+    if not blood_ref.pnr == tissue_ref.pnr:
+        raise ValueError("Blood sample personnummer does not match tissue sample personnummer.")
 
-    def set_tumor_sample_date(self, tumor_sample_date):
-        self._tumor_sample_date = tumor_sample_date
+    # Convert dates to strings:
+    blood_date_str = str(blood_ref.collection_date)
+    tumor_date_str = str(tissue_ref.collection_date)
 
-    def set_tumor_referral_ID(self, tumor_referral_ID):
-        self._tumor_referral_ID = tumor_referral_ID
+    # Obtain the address information for those two referrals:
+    return_addresses = get_addresses(id2addresses, list({str(blood_ref.hospital_code), str(tissue_ref.hospital_code)}))
 
-    def set_return_addresses(self, addresses):
-        self._return_addresses = addresses
+    # Simply construct a dictionary from the relevant fields:
+    output_metadata = {"personnummer": blood_ref.pnr,
+                       "blood_sample_ID": blood_sample_ID,
+                       "blood_referral_ID": blood_ref.crid,
+                       "blood_sample_date": blood_date_str,
+                       "tumor_sample_ID": tissue_sample_ID,
+                       "tumor_referral_ID": tissue_ref.crid,
+                       "tumor_sample_date": tumor_date_str,
+                       "return_addresses": return_addresses}
 
-    def get_name(self):
-        return "Report Metadata"
-
-    # FIXME: I don't like these two methods as the hard-coded
-    # keys seem to represent duplication of data.
-    def to_dict(self):
-        return {"personnummer": self._personnummer,
-                "blood_sample_ID": self._blood_sample_ID,
-                "blood_referral_ID": self._blood_referral_ID,
-                "blood_sample_date": self._blood_sample_date,
-                "tumor_sample_ID": self._tumor_sample_ID,
-                "tumor_referral_ID": self._tumor_referral_ID,
-                "tumor_sample_date": self._tumor_sample_date,
-                "return_addresses": self._return_addresses}
-
-    def set_from_dict(self, metadata_dict):
-        '''
-        Extracts the metadata fields from an input JSON object.
-        '''
-
-        # FIXME: Inconsistent use of "set_from_dict" for the report metadata
-        # compared with the report feature concrete classes. Not sure whether
-        # to unify these somehow.
-
-        # FIXME: Check the fields for validty and report ValueError if not valid.
-
-        self._personnummer = metadata_dict["personnummer"]
-        self._blood_sample_id = metadata_dict["blood_sample_ID"]
-        self._blood_referral_ID = metadata_dict["blood_referral_ID"]
-        self._blood_sample_date = metadata_dict["blood_sample_date"]
-        self._tumor_sample_id = metadata_dict["tumor_sample_ID"]
-        self._tumor_sample_date = metadata_dict["tumor_sample_date"]
-        self._tumor_referral_ID = metadata_dict["tumor_referral_ID"]
-        self._return_addresses = metadata_dict["return_addresses"]
-
-    def generate_dates_report(self):
-        dates_report = DatesReport(self._blood_sample_id, self._tumor_sample_id,
-                                   self._blood_sample_date, self._tumor_sample_date,
-                                   self._blood_referral_ID, self._tumor_referral_ID)
-        return dates_report
-
-    def get_blood_sample_id(self):
-        return self._blood_sample_id
-
-    def get_tumor_sample_id(self):
-        return self._tumor_sample_id
-
-    def get_blood_sample_date(self):
-        return self._blood_sample_date
-
-    def get_tumor_sample_date(self):
-        return self._tumor_sample_date
-
-    def make_latex_strings(self, doc_format):
-        '''
-        Returns an array of latex tables, one for each of the separate return
-        addresses.
-        '''
-        latex_tables = []
-
-        # FIXME: Hard-coding keys in the dictionary _return_addresses here.
-        # This seems nasty. Perhaps use some "address" class instead of
-        # a dictionary, but then need to fix json/dict conversion for that
-        # object:
-        for address in self._return_addresses:
-            attn = address["attn"]
-            line1 = address["line1"]
-            line2 = address["line2"]
-            line3 = address["line3"]
-            curr_latex_table = u'''\\rowcolors{1}{}{}
-\\begin{tabular}{ l l }
-\\multirow{2}{10.5cm}{\\begin{tabular}{l}Personnummer %s \\\\
-Analys genomförd %s\\\\
-\\end{tabular}} &
-\\multirow{4}{7cm}{
-\\begin{tabular}{l}%s\\\\
-%s\\\\
-%s\\\\
-%s\\\\
-\\end{tabular}} \\\\
- & \\\\
- & \\\\
- & \\\\
-\\end{tabular}''' % (util.format_personnummer(self._personnummer),
-                     self._tumor_sample_date, attn, line1, line2, line3)
-            latex_tables.append(curr_latex_table)
-
-        return latex_tables
+    return output_metadata
