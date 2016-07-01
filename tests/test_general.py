@@ -1,7 +1,7 @@
 from mock import mock_open, patch, Mock, MagicMock
 import unittest
 
-from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
+from reportgen.rules.general import AlterationExtractor, AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 
 
 class TestAlterationClassification(unittest.TestCase):
@@ -69,3 +69,115 @@ class TestAlterationClassification(unittest.TestCase):
         mock_alteration = Mock()
         mock_alteration.get_hgvsp = Mock(return_value=None)
         self.assertFalse(self._pik3r1_range_classification.matches_positions(mock_alteration))
+
+
+class TestMSIStatus(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_set_from_file_test_percent(self):
+        msi_status = MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._percent == 72.60)
+
+    def test_set_from_file_test_somatic_sites(self):
+        msi_status = MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._somatic_sites == 53)
+
+    def test_set_from_file_test_total_sites(self):
+        msi_status = MSIStatus()
+        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        self.assertTrue(msi_status._total_sites == 73)
+
+
+class TestAlterationExtractor(unittest.TestCase):
+    _extractor = None
+
+    def setUp(self):
+        self._extractor = AlterationExtractor()
+
+        nras = Gene("NRAS")
+        nras.set_ID("ENSG00000213281")
+        self._nras_gene = AlteredGene(nras)
+        test_alteration1 = Alteration(self._nras_gene, "ENST00000369535", "missense_variant", "p.Gln61His")
+        self._nras_gene.add_alteration(test_alteration1)
+
+        kras = Gene("KRAS")
+        kras.set_ID("ENSG00000133703")
+        self._kras_gene = AlteredGene(kras)
+        test_alteration2 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Ala146Pro")
+        self._kras_gene.add_alteration(test_alteration2)
+        test_alteration3 = Alteration(self._kras_gene, "ENST00000256078", "missense_variant", "p.Lys117Asn")
+        self._kras_gene.add_alteration(test_alteration3)
+
+        pten = Gene("PTEN")
+        pten.set_ID(None)
+        self._pten_gene_loh = AlteredGene(pten)
+        test_alteration4 = Alteration(self._pten_gene_loh, None, "loss_of_heterozygosity", None)
+        self._pten_gene_loh.add_alteration(test_alteration4)
+
+        self._pten_gene_hloss = AlteredGene(pten)
+        test_alteration5 = Alteration(self._pten_gene_hloss, None, "homozygous_loss", None)
+        self._pten_gene_hloss.add_alteration(test_alteration5)
+
+    def test_gene(self):
+        self._extractor.extract_mutations(open("tests/simple_variant_input.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        self.assertEqual(output_dict["NRAS"].get_gene().get_symbol(), "NRAS")
+        self.assertEqual(output_dict["NRAS"].get_gene().get_ID(), self._nras_gene.get_gene().get_ID())
+
+    def test_extract_mutations_empty_input(self):
+        self._extractor.extract_mutations(open("tests/empty_input.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        expected_dict = {}
+
+        self.assertDictEqual(output_dict, expected_dict)
+
+    def test_extract_mutations_multiple_mutations(self):
+        self._extractor.extract_mutations(open("tests/multiple_mutations_variant_input.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        expected_dict = {"KRAS": self._kras_gene}
+        self.assertEqual(len(output_dict.keys()), len(expected_dict.keys()))
+        self.assertEqual(output_dict["KRAS"].get_gene().get_ID(), expected_dict["KRAS"].get_gene().get_ID())
+
+    def test_extract_mutations_multiple_genes(self):
+        self._extractor.extract_mutations(open("tests/multiple_genes_variant_input.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        expected_dict = {"KRAS": self._kras_gene, "NRAS": self._nras_gene}
+        self.assertEqual(len(output_dict.keys()), len(expected_dict.keys()))
+        self.assertEqual(output_dict["NRAS"].get_gene().get_ID(), expected_dict["NRAS"].get_gene().get_ID())
+
+    def test_extract_cnvs_gene_no_call(self):
+        self._extractor.extract_cnvs(open("tests/pten_no_call.json"))
+        output_dict = self._extractor.to_dict()
+
+        # Output dictionary should be empty as there is no call:
+        self.assertDictEqual(output_dict, {})
+
+    def test_extract_cnvs_gene_hom_loss(self):
+        self._extractor.extract_cnvs(open("tests/pten_hom_loss.json"))
+        output_dict = self._extractor.to_dict()
+
+        # Output dictionary should be empty as there is no call:
+        self.assertEqual(output_dict["PTEN"].get_gene().get_symbol(), "PTEN")
+        self.assertEqual(len(output_dict["PTEN"].get_alterations()), 1)
+        self.assertEqual(output_dict["PTEN"].get_alterations()[0].get_sequence_ontology(), "homozygous_loss")
+
+    def test_extract_cnvs_gene_het_loss(self):
+        self._extractor.extract_cnvs(open("tests/pten_het_loss.json"))
+        output_dict = self._extractor.to_dict()
+
+        # Output dictionary should be empty as there is no call:
+        self.assertEqual(output_dict["PTEN"].get_gene().get_symbol(), "PTEN")
+        self.assertEqual(output_dict["PTEN"].get_gene().get_ID(), "ENSG00000171862")
+        self.assertEqual(len(output_dict["PTEN"].get_alterations()), 1)
+        self.assertEqual(output_dict["PTEN"].get_alterations()[0].get_sequence_ontology(), "loss_of_heterozygosity")
+        self.assertEqual(output_dict["PTEN"].get_alterations()[0].get_transcript_ID(), "ENST00000371953")
+
+    def test_extract_cnvs_invalid_inputs1(self):
+        self.assertRaises(ValueError, self._extractor.extract_cnvs, open("tests/pten_invalid_call.json"))

@@ -169,8 +169,7 @@ of this file's format.
     # Generate a dictionary of AlteredGene objects from the input files:
     alteration_extractor = AlterationExtractor()
     alteration_extractor.extract_mutations(vcf_file)
-    # FIXME: Add cnv_file cnv extraction later:
-    #alteration_extractor.extract_cnvs(cnv_file)
+    alteration_extractor.extract_cnvs(cnv_file)
 
     symbol2altered_gene = alteration_extractor.to_dict()
 
@@ -199,6 +198,7 @@ of this file's format.
     msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
     report_compiler = reportgen.reporting.genomics.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+
     report_compiler.extract_features()
 
     # Set output file according to options:
@@ -356,7 +356,7 @@ Outputs:
 
     try:
         alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
-                                                                    jinja_env, jinja_template)
+                                                                    jinja_template)
     except ValueError, e:
         print >> sys.stderr, "ERROR: Invalid report."
         print >> sys.stderr, e
