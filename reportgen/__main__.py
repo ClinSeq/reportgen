@@ -98,21 +98,15 @@ hard-coded.
                              options.db_config_file + "."
         sys.exit(1)
 
-    # Open the output file:
-    output_file = None
-    try:
-        output_file = open(options.output_file, 'w')
-    except Exception, e:
-        print >> sys.stderr, "Could not open output file, " + \
-                             options.output_file + "."
-        sys.exit(1)
-
     id2addresses = reportgen.reporting.util.parse_address_table(options.address_table_file)
 
     # FIXME: Casting the blood and tumor IDs to ints here. Not sure if they should be ints,
     # but even if they are, I'm not sure if the casting should occur here:
     report_metdata = reportgen.reporting.metadata.retrieve_report_metadata(int(blood_sample_ID), int(tumor_sample_ID),
                                                                            session, id2addresses)
+
+    # Open the output file:
+    output_file = open(options.output_file, 'w')
 
     json.dump(report_metdata, output_file, indent=4, sort_keys=True)
     output_file.close()
