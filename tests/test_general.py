@@ -136,6 +136,14 @@ class TestAlterationExtractor(unittest.TestCase):
 
         self.assertDictEqual(output_dict, expected_dict)
 
+    def test_extract_mutations_empty_input_without_header(self):
+        self._extractor.extract_mutations(open("tests/empty_input_without_header.vcf"))
+        output_dict = self._extractor.to_dict()
+
+        expected_dict = {}
+
+        self.assertDictEqual(output_dict, expected_dict)
+
     def test_extract_mutations_multiple_mutations(self):
         self._extractor.extract_mutations(open("tests/multiple_mutations_variant_input.vcf"))
         output_dict = self._extractor.to_dict()
