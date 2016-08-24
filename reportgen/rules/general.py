@@ -232,7 +232,20 @@ class AlterationExtractor:
         return fields[self._aa_position_idx].split(":")[-1]
 
     def extract_mutations(self, vcf_file):
-        vcf_reader = vcf.Reader(vcf_file)
+        """
+        Extract mutations from a VCF file.
+
+        Note regarding a but in VEP:
+        If no mutations are present when running VEP on a VCF file, VEP will
+        create an empty file rather than a VCF file with a header only. This
+        will cause pyvcf to raise a StopIteration when creating the reader
+        since the header can't be parsed. For this reason, creation of the reader
+        object is wrapped in a try-except below.
+        """
+        try:
+            vcf_reader = vcf.Reader(vcf_file)
+        except StopIteration:
+            return
 
         # Retrieve the indexes of the relevant fields from the list of INFO
         # fields:
