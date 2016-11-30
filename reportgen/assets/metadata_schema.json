@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/",
+    "title": "Metadata schema",
+    "type": "object",
+    "properties": {
+        "blood_referral_ID": { "type": "integer" },
+        "blood_sample_ID": { "type": "integer" },
+        "blood_sample_date": { "type": "string" },
+        "personnummer": { "type": "string" },
+        "return_addresses": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "attn": { "type": "string" },
+                    "line1": { "type": "string" },
+                    "line2": { "type": "string" },
+                    "line3": { "type": "string" }
+                }
+            }
+        },
+        "tumor_referral_ID": { "type": "integer" },
+        "tumor_sample_ID": { "type": "integer" },
+        "tumor_sample_date": { "type": "string" }
+    }
+}

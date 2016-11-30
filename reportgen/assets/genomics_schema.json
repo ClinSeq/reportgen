@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/",
+    "title": "Genomic features schema",
+    "type": "object",
+    "properties": {
+        "alascca_class_report": {
+            "type": "object",
+            "properties": {
+                "alascca_class": {
+                    "type": "string",
+                    "enum": ["Mutation class A", "Mutation class B", "No mutation", "Not determined"]
+                }
+            }
+        },
+        "msi_report": {
+            "type": "object",
+            "properties": {
+                "msi_status": {
+                    "type": "string",
+                    "enum": ["MSI-H", "MSS/MSI-L", "Not determined"]
+                }
+            }
+        },
+        "simple_somatic_mutations_report": {
+            "type": "object",
+            "patternProperties": {
+                "[A-Z][A-Z0-9]+" : {
+                    "type": "object",
+                    "properties": {
+                        "alterations": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "flag": { "type": "string" },
+                                    "hgvsp": { "type": "string" }
+                                }
+                            }
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": ["Mutated", "Not mutated", "Not determined"]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
