@@ -186,7 +186,7 @@ of this file's format.
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
     mutationsRule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
-                                                                                        symbol2altered_gene)
+                                                                        symbol2altered_gene)
     alasccaRule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
                                                            symbol2altered_gene)
     msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
@@ -388,59 +388,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
