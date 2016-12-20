@@ -139,6 +139,12 @@ of this file's format.
     parser.add_option("--alasccaMutationRules", dest = "alascca_mutation_rules_file",
                       default = os.path.abspath(os.path.dirname(__file__) + "/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx"),
                       help = "Rules for determining ALASCCA class status. Default=[%default]")
+    parser.add_option("--multiQC", dest = "multi_qc_zip_file", default=None,
+                      help = "Location of MultiQC zip file, providing coverage info. Default=[%default]")
+    parser.add_option("--contaminationJSON", dest = "contam_json_file", default=None,
+                      help = "JSON file specifying tumor contamination level. Default=[%default]")
+    parser.add_option("--purityJSON", dest = "purity_json_files", default=None,
+                      help = "Comma-deliminted string specifying JSON files, indicating tumor purity estimate. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -185,13 +191,19 @@ of this file's format.
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
+    mutations_rule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
                                                                         symbol2altered_gene)
-    alasccaRule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
+    alascca_rule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
                                                            symbol2altered_gene)
-    msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
+    msi_rule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    report_compiler = reportgen.reporting.genomics.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+    # Extract purity information from the input JSON files:
+    purity_dicts = [json.load(fp) for fp in options.purity_json_files.split(",")]
+
+    # Generate rule from that input:
+    purity_rule = reportgen.rules.caveats.PurityRule(purity_dicts)
+
+    report_compiler = reportgen.reporting.genomics.ReportCompiler([mutations_rule, alascca_rule, msi_rule, purity_rule])
 
     report_compiler.extract_features()
 
