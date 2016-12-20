@@ -102,3 +102,17 @@ class SimpleSomaticMutationsReport(ReportFeature):
             output_dict[symbol] = mutation_status.to_dict()
 
         return output_dict
+
+
+class PurityReport(ReportFeature):
+    '''A report on tumor sample purity.'''
+
+    def __init__(self, purity_ok):
+        self._purity_ok = purity_ok
+
+    def to_dict(self):
+        return {self.Name:self._purity_ok}
+
+    @property
+    def get_purity_status(self):
+        return self._purity_ok
