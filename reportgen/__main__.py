@@ -139,12 +139,14 @@ of this file's format.
     parser.add_option("--alasccaMutationRules", dest = "alascca_mutation_rules_file",
                       default = os.path.abspath(os.path.dirname(__file__) + "/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx"),
                       help = "Rules for determining ALASCCA class status. Default=[%default]")
-    parser.add_option("--multiQC", dest = "multi_qc_zip_file", default=None,
-                      help = "Location of MultiQC zip file, providing coverage info. Default=[%default]")
+    parser.add_option("--tumorCovJSON", dest = "tumor_cov_json_file", default=None,
+                      help = "JSON file specifying coverage call for tumor sample. Default=[%default]")
+    parser.add_option("--normalCovJSON", dest = "normal_cov_json_file", default=None,
+                      help = "JSON file specifying coverage call for normal sample. Default=[%default]")
+    parser.add_option("--purityJSON", dest = "purity_json_file", default=None,
+                      help = "JSON file specifying tumor purity call. Default=[%default]")
     parser.add_option("--contaminationJSON", dest = "contam_json_file", default=None,
-                      help = "JSON file specifying tumor contamination level. Default=[%default]")
-    parser.add_option("--purityJSON", dest = "purity_json_files", default=None,
-                      help = "Comma-deliminted string specifying JSON files, indicating tumor purity estimate. Default=[%default]")
+                      help = "JSON file specifying tumor contamination call. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
