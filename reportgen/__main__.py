@@ -139,13 +139,13 @@ of this file's format.
     parser.add_option("--alasccaMutationRules", dest = "alascca_mutation_rules_file",
                       default = os.path.abspath(os.path.dirname(__file__) + "/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx"),
                       help = "Rules for determining ALASCCA class status. Default=[%default]")
-    parser.add_option("--tumorCovJSON", dest = "tumor_cov_json_file", default=None,
+    parser.add_option("--tumorCovJSON", dest = "tumor_cov_json", default=None,
                       help = "JSON file specifying coverage call for tumor sample. Default=[%default]")
-    parser.add_option("--normalCovJSON", dest = "normal_cov_json_file", default=None,
+    parser.add_option("--normalCovJSON", dest = "normal_cov_json", default=None,
                       help = "JSON file specifying coverage call for normal sample. Default=[%default]")
-    parser.add_option("--purityJSON", dest = "purity_json_file", default=None,
+    parser.add_option("--purityJSON", dest = "purity_json", default=None,
                       help = "JSON file specifying tumor purity call. Default=[%default]")
-    parser.add_option("--contaminationJSON", dest = "contam_json_file", default=None,
+    parser.add_option("--contaminationJSON", dest = "contam_json", default=None,
                       help = "JSON file specifying tumor contamination call. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
@@ -201,8 +201,8 @@ of this file's format.
 
     # Extract purity information from the JSON purity QC file:
     purity_dict = {}
-    if options.purity_json_file != None:
-        purity_dict = json.load(options.purity_json_file)
+    if options.purity_json is not None:
+        purity_dict = json.load(options.purity_json)
 
     # Generate rule from that input:
     purity_rule = reportgen.rules.caveats.PurityRule(purity_dict)
@@ -210,6 +210,28 @@ of this file's format.
     report_compiler = reportgen.reporting.genomics.ReportCompiler([mutations_rule, alascca_rule, msi_rule, purity_rule])
 
     report_compiler.extract_features()
+
+    # Extract coverage, purity and contamination information (if they were provided):
+    caveats = []
+
+    if options.tumor_cov_json_file is not None:
+        tumor_cov_dict = json.load(options.tumor_cov_json)
+        caveats.append(reportgen.rules.caveats.CoverageInfo(tumor_cov_dict))
+
+    if options.normal_cov_json_file is not None:
+        normal_cov_dict = json.load(options.normal_cov_json)
+        caveats.append(reportgen.rules.caveats.CoverageInfo(normal_cov_dict))
+
+    if options.purity_json is not None:
+        purity_dict = json.load(options.purity_json)
+        caveats.append(reportgen.rules.caveats.ContaminationInfo(purity_dict))
+
+    if options.contam_json is not None:
+        contam_dict = json.load(options.contam_json)
+        caveats.append(reportgen.rules.caveats.ContaminationInfo(contam_dict))
+
+    # Check the caveats and modify the report accordingly:
+    report_compiler.check_caveats(caveats)
 
     # Set output file according to options:
     json_output_file = open(options.output_file, 'w')
