@@ -199,11 +199,13 @@ of this file's format.
                                                            symbol2altered_gene)
     msi_rule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    # Extract purity information from the input JSON files:
-    purity_dicts = [json.load(fp) for fp in options.purity_json_files.split(",")]
+    # Extract purity information from the JSON purity QC file:
+    purity_dict = {}
+    if options.purity_json_file != None:
+        purity_dict = json.load(options.purity_json_file)
 
     # Generate rule from that input:
-    purity_rule = reportgen.rules.caveats.PurityRule(purity_dicts)
+    purity_rule = reportgen.rules.caveats.PurityRule(purity_dict)
 
     report_compiler = reportgen.reporting.genomics.ReportCompiler([mutations_rule, alascca_rule, msi_rule, purity_rule])
 
