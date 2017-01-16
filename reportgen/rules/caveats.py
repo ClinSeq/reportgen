@@ -1,7 +1,10 @@
+import json
+from zipfile import ZipFile
+
 from reportgen.reporting.features import PurityReport
 
 
-class Caveat:
+class Caveat(object):
     UNCHANGED = "UNCHANGED"
     NON_POSITIVE_TO_EB = "NON_POSITIVE_TO_EB"
     ALL_TO_EB = "ALL_TO_EB"
@@ -10,23 +13,24 @@ class Caveat:
         self._action = None
 
 
-class CoverageInfo(Caveat):
-    def __init__(self, multi_qc_zip_file):
+class CoverageCaveat(Caveat):
+    def __init__(self, coverage_call):
         super(CoverageInfo, self).__init__()
 
-        # Extract coverage information from the MultiQC file...
-
-        # Set the self._action field according to the tumor/normal coverage values and the specified thresholds.
+        if coverage_call
 
 
 class PurityRule:
+    """
+    Used for generating report content that warns if purity is low.
+    """
+
+    OK_PURITY = "OK"
     LOW_PURITY = "LOW"
 
-    def __init__(self, purity_dicts):
-        self._purity_ok = True
-        uniq_purity_calls = set(map(lambda dict: dict["purity.call"], purity_dicts))
-        if len(uniq_purity_calls) == 1 and uniq_purity_calls[0] == PurityRule.LOW_PURITY:
-            self._purity_ok = False
+    def __init__(self, purity_call):
+        self._purity_ok = purity_call
 
     def apply(self):
         report = PurityReport(self._purity_ok)
+        return report
