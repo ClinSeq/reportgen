@@ -1,6 +1,16 @@
 import json
 
 
+class FeatureStatus:
+    """
+    Enumeration of different possible generic genomic item statuses.
+    """
+
+    MUTATED = "Mutated"
+    NOT_MUTATED = "Not mutated"
+    NOT_DETERMINED = "Not determined"
+
+
 class QC_Call:
     """
     Enumeration of different possible QC call values.

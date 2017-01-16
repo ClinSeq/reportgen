@@ -1,5 +1,7 @@
 import json, re
 
+from reportgen.rules.util import FeatureStatus
+
 import vcf
 
 
@@ -104,13 +106,8 @@ class MutationStatus:
     directly stated, but can be accessed via the contained Alteration
     objects, which must all refer to the same AlteredGene object.'''
 
-    MUT = "Mutated"
-    NO_MUT = "Not mutated"
-    NOT_DETERMINED = "Not determined"
-    VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
-
     def __init__(self):
-        self._status = self.NO_MUT
+        self._status = FeatureStatus.NOT_MUTATED
         self._mutation_list = []
 
     def to_dict(self):
@@ -132,7 +129,7 @@ class MutationStatus:
         return self._mutation_list
 
     def add_mutation(self, mutation, flag):
-        self._status = self.MUT
+        self._status = FeatureStatus.NOT_MUTATED
         self._mutation_list.append((mutation, flag))
 
 

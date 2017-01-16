@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 from reportgen.rules.general import MutationStatus
-import pdb
+from reportgen.rules.util import FeatureStatus
+
 
 class ReportFeature(object):
     '''
     ReportFeature abstract class.
     '''
 
+    NOT_DETERMINED = "Not determined"
+
     def __init__(self):
         '''
         '''
 
-    # Concrete classes must implement toDict()
+    # Concrete classes must implement toDict() and applyCaveat(caveat)
 
 
 class AlasccaClassReport(ReportFeature):
@@ -22,9 +25,6 @@ class AlasccaClassReport(ReportFeature):
 
     MUTN_CLASS_A = "Mutation class A"
     MUTN_CLASS_B = "Mutation class B"
-    NO_MUTN = "No mutation"
-    NOT_DET = "Not determined"
-    VALID_STRINGS = [MUTN_CLASS_A, MUTN_CLASS_B, NO_MUTN]
 
     def __init__(self):
         self._pathway_class = None
@@ -34,8 +34,20 @@ class AlasccaClassReport(ReportFeature):
         return "alascca_class_report"
 
     def set_class(self, pathway_class):
-        assert pathway_class in self.VALID_STRINGS
         self._pathway_class = pathway_class
+
+    def apply_caveat(self, caveat):
+        """
+        If told all to ej bedömbar, then do that; otherwise, if told to set non-positive
+        to E.B. then only do that if the mutation class was "not mutated".
+
+        :param caveat: The caveat indicating whether/how to change this report feature.
+        :return:
+        """
+        if caveat._action == Caveat.ALL_TO_EB:
+            self._pathway_class = FeatureStatus.NOT_DETERMINED
+        elif caveat.action == Caveat.NON_POSITIVE_TO_EB and self._pathway_class == FeatureStatus.NOT_MUTATED:
+            self._pathway_class = FeatureStatus.NOT_DETERMINED
 
     def to_dict(self):
         return {self.NAME:self._pathway_class}
@@ -47,7 +59,6 @@ class MsiReport(ReportFeature):
 
     MSS = "MSS/MSI-L"
     MSI = "MSI-H"
-    NOT_DETERMINED = "Not determined"
     VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
     NAME = "msi_status"
