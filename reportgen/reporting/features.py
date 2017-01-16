@@ -8,8 +8,6 @@ class ReportFeature(object):
     ReportFeature abstract class.
     '''
 
-    NOT_DETERMINED = "Not determined"
-
     def __init__(self):
         '''
         '''
@@ -59,7 +57,6 @@ class MsiReport(ReportFeature):
 
     MSS = "MSS/MSI-L"
     MSI = "MSI-H"
-    VALID_STRINGS = [MSS, MSI, NOT_DETERMINED]
 
     NAME = "msi_status"
 
