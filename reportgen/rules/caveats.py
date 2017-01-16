@@ -1,7 +1,5 @@
-import json
-from zipfile import ZipFile
-
 from reportgen.reporting.features import PurityReport
+from reportgen.rules.util import QC_Call
 
 
 class Caveat(object):
@@ -14,25 +12,52 @@ class Caveat(object):
 
 
 class CoverageCaveat(Caveat):
-    def __init__(self, coverage_call):
+    def __init__(self, qc_call):
         """
-        Set the self._action field according to the given coverage call.
-
-        :param coverage_call: XXX CONTINUE HERE; FIGURE OUT WHAT THE CALLS ARE. BOOLEANS? A SPECIAL TYPE?
-        STRINGS WITH A MATCHING CONSTANT DEFINITION SOMEWHERE?
+        :param qc_call: String defining QC state, see the JSON schema for possible values.
         """
-        super(CoverageInfo, self).__init__()
+        super(CoverageCaveat, self).__init__()
 
-        if coverage_call
+        if qc_call == QC_Call.OK:
+            self._action = Caveat.UNCHANGED
+        elif qc_call == QC_Call.WARN:
+            self._action = Caveat.NON_POSITIVE_TO_EB
+        elif qc_call == QC_Call.FAIL:
+            self._action = Caveat.ALL_TO_EB
+
+
+class PurityCaveat(Caveat):
+    def __init__(self, qc_call):
+        """
+        :param qc_call: String defining QC state, see the JSON schema for possible values.
+        """
+        super(PurityCaveat, self).__init__()
+
+        if qc_call == QC_Call.OK:
+            self._action = Caveat.UNCHANGED
+        elif qc_call == QC_Call.FAIL:
+            self._action = Caveat.NON_POSITIVE_TO_EB
+
+
+class ContaminationCaveat(Caveat):
+    def __init__(self, qc_call):
+        """
+        :param qc_call: String defining QC state, see the JSON schema for possible values.
+        """
+        super(ContaminationCaveat, self).__init__()
+
+        if qc_call == QC_Call.OK:
+            self._action = Caveat.UNCHANGED
+        elif qc_call == QC_Call.WARN:
+            self._action = Caveat.ALL_TO_EB
+        elif qc_call == QC_Call.FAIL:
+            self._action = Caveat.ALL_TO_EB
 
 
 class PurityRule:
     """
     Used for generating report content that warns if purity is low.
     """
-
-    OK_PURITY = "OK"
-    LOW_PURITY = "LOW"
 
     def __init__(self, purity_call):
         self._purity_ok = purity_call
