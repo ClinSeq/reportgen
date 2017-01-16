@@ -12,7 +12,10 @@ from optparse import OptionParser
 import reportgen.reporting.genomics
 import reportgen.reporting.metadata
 import reportgen.reporting.util
+
 from reportgen.rules.general import AlterationExtractor, MSIStatus
+from reportgen.rules.caveats import PurityRule, CoverageCaveat, PurityCaveat, ContaminationCaveat
+from reportgen.rules.util import extract_qc_calls
 
 import reportgen.rules.alascca
 import reportgen.rules.msi
@@ -199,36 +202,35 @@ of this file's format.
                                                            symbol2altered_gene)
     msi_rule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    # Extract purity information from the JSON purity QC file:
-    purity_dict = {}
-    if options.purity_json is not None:
-        purity_dict = json.load(options.purity_json)
+    rules = [mutations_rule, alascca_rule, msi_rule]
 
+    # Extract QC calls from JSON files specified as command line arguments:
+    purity_call, tumor_cov_call, normal_cov_call, contam_call = extract_qc_calls(options.purity_json,
+                                                                                 options.tumor_cov_json,
+                                                                                 options.normal_cov_json,
+                                                                                 options.contam_json)
     # Generate rule from that input:
-    purity_rule = reportgen.rules.caveats.PurityRule(purity_dict)
+    if purity_call is not None:
+        rules.append(PurityRule(purity_call))
 
-    report_compiler = reportgen.reporting.genomics.ReportCompiler([mutations_rule, alascca_rule, msi_rule, purity_rule])
+    report_compiler = reportgen.reporting.genomics.ReportCompiler(rules)
 
     report_compiler.extract_features()
 
     # Extract coverage, purity and contamination information (if they were provided):
     caveats = []
 
-    if options.tumor_cov_json_file is not None:
-        tumor_cov_dict = json.load(options.tumor_cov_json)
-        caveats.append(reportgen.rules.caveats.CoverageInfo(tumor_cov_dict))
+    if purity_call is not None:
+        caveats.append(PurityCaveat(purity_call))
 
-    if options.normal_cov_json_file is not None:
-        normal_cov_dict = json.load(options.normal_cov_json)
-        caveats.append(reportgen.rules.caveats.CoverageInfo(normal_cov_dict))
+    if tumor_cov_call is not None:
+        caveats.append(CoverageCaveat(tumor_cov_call))
 
-    if options.purity_json is not None:
-        purity_dict = json.load(options.purity_json)
-        caveats.append(reportgen.rules.caveats.ContaminationInfo(purity_dict))
+    if normal_cov_call is not None:
+        caveats.append(CoverageCaveat(normal_cov_call))
 
-    if options.contam_json is not None:
-        contam_dict = json.load(options.contam_json)
-        caveats.append(reportgen.rules.caveats.ContaminationInfo(contam_dict))
+    if contam_call is not None:
+        caveats.append(ContaminationCaveat(purity_call))
 
     # Check the caveats and modify the report accordingly:
     report_compiler.check_caveats(caveats)
