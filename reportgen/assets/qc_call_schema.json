@@ -3,7 +3,7 @@
     "title": "QC schema",
     "type": "object",
     "properties": {
-        "call": {
+        "CALL": {
             "type": "string",
             "enum": ["OK", "WARN", "FAIL"]
         }
