@@ -15,6 +15,12 @@ class Caveat(object):
 
 class CoverageCaveat(Caveat):
     def __init__(self, coverage_call):
+        """
+        Set the self._action field according to the given coverage call.
+
+        :param coverage_call: XXX CONTINUE HERE; FIGURE OUT WHAT THE CALLS ARE. BOOLEANS? A SPECIAL TYPE?
+        STRINGS WITH A MATCHING CONSTANT DEFINITION SOMEWHERE?
+        """
         super(CoverageInfo, self).__init__()
 
         if coverage_call
