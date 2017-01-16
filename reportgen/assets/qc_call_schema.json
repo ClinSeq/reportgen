@@ -1,11 +1,11 @@
 {
     "$schema": "http://json-schema.org/",
-    "title": "Coverage QC schema",
+    "title": "QC schema",
     "type": "object",
     "properties": {
-        "coverage_call": {
+        "call": {
             "type": "string",
-            "enum": ["OK", "WARN", "BAD"]
+            "enum": ["OK", "WARN", "FAIL"]
         }
     }
 }
