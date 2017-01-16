@@ -1,6 +1,16 @@
 import json
 
 
+class QC_Call:
+    """
+    Enumeration of different possible QC call values.
+    """
+
+    OK = "OK"
+    WARN = "WARN"
+    FAIL = "FAIL"
+
+
 def extract_qc_calls(purity_json, tumor_cov_json, normal_cov_json, contam_json):
     """
     Extract the various qc calls from the specified JSON files.
@@ -13,19 +23,19 @@ def extract_qc_calls(purity_json, tumor_cov_json, normal_cov_json, contam_json):
     """
 
     purity_call = None
-    if not purity_json is None:
+    if purity_json is not None:
         purity_call = json.load(purity_json)["CALL"]
 
     tumor_cov_call = None
-    if not tumor_cov_json is None:
+    if tumor_cov_json is not None:
         tumor_cov_call = json.load(tumor_cov_json)["CALL"]
 
     normal_cov_call = None
-    if not normal_cov_json is None:
+    if normal_cov_json is not None:
         normal_cov_call = json.load(normal_cov_json)["CALL"]
 
     contam_call = None
-    if not contam_json is None:
+    if contam_json is not None:
         contam_call = json.load(contam_json)["CALL"]
 
     return purity_call, tumor_cov_call, normal_cov_call, contam_call
