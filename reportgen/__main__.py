@@ -198,9 +198,9 @@ of this file's format.
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
     mutations_rule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
-                                                                        symbol2altered_gene)
+                                                                                         symbol2altered_gene)
     alascca_rule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
-                                                           symbol2altered_gene)
+                                                            symbol2altered_gene)
     msi_rule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
     rules = [mutations_rule, alascca_rule, msi_rule]
