@@ -45,6 +45,8 @@ class PurityCaveat(Caveat):
     def __init__(self, qc_call):
         """
         :param qc_call: String defining QC state, see the JSON schema for possible values.
+
+        Must be one of either OK or FAIL, when specifying a purity caveat.
         """
         super(PurityCaveat, self).__init__()
 
@@ -52,6 +54,8 @@ class PurityCaveat(Caveat):
             self._action = Caveat.UNCHANGED
         elif qc_call == QC_Call.FAIL:
             self._action = Caveat.NON_POSITIVE_TO_EB
+        else:
+            raise ValueError("Invalid QC_Call value for a purity caveat: " + qc_call)
 
 
 class ContaminationCaveat(Caveat):
