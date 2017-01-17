@@ -7,6 +7,8 @@ from reportgen.rules.msi import MsiStatusRule
 
 from reportgen.rules.simple_somatic_mutations import SimpleSomaticMutationsRule
 
+from reportgen.rules.util import FeatureStatus
+
 from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 from reportgen.reporting.features import AlasccaClassReport, MsiReport
 
@@ -169,7 +171,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.NO_MUTN}
+            AlasccaClassReport.NAME: FeatureStatus.NOT_MUTATED}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
@@ -185,7 +187,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.NO_MUTN}
+            AlasccaClassReport.NAME: FeatureStatus.NOT_MUTATED}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_double_pten(self):
@@ -252,4 +254,4 @@ class TestMsiStatusRule(unittest.TestCase):
         msi_status.set_from_file(open("tests/msi_not_determined_eg.txt"))
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.NOT_DETERMINED)
+        self.assertEqual(msi_report.get_status(), FeatureStatus.NOT_DETERMINED)
