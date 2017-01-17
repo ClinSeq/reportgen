@@ -47,6 +47,11 @@ class ReportCompiler:
             # Store the current feature under this feature's name:
             self._name2feature[curr_feature.get_name()] = curr_feature
 
+    def check_caveats(self, caveats):
+        for feature in self._name2feature.values():
+            for caveat in caveats:
+                feature.apply_caveat(caveat)
+
     def to_dict(self):
         output_dict = {}
         for name in self._name2feature.keys():
