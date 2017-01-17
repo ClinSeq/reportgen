@@ -1,25 +1,29 @@
 # -*- coding: utf-8 -*-
+from abc import ABCMeta
 from reportgen.rules.general import MutationStatus
 from reportgen.rules.util import FeatureStatus
 
 
 class ReportFeature(object):
+    __metaclass__ = ABCMeta
+
     '''
-    ReportFeature abstract class.
+    An individual feature of a report.
     '''
 
     def __init__(self):
         '''
         '''
 
-    # Concrete classes must implement toDict(), and may override the default applyCaveat(caveat)
+    @abstractmethod
+    def to_dict(self):
+        pass
 
     def apply_caveat(self, caveat):
         """
         The default is to not alter the report in any way; i.e. just ignore the caveat.
         :return:
         """
-
         pass
 
 

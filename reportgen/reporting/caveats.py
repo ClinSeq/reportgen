@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+from abc import ABCMeta
 from reportgen.rules.util import QC_Call
 
 
 class Caveat(object):
+    __metaclass__ = ABCMeta
+
     UNCHANGED = "UNCHANGED"
     NON_POSITIVE_TO_EB = "NON_POSITIVE_TO_EB"
     ALL_TO_EB = "ALL_TO_EB"
