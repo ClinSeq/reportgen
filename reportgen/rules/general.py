@@ -125,12 +125,21 @@ class MutationStatus:
     def get_status(self):
         return self._status
 
+    def is_positive(self):
+        """
+        :return: True if mutation status is positive (mutated), false otherwise.
+        """
+        return self._status == FeatureStatus.MUTATED
+
     def get_mutation_list(self):
         return self._mutation_list
 
     def add_mutation(self, mutation, flag):
-        self._status = FeatureStatus.NOT_MUTATED
+        self._status = FeatureStatus.MUTATED
         self._mutation_list.append((mutation, flag))
+
+    def to_EB(self):
+        self._status = FeatureStatus.NOT_DETERMINED
 
 
 class Gene:

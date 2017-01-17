@@ -114,6 +114,22 @@ class SimpleSomaticMutationsReport(ReportFeature):
         assert self._symbol2mutation_status.has_key(gene_symbol)
         self._symbol2mutation_status[gene_symbol].add_mutation(mutation, flag)
 
+    def apply_caveat(self, caveat):
+        """
+        If told to set non-positive calls to E.B., then do this for each gene with a
+        negative mutation status. If told to set all calls to E.B. then do this for all
+        genes irrespective of their mutation status.
+
+        :param caveat: The caveat indicating whether/how to change this report feature.
+        :return:
+        """
+        for gene_name in self._symbol2mutation_status.keys():
+            curr_mutn_status = self._symbol2mutation_status[gene_name]
+            if caveat.all_to_eb():
+                curr_mutn_status.to_EB()
+            elif caveat.non_positive_to_eb() and not curr_mutn_status.is_positive():
+                curr_mutn_status.to_EB()
+
     def to_dict(self):
         output_dict = {}
         for symbol in self._symbol2mutation_status.keys():
