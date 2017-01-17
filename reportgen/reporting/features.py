@@ -54,9 +54,9 @@ class AlasccaClassReport(ReportFeature):
         :param caveat: The caveat indicating whether/how to change this report feature.
         :return:
         """
-        if caveat.all_to_eb():
+        if caveat.setting_all_to_eb():
             self._pathway_class = FeatureStatus.NOT_DETERMINED
-        elif caveat.non_positive_to_eb() and self._pathway_class == FeatureStatus.NOT_MUTATED:
+        elif caveat.setting_non_positive_to_eb() and self._pathway_class == FeatureStatus.NOT_MUTATED:
             self._pathway_class = FeatureStatus.NOT_DETERMINED
 
     def to_dict(self):
@@ -92,7 +92,7 @@ class MsiReport(ReportFeature):
         :param caveat: The caveat indicating whether/how to change this report feature.
         :return:
         """
-        if caveat.all_to_eb() or caveat.non_positive_to_eb():
+        if caveat.setting_all_to_eb() or caveat.setting_non_positive_to_eb():
             self._msi_status = FeatureStatus.NOT_DETERMINED
 
     @staticmethod
@@ -137,9 +137,9 @@ class SimpleSomaticMutationsReport(ReportFeature):
         """
         for gene_name in self._symbol2mutation_status.keys():
             curr_mutn_status = self._symbol2mutation_status[gene_name]
-            if caveat.all_to_eb():
+            if caveat.setting_all_to_eb():
                 curr_mutn_status.to_EB()
-            elif caveat.non_positive_to_eb() and not curr_mutn_status.is_positive():
+            elif caveat.setting_non_positive_to_eb() and not curr_mutn_status.is_positive():
                 curr_mutn_status.to_EB()
 
     def to_dict(self):
