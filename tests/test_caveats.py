@@ -52,3 +52,19 @@ class TestPurityCaveat(unittest.TestCase):
 
     def test_constructor_fail(self):
         self.assertEquals(self._purity_caveat_fail._action, Caveat.NON_POSITIVE_TO_EB)
+
+
+class TestContaminationCaveat(unittest.TestCase):
+    def setUp(self):
+        self._contamination_caveat_ok = ContaminationCaveat(QC_Call.OK)
+        self._contamination_caveat_warn = ContaminationCaveat(QC_Call.WARN)
+        self._contamination_caveat_fail = ContaminationCaveat(QC_Call.FAIL)
+
+    def test_constructor_ok(self):
+        self.assertEquals(self._contamination_caveat_ok._action, Caveat.UNCHANGED)
+
+    def test_constructor_warn(self):
+        self.assertEquals(self._contamination_caveat_warn._action, Caveat.ALL_TO_EB)
+
+    def test_constructor_fail(self):
+        self.assertEquals(self._contamination_caveat_fail._action, Caveat.ALL_TO_EB)
