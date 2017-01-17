@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from reportgen.rules.general import MutationStatus
 from reportgen.rules.util import FeatureStatus
-from reportgen.reporting.caveats import Caveat
 
 
 class ReportFeature(object):
@@ -43,9 +42,9 @@ class AlasccaClassReport(ReportFeature):
         :param caveat: The caveat indicating whether/how to change this report feature.
         :return:
         """
-        if caveat._action == Caveat.ALL_TO_EB:
+        if caveat.all_to_eb():
             self._pathway_class = FeatureStatus.NOT_DETERMINED
-        elif caveat.action == Caveat.NON_POSITIVE_TO_EB and self._pathway_class == FeatureStatus.NOT_MUTATED:
+        elif caveat.non_positive_to_eb() and self._pathway_class == FeatureStatus.NOT_MUTATED:
             self._pathway_class = FeatureStatus.NOT_DETERMINED
 
     def to_dict(self):

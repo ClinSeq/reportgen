@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from reportgen.rules.util import QC_Call
 
 
@@ -8,6 +9,18 @@ class Caveat(object):
 
     def __init__(self):
         self._action = None
+
+    def all_to_eb(self):
+        """
+        :return: True if this caveat indicates that all items should be set to "Ej Bedömbar", False otherwise.
+        """
+        return self._action == Caveat.ALL_TO_EB
+
+    def non_positive_to_eb(self):
+        """
+        :return: True if this caveat indicates that negative items should be set to "Ej Bedömbar", False otherwise.
+        """
+        return self._action == Caveat.NON_POSITIVE_TO_EB
 
 
 class CoverageCaveat(Caveat):
