@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from reportgen.rules.general import MutationStatus
 from reportgen.rules.util import FeatureStatus
+from reportgen.reporting.caveats import Caveat
 
 
 class ReportFeature(object):

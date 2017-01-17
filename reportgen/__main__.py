@@ -14,7 +14,8 @@ import reportgen.reporting.metadata
 import reportgen.reporting.util
 
 from reportgen.rules.general import AlterationExtractor, MSIStatus
-from reportgen.rules.caveats import PurityRule, CoverageCaveat, PurityCaveat, ContaminationCaveat
+from reportgen.rules.purity import PurityRule
+from reportgen.reporting.caveats import CoverageCaveat, PurityCaveat, ContaminationCaveat
 from reportgen.rules.util import extract_qc_calls
 
 import reportgen.rules.alascca

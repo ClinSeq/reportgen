@@ -1,4 +1,3 @@
-from reportgen.reporting.features import PurityReport
 from reportgen.rules.util import QC_Call
 
 
@@ -52,16 +51,3 @@ class ContaminationCaveat(Caveat):
             self._action = Caveat.ALL_TO_EB
         elif qc_call == QC_Call.FAIL:
             self._action = Caveat.ALL_TO_EB
-
-
-class PurityRule:
-    """
-    Used for generating report content that warns if purity is low.
-    """
-
-    def __init__(self, purity_call):
-        self._purity_ok = purity_call
-
-    def apply(self):
-        report = PurityReport(self._purity_ok)
-        return report
