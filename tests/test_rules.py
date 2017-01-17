@@ -263,7 +263,7 @@ class TestExtractQCCalls(unittest.TestCase):
 
     def test_extract_qc_ok(self):
         with patch('test_rules.open', mock_open(read_data='{"CALL":"OK"}'), create=True):
-            with open('FakeFile.json') as test_json:
+            with open('FakeFile.json') as mocked_json:
                 self.assertEquals(extract_qc_call(mocked_json), "OK")
 
     def test_extract_qc_none(self):
