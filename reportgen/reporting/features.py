@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from reportgen.rules.general import MutationStatus
 from reportgen.rules.util import FeatureStatus
 
