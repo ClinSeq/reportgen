@@ -43,15 +43,13 @@ class AlasccaClassRule:
 
             # Find all mutations matching this gene's rules:
             alterations = []
-            gene = None
-            if self._symbol2gene.has_key(symbol):
+            if symbol in self._symbol2gene.keys():
                 gene = self._symbol2gene[symbol]
                 alterations = gene.get_alterations()
 
             for alteration in alterations:
                 # Apply all rules to this alteration:
                 for classification in gene_classifications:
-                    flag = None
                     if classification.match(alteration):
                         flag = classification.get_output_flag()
                         assert flag_instances.has_key(flag)
