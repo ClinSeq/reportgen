@@ -257,7 +257,7 @@ class TestMsiStatusRule(unittest.TestCase):
         self.assertEqual(msi_report.get_status(), FeatureStatus.NOT_DETERMINED)
 
 
-class TestExtractQCCalls(unittest.TestCase)
+class TestExtractQCCalls(unittest.TestCase):
     def setUp(self):
         pass
 
