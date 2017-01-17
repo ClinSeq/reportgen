@@ -1,5 +1,6 @@
 from reportgen.reporting.util import parse_mutation_table
 from reportgen.reporting.features import AlasccaClassReport
+from reportgen.rules.util import FeatureStatus
 
 
 class AlasccaClassRule:
@@ -65,7 +66,7 @@ class AlasccaClassRule:
         elif flag_instances[self.CLASS_B_2] >= 2:
             alasccaClass = AlasccaClassReport.MUTN_CLASS_B
         else:
-            alasccaClass = AlasccaClassReport.NO_MUTN
+            alasccaClass = FeatureStatus.NOT_MUTATED
 
         # FIXME/NOTE: Currently there is no way of setting it to "not
         # determined". We need to figure out how/when to define this

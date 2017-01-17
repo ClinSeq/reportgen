@@ -1,4 +1,5 @@
 from reportgen.reporting.features import MsiReport
+from reportgen.rules.util import FeatureStatus
 
 
 class MsiStatusRule:
@@ -16,7 +17,7 @@ class MsiStatusRule:
 
         status_string = None
         if self.msi_status.get_total() < self.MIN_TOTAL_SITES:
-            status_string = MsiReport.NOT_DETERMINED
+            status_string = FeatureStatus.NOT_DETERMINED
         else:
             if self.msi_status.get_percent() > self.PERCENT_MSI_H:
                 status_string = MsiReport.MSI
