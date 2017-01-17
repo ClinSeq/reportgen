@@ -29,4 +29,8 @@ def extract_qc_call(qc_json_file):
     :return: The QC call extracted from the input files.
     """
 
-    return json.load(qc_json_file)["CALL"]
+    # FIXME: Add JSON schema validation here.
+    if qc_json_file != None:
+        return json.load(qc_json_file)["CALL"]
+    else:
+        return None

@@ -1,4 +1,4 @@
-from mock import mock_open, patch, Mock, MagicMock
+from mock import mock_open, patch
 import unittest
 
 from reportgen.rules.alascca import AlasccaClassRule
@@ -7,7 +7,7 @@ from reportgen.rules.msi import MsiStatusRule
 
 from reportgen.rules.simple_somatic_mutations import SimpleSomaticMutationsRule
 
-from reportgen.rules.util import FeatureStatus
+from reportgen.rules.util import FeatureStatus, extract_qc_call
 
 from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 from reportgen.reporting.features import AlasccaClassReport, MsiReport
@@ -255,3 +255,17 @@ class TestMsiStatusRule(unittest.TestCase):
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
         self.assertEqual(msi_report.get_status(), FeatureStatus.NOT_DETERMINED)
+
+
+class TestExtractQCCalls(unittest.TestCase)
+    def setUp(self):
+        pass
+
+    def test_extract_qc_ok(self):
+        mocked_open = mock_open(read_data='{"CALL":"OK"}')
+        with patch('dummy', mocked_open, create=True):
+            self.assertEquals(extract_qc_call(mocked_open), "OK")
+
+    def test_extract_qc_none(self):
+        infile = None
+        self.assertEquals(extract_qc_call(infile), None)
