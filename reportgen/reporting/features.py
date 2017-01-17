@@ -72,6 +72,17 @@ class MsiReport(ReportFeature):
     def set_status(self, msi_status):
         self._msi_status = msi_status
 
+    def apply_caveat(self, caveat):
+        """
+        No MSI calls are considered definitively positive, when it comes to changing non-positive
+        calls to E.B. as a result of caveats.
+
+        :param caveat: The caveat indicating whether/how to change this report feature.
+        :return:
+        """
+        if caveat.all_to_eb() or caveat.non_positive_to_eb():
+            self._msi_status = FeatureStatus.NOT_DETERMINED
+
     @staticmethod
     def get_name():
         return "msi_report"
