@@ -16,7 +16,7 @@ import reportgen.reporting.util
 from reportgen.rules.general import AlterationExtractor, MSIStatus
 from reportgen.rules.purity import PurityRule
 from reportgen.reporting.caveats import CoverageCaveat, PurityCaveat, ContaminationCaveat
-from reportgen.rules.util import extract_qc_calls
+from reportgen.rules.util import extract_qc_call
 
 import reportgen.rules.alascca
 import reportgen.rules.msi
@@ -206,10 +206,11 @@ of this file's format.
     rules = [mutations_rule, alascca_rule, msi_rule]
 
     # Extract QC calls from JSON files specified as command line arguments:
-    purity_call, tumor_cov_call, normal_cov_call, contam_call = extract_qc_calls(options.purity_json,
-                                                                                 options.tumor_cov_json,
-                                                                                 options.normal_cov_json,
-                                                                                 options.contam_json)
+    purity_call = extract_qc_call(options.purity_json)
+    tumor_cov_call = extract_qc_call(options.tumor_cov_json)
+    normal_cov_call = extract_qc_call(options.normal_cov_json)
+    contam_call = extract_qc_call(options.contam_json)
+
     # Generate rule from that input:
     if purity_call is not None:
         rules.append(PurityRule(purity_call))
