@@ -12,7 +12,15 @@ class ReportFeature(object):
         '''
         '''
 
-    # Concrete classes must implement toDict() and applyCaveat(caveat)
+    # Concrete classes must implement toDict(), and may override the default applyCaveat(caveat)
+
+    def apply_caveat(self, caveat):
+        """
+        The default is to not alter the report in any way; i.e. just ignore the caveat.
+        :return:
+        """
+
+        pass
 
 
 class AlasccaClassReport(ReportFeature):
