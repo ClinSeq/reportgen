@@ -70,5 +70,5 @@ class AlasccaClassRule:
         # determined". We need to figure out how/when to define this
         # and then we will need to adapt this and other code accordingly.
 
-        report.set_class(alasccaClass)
+        report.pathway_class = alasccaClass
         return report

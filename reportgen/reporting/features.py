@@ -46,7 +46,12 @@ class AlasccaClassReport(ReportComponent):
     def component_name():
         return "alascca_class_report"
 
-    def set_class(self, pathway_class):
+    @property
+    def pathway_class(self):
+        return self._pathway_class
+
+    @pathway_class.setter
+    def pathway_class(self, pathway_class):
         self._pathway_class = pathway_class
 
     def apply_caveat(self, caveat):
@@ -81,10 +86,12 @@ class MsiReport(ReportComponent):
     def to_dict(self):
         return {self.MSI_FEATURENAME:self._msi_status}
 
-    def get_status(self):
+    @property
+    def msi_status(self):
         return self._msi_status
 
-    def set_status(self, msi_status):
+    @msi_status.setter
+    def msi_status(self, msi_status):
         self._msi_status = msi_status
 
     def apply_caveat(self, caveat):
@@ -157,7 +164,15 @@ class PurityReport(ReportComponent):
 
     PURITY_FEATURENAME = "purity"
 
-    def __init__(self, purity_ok):
+    def __init__(self):
+        self._purity_ok = None
+
+    @property
+    def purity_ok(self):
+        return self._purity_ok
+
+    @purity_ok.setter
+    def purity_ok(self, purity_ok):
         self._purity_ok = purity_ok
 
     def component_name():

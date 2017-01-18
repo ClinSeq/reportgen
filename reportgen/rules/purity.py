@@ -10,5 +10,6 @@ class PurityRule:
         self._purity_ok = purity_call
 
     def apply(self):
-        report = PurityReport(self._purity_ok)
+        report = PurityReport()
+        report.purity_ok = self._purity_ok
         return report
