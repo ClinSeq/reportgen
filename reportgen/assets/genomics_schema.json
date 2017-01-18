@@ -44,6 +44,15 @@
                     }
                 }
             }
+        },
+        "purity_report": {
+            "type": "object",
+            "properties": {
+                "purity": {
+                    "type": "string",
+                    "enum": ["OK", "FAIL"]
+                }
+            }
         }
     }
 }
