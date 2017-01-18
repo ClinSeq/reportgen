@@ -45,7 +45,7 @@ class ReportCompiler:
             curr_feature = curr_rule.apply()
 
             # Store the current feature under this feature's name:
-            self._name2feature[curr_feature.get_name()] = curr_feature
+            self._name2feature[curr_feature.get_component_name()] = curr_feature
 
     def check_caveats(self, caveats):
         for feature in self._name2feature.values():

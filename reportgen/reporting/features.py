@@ -4,7 +4,7 @@ from reportgen.rules.general import MutationStatus
 from reportgen.rules.util import FeatureStatus
 
 
-class ReportFeature(object):
+class ReportComponent(object):
     __metaclass__ = ABCMeta
 
     '''
@@ -19,6 +19,10 @@ class ReportFeature(object):
     def to_dict(self):
         pass
 
+    @abstractmethod
+    def get_component_name(self):
+        pass
+
     def apply_caveat(self, caveat):
         """
         The default is to not alter the report in any way; i.e. just ignore the caveat.
@@ -27,11 +31,11 @@ class ReportFeature(object):
         pass
 
 
-class AlasccaClassReport(ReportFeature):
+class AlasccaClassReport(ReportComponent):
     '''
     '''
 
-    NAME = "alascca_class"
+    ALASCCA_CLASS_FEATURENAME = "alascca_class"
 
     MUTN_CLASS_A = "Mutation class A"
     MUTN_CLASS_B = "Mutation class B"
@@ -39,8 +43,7 @@ class AlasccaClassReport(ReportFeature):
     def __init__(self):
         self._pathway_class = None
 
-    @staticmethod
-    def get_name():
+    def get_component_name():
         return "alascca_class_report"
 
     def set_class(self, pathway_class):
@@ -60,23 +63,23 @@ class AlasccaClassReport(ReportFeature):
             self._pathway_class = FeatureStatus.NOT_DETERMINED
 
     def to_dict(self):
-        return {self.NAME:self._pathway_class}
+        return {self.ALASCCA_CLASS_FEATURENAME:self._pathway_class}
 
 
-class MsiReport(ReportFeature):
+class MsiReport(ReportComponent):
     '''
     '''
 
     MSS = "MSS/MSI-L"
     MSI = "MSI-H"
 
-    NAME = "msi_status"
+    MSI_FEATURENAME = "msi_status"
 
     def __init__(self):
         self._msi_status = None
 
     def to_dict(self):
-        return {self.NAME:self._msi_status}
+        return {self.MSI_FEATURENAME:self._msi_status}
 
     def get_status(self):
         return self._msi_status
@@ -95,12 +98,11 @@ class MsiReport(ReportFeature):
         if caveat.setting_all_to_eb() or caveat.setting_non_positive_to_eb():
             self._msi_status = FeatureStatus.NOT_DETERMINED
 
-    @staticmethod
-    def get_name():
+    def get_component_name():
         return "msi_report"
 
 
-class SimpleSomaticMutationsReport(ReportFeature):
+class SimpleSomaticMutationsReport(ReportComponent):
     '''A report on mutation status of selected genes.
     '''
 
@@ -112,8 +114,7 @@ class SimpleSomaticMutationsReport(ReportFeature):
         # can only be non-null if mutationStatus is "mutated":
         self._symbol2mutation_status = {}
 
-    @staticmethod
-    def get_name():
+    def get_component_name():
         return "simple_somatic_mutations_report"
 
     def add_gene(self, gene_name):
@@ -151,15 +152,14 @@ class SimpleSomaticMutationsReport(ReportFeature):
         return output_dict
 
 
-class PurityReport(ReportFeature):
+class PurityReport(ReportComponent):
     '''A report on tumor sample purity.'''
 
     def __init__(self, purity_ok):
         self._purity_ok = purity_ok
 
+    def get_component_name():
+        return "purity_report"
+
     def to_dict(self):
         return {self.Name:self._purity_ok}
-
-    @property
-    def get_purity_status(self):
-        return self._purity_ok

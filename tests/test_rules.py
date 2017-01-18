@@ -163,7 +163,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pten_not_enough(self):
@@ -171,7 +171,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: FeatureStatus.NOT_MUTATED}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: FeatureStatus.NOT_MUTATED}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
@@ -179,7 +179,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift_off(self):
@@ -187,7 +187,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: FeatureStatus.NOT_MUTATED}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: FeatureStatus.NOT_MUTATED}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_double_pten(self):
@@ -195,7 +195,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_missense(self):
@@ -203,7 +203,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_b(self):
@@ -211,7 +211,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_a(self):
@@ -219,7 +219,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_pik3ca_class_a_test2(self):
@@ -227,7 +227,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
 
