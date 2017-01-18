@@ -10,7 +10,7 @@ class TestAlasccaClassReport(unittest.TestCase):
         self.test_obj = AlasccaClassReport()
 
     def test_get_component_name(self):
-        self.assertEquals(self.test_obj.component_name(), "alascca_class_report")
+        self.assertEquals(self.test_obj.component_name, "alascca_class_report")
 
     def test_starts_no_class(self):
         self.assertEquals(self.test_obj.pathway_class, None)

@@ -240,21 +240,21 @@ class TestMsiStatusRule(unittest.TestCase):
         msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.MSI)
+        self.assertEqual(msi_report.msi_status, MsiReport.MSI)
 
     def test_apply_low(self):
         msi_status = MSIStatus()
         msi_status.set_from_file(open("tests/msi_low_eg.txt"))
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.MSS)
+        self.assertEqual(msi_report.msi_status, MsiReport.MSS)
 
     def test_apply_not_determined(self):
         msi_status = MSIStatus()
         msi_status.set_from_file(open("tests/msi_not_determined_eg.txt"))
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), FeatureStatus.NOT_DETERMINED)
+        self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
 
 
 class TestExtractQCCalls(unittest.TestCase):
