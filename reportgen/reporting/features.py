@@ -155,6 +155,8 @@ class SimpleSomaticMutationsReport(ReportComponent):
 class PurityReport(ReportComponent):
     '''A report on tumor sample purity.'''
 
+    PURITY_FEATURENAME = "purity"
+
     def __init__(self, purity_ok):
         self._purity_ok = purity_ok
 
@@ -162,4 +164,4 @@ class PurityReport(ReportComponent):
         return "purity_report"
 
     def to_dict(self):
-        return {self.Name:self._purity_ok}
+        return {self.PURITY_FEATURENAME:self._purity_ok}
