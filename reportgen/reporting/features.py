@@ -20,7 +20,7 @@ class ReportComponent(object):
         pass
 
     @abstractmethod
-    def get_component_name(self):
+    def component_name(self):
         pass
 
     def apply_caveat(self, caveat):
@@ -43,7 +43,7 @@ class AlasccaClassReport(ReportComponent):
     def __init__(self):
         self._pathway_class = None
 
-    def get_component_name():
+    def component_name():
         return "alascca_class_report"
 
     def set_class(self, pathway_class):
@@ -98,7 +98,7 @@ class MsiReport(ReportComponent):
         if caveat.setting_all_to_eb() or caveat.setting_non_positive_to_eb():
             self._msi_status = FeatureStatus.NOT_DETERMINED
 
-    def get_component_name():
+    def component_name():
         return "msi_report"
 
 
@@ -114,7 +114,7 @@ class SimpleSomaticMutationsReport(ReportComponent):
         # can only be non-null if mutationStatus is "mutated":
         self._symbol2mutation_status = {}
 
-    def get_component_name():
+    def component_name():
         return "simple_somatic_mutations_report"
 
     def add_gene(self, gene_name):
@@ -160,7 +160,7 @@ class PurityReport(ReportComponent):
     def __init__(self, purity_ok):
         self._purity_ok = purity_ok
 
-    def get_component_name():
+    def component_name():
         return "purity_report"
 
     def to_dict(self):
