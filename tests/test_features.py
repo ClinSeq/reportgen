@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import sys, unittest
-from mock import Mock
+import unittest
+from mock import Mock, MagicMock, patch
+from reportgen.rules.general import Alteration, AlteredGene, Gene
 
 from reportgen.reporting.features import *
 
@@ -137,3 +138,46 @@ class TestMsiReport(unittest.TestCase):
         mock_caveat.setting_non_positive_to_eb = Mock(return_value=True)
         self.test_obj.apply_caveat(mock_caveat)
         self.assertEquals(self.test_obj.msi_status, FeatureStatus.NOT_DETERMINED)
+
+
+class TestSimpleSomaticMutationsReport(unittest.TestCase):
+    def setUp(self):
+        self.test_obj = SimpleSomaticMutationsReport()
+        self.test_gene_name = "TestGene"
+        test_gene = Gene(self.test_gene_name)
+        test_altered_gene = AlteredGene(test_gene)
+        self.test_mutn = Alteration(test_altered_gene, "TestTranscriptID", "missense_variant", "p.Val1Glu")
+
+    def test_get_component_name(self):
+        self.assertEquals(self.test_obj.component_name(), "simple_somatic_mutations_report")
+
+    def test_starts_empty(self):
+        self.assertEquals(self.test_obj.to_dict(), {})
+
+    def test_add_gene(self):
+        self.test_obj.add_gene("TestGeneName")
+        self.assertEquals(self.test_obj.to_dict(), {"TestGeneName":MutationStatus().to_dict()})
+
+    def test_add_mutation(self):
+        test_flag = "TestFlag"
+        test_mutn = Mock()
+        self.test_obj.add_gene(self.test_gene_name)
+        test_mutn.get_altered_gene().get_gene().get_symbol = MagicMock(return_value=self.test_gene_name)
+        self.test_obj.add_mutation(test_mutn, test_flag)
+        self.assertEquals(self.test_obj._symbol2mutation_status.keys(), [self.test_gene_name])
+
+    def test_to_dict_one_gene(self):
+        test_gene_name = "TestGeneName"
+        self.test_obj.add_gene(test_gene_name)
+        mock_dict = {}
+        with patch('reportgen.rules.general.MutationStatus.to_dict', return_value=mock_dict):
+            self.assertEquals(self.test_obj.to_dict(), {test_gene_name:mock_dict})
+
+    def test_apply_caveat_no_change_pos(self):
+        self.test_obj.add_gene(self.test_gene_name)
+        self.test_obj.add_mutation(self.test_mutn, "TestFlag")
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=False)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=False)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj._symbol2mutation_status[self.test_gene_name]._status, FeatureStatus.MUTATED)
