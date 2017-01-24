@@ -43,7 +43,7 @@ class AlasccaClassReport(ReportComponent):
     def __init__(self):
         self._pathway_class = None
 
-    def component_name():
+    def component_name(self):
         return "alascca_class_report"
 
     @property
@@ -105,7 +105,7 @@ class MsiReport(ReportComponent):
         if caveat.setting_all_to_eb() or caveat.setting_non_positive_to_eb():
             self._msi_status = FeatureStatus.NOT_DETERMINED
 
-    def component_name():
+    def component_name(self):
         return "msi_report"
 
 
@@ -121,7 +121,7 @@ class SimpleSomaticMutationsReport(ReportComponent):
         # can only be non-null if mutationStatus is "mutated":
         self._symbol2mutation_status = {}
 
-    def component_name():
+    def component_name(self):
         return "simple_somatic_mutations_report"
 
     def add_gene(self, gene_name):
@@ -175,7 +175,7 @@ class PurityReport(ReportComponent):
     def purity_ok(self, purity_ok):
         self._purity_ok = purity_ok
 
-    def component_name():
+    def component_name(self):
         return "purity_report"
 
     def to_dict(self):

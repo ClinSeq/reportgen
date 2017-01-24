@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import unittest
+import sys, unittest
 from mock import Mock
 
 from reportgen.reporting.features import *
@@ -10,7 +10,7 @@ class TestAlasccaClassReport(unittest.TestCase):
         self.test_obj = AlasccaClassReport()
 
     def test_get_component_name(self):
-        self.assertEquals(self.test_obj.component_name, "alascca_class_report")
+        self.assertEquals(self.test_obj.component_name(), "alascca_class_report")
 
     def test_starts_no_class(self):
         self.assertEquals(self.test_obj.pathway_class, None)
@@ -21,7 +21,7 @@ class TestAlasccaClassReport(unittest.TestCase):
 
     def test_to_dict_with_val(self):
         self.test_obj.pathway_class = AlasccaClassReport.MUTN_CLASS_A
-        self.assertEquals(self.test_obj.to_dict,
+        self.assertEquals(self.test_obj.to_dict(),
                           {AlasccaClassReport.ALASCCA_CLASS_FEATURENAME:AlasccaClassReport.MUTN_CLASS_A})
 
     def test_apply_caveat_no_change_neg(self):
