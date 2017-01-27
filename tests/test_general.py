@@ -93,6 +93,18 @@ class TestMSIStatus(unittest.TestCase):
             with open("dummy_filename.txt") as test_file:
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
+    def test_set_from_file_invalid_msi_data_string(self):
+        open_name = '%s.open' % __name__
+        with patch(open_name, mock_open(read_data='Total_Number_of_sites\tNumber_of_Somatic_Sites\t%\nString 0 1'), create=True):
+            with open("dummy_filename.txt") as test_file:
+                self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
+
+    def test_set_from_file_invalid_msi_data_two_vals(self):
+        open_name = '%s.open' % __name__
+        with patch(open_name, mock_open(read_data='Total_Number_of_sites\tNumber_of_Somatic_Sites\t%\n0.2 1.0'), create=True):
+            with open("dummy_filename.txt") as test_file:
+                self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
+
 
 class TestAlterationExtractor(unittest.TestCase):
     _extractor = None
