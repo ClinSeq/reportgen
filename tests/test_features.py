@@ -2,6 +2,7 @@
 import unittest
 from mock import Mock, MagicMock, patch
 from reportgen.rules.general import Alteration, AlteredGene, Gene
+from reportgen.rules.util import QC_Call
 
 from reportgen.reporting.features import *
 
@@ -223,3 +224,22 @@ class TestSimpleSomaticMutationsReport(unittest.TestCase):
         mock_caveat.setting_non_positive_to_eb = Mock(return_value=True)
         self.test_obj.apply_caveat(mock_caveat)
         self.assertEquals(self.test_obj._symbol2mutation_status[self.test_gene_name]._status, FeatureStatus.NOT_DETERMINED)
+
+
+class TestPurityReport(unittest.TestCase):
+    def setUp(self):
+        self.test_obj = PurityReport()
+
+    def test_get_componet_name(self):
+        self.assertEquals(self.test_obj.component_name(), "purity_report")
+
+    def test_purity_starts_none(self):
+        self.assertEquals(self.test_obj.purity_ok, None)
+
+    def test_set_purity(self):
+        self.test_obj.purity_ok = QC_Call.OK
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.OK)
+
+    def test_to_dict_set_val(self):
+        self.test_obj.purity_ok = QC_Call.FAIL
+        self.assertEquals(self.test_obj.to_dict(), {PurityReport.PURITY_FEATURENAME:QC_Call.FAIL})
