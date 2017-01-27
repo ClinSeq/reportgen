@@ -1,4 +1,4 @@
-import json, re
+import json, re, sys
 
 from reportgen.rules.util import FeatureStatus
 
@@ -327,9 +327,11 @@ class MSIStatus:
         try:
             vals = map(lambda tok: float(tok), input_file.readline().split("\t"))
         except ValueError, e:
+            print >> sys.stderr, "TRACE 1."
             raise ValueError("Invalid MSI data values.")
 
         if not (len(vals) == 3):
+            print >> sys.stderr, "TRACE 2."
             raise ValueError("Invalid MSI data values.")
 
         self._total_sites = vals[0]
