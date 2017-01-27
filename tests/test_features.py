@@ -243,3 +243,51 @@ class TestPurityReport(unittest.TestCase):
     def test_to_dict_set_val(self):
         self.test_obj.purity_ok = QC_Call.FAIL
         self.assertEquals(self.test_obj.to_dict(), {PurityReport.PURITY_FEATURENAME:QC_Call.FAIL})
+
+    def test_apply_caveat_no_change_ok(self):
+        self.test_obj.purity_ok = QC_Call.OK
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=False)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=False)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.OK)
+
+    def test_apply_caveat_no_change_fail(self):
+        self.test_obj.purity_ok = QC_Call.FAIL
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=False)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=False)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.FAIL)
+
+    def test_apply_caveat_all_to_eb_ok(self):
+        self.test_obj.purity_ok = QC_Call.OK
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=True)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=False)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.OK)
+
+    def test_apply_caveat_all_to_eb_fail(self):
+        self.test_obj.purity_ok = QC_Call.FAIL
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=True)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=False)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.FAIL)
+
+    def test_apply_caveat_non_pos_to_eb_ok(self):
+        self.test_obj.purity_ok = QC_Call.OK
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=False)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=True)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.OK)
+
+    def test_apply_caveat_non_pos_to_eb_fail(self):
+        self.test_obj.purity_ok = QC_Call.FAIL
+        mock_caveat = Mock()
+        mock_caveat.setting_all_to_eb = Mock(return_value=False)
+        mock_caveat.setting_non_positive_to_eb = Mock(return_value=True)
+        self.test_obj.apply_caveat(mock_caveat)
+        self.assertEquals(self.test_obj.purity_ok, QC_Call.FAIL)
