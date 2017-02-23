@@ -10,7 +10,7 @@ install:
 
 # command to run tests
 script:
-  - coverage run --source reportgen setup.py test
+  - py.test tests
 
 after_success:
     - coveralls
