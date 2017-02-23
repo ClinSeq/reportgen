@@ -320,8 +320,10 @@ class MSIStatus:
 
         print >> sys.stderr, "TRACE: Processing header."
         print >> sys.stderr, input_file
+        input_line = input_file.readline()
+        print >> sys.stderr, input_line
 
-        header_elems = input_file.readline().strip().split("\t")
+        header_elems = input_line.strip().split("\t")
 
         print >> sys.stderr, "TRACE: Header elements:", header_elems
 
