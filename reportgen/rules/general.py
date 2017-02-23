@@ -318,23 +318,27 @@ class MSIStatus:
     def set_from_file(self, input_file):
         '''Extracts the relevant fields from the input file.'''
 
-        print >> sys.stderr, "Test tracewrite."
-
         header_elems = input_file.readline().strip().split("\t")
         if not (header_elems[0] == "Total_Number_of_Sites"
                 and header_elems[1] == "Number_of_Somatic_Sites"
                 and header_elems[2] == "%"):
             raise ValueError("Invalid MSI input file header.")
 
+        print >> sys.stderr, "TRACE: Processed header."
         try:
             vals = map(lambda tok: float(tok), input_file.readline().split("\t"))
+
         except ValueError, e:
             print >> sys.stderr, "TRACE 1."
             raise ValueError("Invalid MSI data values.")
 
+        print >> sys.stderr, "TRACE: Processed vals."
+
         if not (len(vals) == 3):
             print >> sys.stderr, "TRACE 2."
             raise ValueError("Invalid MSI data values.")
+
+        print >> sys.stderr, "TRACE: Processed file."
 
         self._total_sites = vals[0]
         self._somatic_sites = vals[1]
