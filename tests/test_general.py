@@ -76,18 +76,22 @@ class TestMSIStatus(unittest.TestCase):
         self._msi_status = MSIStatus()
 
     def test_set_from_file_test_percent(self):
+        print >> sys.stderr, "TRACE: Percent test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._percent == 72.60)
 
     def test_set_from_file_test_somatic_sites(self):
+        print >> sys.stderr, "TRACE: Somatic sites test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._somatic_sites == 53)
 
     def test_set_from_file_test_total_sites(self):
+        print >> sys.stderr, "TRACE: Total sites test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._total_sites == 73)
 
     def test_set_from_file_invalid_header(self):
+        print >> sys.stderr, "TRACE: Invalid header test."
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='An invalid header\nA second line'), create=True):
             with open("dummy_filename.txt") as test_file:
