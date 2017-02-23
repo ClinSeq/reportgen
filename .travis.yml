@@ -10,7 +10,7 @@ install:
 
 # command to run tests
 script:
-  - nosetests --with-coverage --cover-package=reportgen
+  - coverage run --source reportgen setup.py test
 
 after_success:
     - coveralls
