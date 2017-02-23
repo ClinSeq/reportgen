@@ -11,7 +11,7 @@ install:
 
 # command to run tests
 script:
-  - py.test tests --cov reportgen
+  - py.test tests -s --cov reportgen
 
 after_success:
     - coveralls
