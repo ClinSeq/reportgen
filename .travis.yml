@@ -6,11 +6,12 @@ python:
 # command to install dependencies
 install:
   - pip install coveralls
+  - pip install pytest-cov
   - pip install -r requirements.txt
 
 # command to run tests
 script:
-  - py.test tests --cov coveralls
+  - py.test tests --cov reportgen
 
 after_success:
     - coveralls
