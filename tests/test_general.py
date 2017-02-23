@@ -1,5 +1,5 @@
 from mock import mock_open, patch, Mock, MagicMock
-import unittest
+import sys, unittest
 
 from reportgen.rules.general import AlterationExtractor, AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 
@@ -94,12 +94,14 @@ class TestMSIStatus(unittest.TestCase):
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
     def test_set_from_file_invalid_msi_data_string(self):
+        print >> sys.stderr, "TRACE: Invalid msi data string test."
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\nString\t0\t1'), create=True):
             with open("dummy_filename.txt") as test_file:
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
     def test_set_from_file_invalid_msi_data_two_vals(self):
+        print >> sys.stderr, "TRACE: Invalid msi data two vals test."
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n0.2\t1.0'), create=True):
             with open("dummy_filename.txt") as test_file:
