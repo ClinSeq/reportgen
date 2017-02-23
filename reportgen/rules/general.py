@@ -319,6 +319,7 @@ class MSIStatus:
         '''Extracts the relevant fields from the input file.'''
 
         print >> sys.stderr, "TRACE: Processing header."
+        print >> sys.stderr, input_file
 
         header_elems = input_file.readline().strip().split("\t")
 
