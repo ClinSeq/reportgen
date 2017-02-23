@@ -318,6 +318,8 @@ class MSIStatus:
     def set_from_file(self, input_file):
         '''Extracts the relevant fields from the input file.'''
 
+        print >> sys.stderr, "Test tracewrite."
+
         header_elems = input_file.readline().strip().split("\t")
         if not (header_elems[0] == "Total_Number_of_Sites"
                 and header_elems[1] == "Number_of_Somatic_Sites"
