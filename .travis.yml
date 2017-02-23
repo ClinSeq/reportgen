@@ -10,7 +10,7 @@ install:
 
 # command to run tests
 script:
-  - py.test tests
+  - py.test tests --cov coveralls
 
 after_success:
     - coveralls
