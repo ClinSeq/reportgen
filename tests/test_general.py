@@ -103,6 +103,8 @@ class TestMSIStatus(unittest.TestCase):
         with patch(open_name, mock_open(read_data='Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\nString\t0\t1'), create=True):
             with open("dummy_filename.txt") as test_file:
                 print >> sys.stderr, "TRACE: Invalid msi data string test - prior to calling assertRaises."
+                print >> sys.stderr, test_file.readline()
+                print >> sys.stderr, "TRACE: printed mock file header contents."
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
     def test_set_from_file_invalid_msi_data_two_vals(self):
