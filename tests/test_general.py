@@ -76,22 +76,18 @@ class TestMSIStatus(unittest.TestCase):
         self._msi_status = MSIStatus()
 
     def test_set_from_file_test_percent(self):
-        print >> sys.stderr, "TRACE: Percent test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._percent == 72.60)
 
     def test_set_from_file_test_somatic_sites(self):
-        print >> sys.stderr, "TRACE: Somatic sites test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._somatic_sites == 53)
 
     def test_set_from_file_test_total_sites(self):
-        print >> sys.stderr, "TRACE: Total sites test."
         self._msi_status.set_from_file(open("tests/msi_high_eg.txt"))
         self.assertTrue(self._msi_status._total_sites == 73)
 
     def test_set_from_file_invalid_header(self):
-        print >> sys.stderr, "TRACE: Invalid header test."
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='An invalid header\nA second line'), create=True):
             with open("dummy_filename.txt") as test_file:
@@ -104,11 +100,14 @@ class TestMSIStatus(unittest.TestCase):
             with open("dummy_filename.txt") as test_file:
                 print >> sys.stderr, "TRACE: Invalid msi data string test - prior to calling assertRaises."
                 print >> sys.stderr, test_file.readline()
+                # XXX CONTINUE HERE; ISOLATED THE PROBLEM TO HERE. WHEN I RUN THE COMMAND
+                # "py.test tests -s --cov reportgen" LOCALLY, IT WORKS OK, PRINTING THE MOCK FILE HEADER
+                # CONTENTS, BUT WHEN TRAVIS-CI RUNS IT REMOTELY, IT DOES NOT WORK, INSTEAD PRINTING
+                # "<MagicMock name='open().readline()' id='140075943448528'>".
                 print >> sys.stderr, "TRACE: printed mock file header contents."
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
     def test_set_from_file_invalid_msi_data_two_vals(self):
-        print >> sys.stderr, "TRACE: Invalid msi data two vals test."
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n0.2\t1.0'), create=True):
             with open("dummy_filename.txt") as test_file:
