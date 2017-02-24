@@ -140,8 +140,3 @@ def parse_mutation_table(spreadsheet_filename):
         gene_symbol2classifications[symbol].append(curr_classification)
 
     return gene_symbol2classifications
-
-
-def format_personnummer(personnummer):
-    assert re.match("^[0-9]{12}$", personnummer)
-    return personnummer[2:8] + "-" + personnummer[8:]
