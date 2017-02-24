@@ -121,6 +121,17 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertRaises(ValueError, util.get_addresses, id2addresses, ["100", "101"])
 
 
+    def test_parse_address_table_valid_data1(self):
+        open_name = '%s.open' % __name__
+        with patch(open_name, mock_open(read_data='Nr\tKlinik\tAttn\tMail\tadress\tAdress\tAdress\tAdress\n1\tDummy hospital name\tDoctors name\tan.email @ email.com\tStreetname 1\tA hospital name, Suburb\t100 00 Cityname\n'), create=True):
+            with open("dummy_filename.txt") as test_file:
+                correct_output = {"1": [
+                    {"attn": "Doctors name", "line1": "Streetname 1", "line2": "A hospital name, Suburb",
+                     "line3": "100 00 Cityname"}]}
+                id2addresses = util.parse_address_table(test_file)
+                self.assertDictEqual(id2addresses, correct_output)
+
+
 #class TestMisc(unittest.TestCase):
 #    '''Tests for miscellaneous functions in the reports module.'''
 

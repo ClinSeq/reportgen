@@ -44,17 +44,18 @@ class AddressFileParseException(Exception):
 def parse_address_table(address_table_file):
     id2addresses = {}
 
-    # NOTE: Using custom csv parsing code here, as it seems ridiculous to import
-    # pandas to do rudimentary parsing of one small csv file.
-    currline = address_table_file.readline().strip("\n")
-    elems = currline.split("\t")
+    lines = address_table_file.readlines()
+
+    header_line = lines[0].strip("\n")
+
+    elems = header_line.split("\t")
     if not elems[0] == "Nr":
-        raise AddressFileParseException("Invalid header line for address table:\n" + currline)
-    currline = address_table_file.readline()
-    while currline != "":
-        elems = currline.strip().split("\t")
+        raise AddressFileParseException("Invalid header line for address table:\n" + header_line)
+
+    for data_line in lines[1:]:
+        elems = data_line.strip().split("\t")
         if not len(elems) == 7:
-            raise AddressFileParseException("Invalid line for address table:\n" + currline)
+            raise AddressFileParseException("Invalid line for address table:\n" + data_line)
         id = elems[0]
         attn = elems[2]
         address_line1 = elems[4]
@@ -62,11 +63,11 @@ def parse_address_table(address_table_file):
         address_line3 = elems[6]
         if not id2addresses.has_key(id):
             id2addresses[id] = []
+
         id2addresses[id].append({"attn": attn,
                                  "line1": address_line1,
                                  "line2": address_line2,
                                  "line3": address_line3})
-        currline = address_table_file.readline()
 
     # FIXME: The hospital "id" value should be an int according to Daniel's
     # schema for AlasccaBloodReferral and AlasccaTissueReferral objects, but here
