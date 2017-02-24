@@ -98,16 +98,6 @@ class TestMSIStatus(unittest.TestCase):
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\nString\t0\t1'), create=True):
             with open("dummy_filename.txt") as test_file:
-                print >> sys.stderr, "TRACE: Invalid msi data string test - prior to calling assertRaises."
-                print >> sys.stderr, open_name
-                print >> sys.stderr, dir(test_file)
-                print >> sys.stderr, type(test_file)
-                print >> sys.stderr, test_file.readline()
-                # XXX CONTINUE HERE; ISOLATED THE PROBLEM TO HERE. WHEN I RUN THE COMMAND
-                # "py.test tests -s --cov reportgen" LOCALLY, IT WORKS OK, PRINTING THE MOCK FILE HEADER
-                # CONTENTS, BUT WHEN TRAVIS-CI RUNS IT REMOTELY, IT DOES NOT WORK, INSTEAD PRINTING
-                # "<MagicMock name='open().readline()' id='140075943448528'>".
-                print >> sys.stderr, "TRACE: printed mock file header contents."
                 self.assertRaises(ValueError, lambda: self._msi_status.set_from_file(open(test_file)))
 
     def test_set_from_file_invalid_msi_data_two_vals(self):
