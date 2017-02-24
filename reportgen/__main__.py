@@ -102,7 +102,8 @@ hard-coded.
                              options.db_config_file + "."
         sys.exit(1)
 
-    id2addresses = reportgen.reporting.util.parse_address_table(options.address_table_file)
+    address_table_file = open(options.address_table_file)
+    id2addresses = reportgen.reporting.util.parse_address_table(address_table_file)
 
     # FIXME: Casting the blood and tumor IDs to ints here. Not sure if they should be ints,
     # but even if they are, I'm not sure if the casting should occur here:
