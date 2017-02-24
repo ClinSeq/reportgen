@@ -121,6 +121,20 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertRaises(ValueError, util.get_addresses, id2addresses, ["100", "101"])
 
 
+    def test_parse_address_table_invalid_header(self):
+        open_name = '%s.open' % __name__
+        with patch(open_name, mock_open(read_data='An invalid header\n1\tDummy hospital name\tDoctors name\tan.email @ email.com\tStreetname 1\tA hospital name, Suburb\t100 00 Cityname\n'), create=True):
+            with open("dummy_filename.txt") as test_file:
+                self.assertRaises(util.AddressFileParseException, lambda: util.parse_address_table(test_file))
+
+
+    def test_parse_address_table_invalid_number_cols(self):
+        open_name = '%s.open' % __name__
+        with patch(open_name, mock_open(read_data='Nr\tKlinik\tAttn\tMail\tadress\tAdress\tAdress\tAdress\n1\tDummy hospital name\tDoctors name\tan.email @ email.com\tStreetname 1\tA hospital name, Suburb\t100 00 Cityname\tAn extra invalid column\n'), create=True):
+            with open("dummy_filename.txt") as test_file:
+                self.assertRaises(util.AddressFileParseException, lambda: util.parse_address_table(test_file))
+
+
     def test_parse_address_table_valid_data1(self):
         open_name = '%s.open' % __name__
         with patch(open_name, mock_open(read_data='Nr\tKlinik\tAttn\tMail\tadress\tAdress\tAdress\tAdress\n1\tDummy hospital name\tDoctors name\tan.email @ email.com\tStreetname 1\tA hospital name, Suburb\t100 00 Cityname\n'), create=True):
