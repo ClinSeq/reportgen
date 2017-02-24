@@ -101,6 +101,7 @@ class TestMSIStatus(unittest.TestCase):
                 print >> sys.stderr, "TRACE: Invalid msi data string test - prior to calling assertRaises."
                 print >> sys.stderr, open_name
                 print >> sys.stderr, dir(test_file)
+                print >> sys.stderr, type(test_file)
                 print >> sys.stderr, test_file.readline()
                 # XXX CONTINUE HERE; ISOLATED THE PROBLEM TO HERE. WHEN I RUN THE COMMAND
                 # "py.test tests -s --cov reportgen" LOCALLY, IT WORKS OK, PRINTING THE MOCK FILE HEADER
