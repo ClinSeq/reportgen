@@ -233,7 +233,7 @@ of this file's format.
         caveats.append(CoverageCaveat(normal_cov_call))
 
     if contam_call is not None:
-        caveats.append(ContaminationCaveat(purity_call))
+        caveats.append(ContaminationCaveat(contam_call))
 
     # Check the caveats and modify the report accordingly:
     report_compiler.check_caveats(caveats)
