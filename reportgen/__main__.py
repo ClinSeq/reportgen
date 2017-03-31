@@ -207,10 +207,10 @@ of this file's format.
     rules = [mutations_rule, alascca_rule, msi_rule]
 
     # Extract QC calls from JSON files specified as command line arguments:
-    purity_call = extract_qc_call(options.purity_json)
-    tumor_cov_call = extract_qc_call(options.tumor_cov_json)
-    normal_cov_call = extract_qc_call(options.normal_cov_json)
-    contam_call = extract_qc_call(options.contam_json)
+    purity_call = extract_qc_call(open(options.purity_json))
+    tumor_cov_call = extract_qc_call(open(options.tumor_cov_json))
+    normal_cov_call = extract_qc_call(open(options.normal_cov_json))
+    contam_call = extract_qc_call(open(options.contam_json))
 
     # Generate rule from that input:
     if purity_call is not None:
