@@ -223,9 +223,11 @@ Ej bedömbar & \includegraphics{\VAR{msi_not_determined_box}} \\
 
 \vspace{0.3cm}
 
-\textbf{OBSERVERA:} {\small Reducerad möjlighet att detektera tumörens mutationer samt MSI-H på p.g.a. låg tumörcellshalt i aktuellt vävnadsprov.}
+\BLOCK{ if genomicJSON.purity_report.purity == "FAIL" }
+  \textbf{OBSERVERA:} {\small Reducerad möjlighet att detektera tumörens mutationer samt MSI-H på p.g.a. låg tumörcellshalt i aktuellt vävnadsprov.}
 
-\vspace{0.3cm}
+  \vspace{0.3cm}
+\BLOCK{ endif }
 
 \textbf{Tolkning} \par
 {\small
