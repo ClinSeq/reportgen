@@ -170,8 +170,9 @@ class TestAlasccaClassRule(unittest.TestCase):
         input_symbol2gene = {"PTEN": self._pten_gene_single_mutation_not_enough}
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
+        # ALASCCA class definitions changed => This is now Class B.
         expected_output_dict = {
-            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: FeatureStatus.NOT_MUTATED}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
@@ -186,8 +187,9 @@ class TestAlasccaClassRule(unittest.TestCase):
         input_symbol2gene = {"PIK3R1": self._pik3r1_gene_frameshift_off}
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
+        # ALASCCA class definitions changed => This is now Class B.
         expected_output_dict = {
-            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: FeatureStatus.NOT_MUTATED}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_double_pten(self):
