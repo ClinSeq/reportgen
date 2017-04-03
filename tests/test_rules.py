@@ -270,6 +270,17 @@ class TestMsiStatusRule(unittest.TestCase):
             msi_report = rule.apply()
             self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
 
+    def test_apply_not_determined_intermediate_msi(self):
+        msi_status = MSIStatus()
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n100\t20\t20.00'),
+                   create=True) as msi_eb_file:
+            msi_status.set_from_file(msi_eb_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
+
 
 class TestExtractQCCalls(unittest.TestCase):
     def setUp(self):
