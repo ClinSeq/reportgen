@@ -217,7 +217,7 @@ class TestSimpleSomaticMutationsReport(unittest.TestCase):
         self.test_obj.apply_caveat(mock_caveat)
         self.assertEquals(self.test_obj._symbol2mutation_status[self.test_gene_name]._status, FeatureStatus.MUTATED)
 
-    def test_apply_caveat_non_pos_to_eb_pos(self):
+    def test_apply_caveat_non_pos_to_eb_neg(self):
         self.test_obj.add_gene(self.test_gene_name)
         mock_caveat = Mock()
         mock_caveat.setting_all_to_eb = Mock(return_value=False)

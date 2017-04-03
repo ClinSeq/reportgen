@@ -239,24 +239,36 @@ class TestMsiStatusRule(unittest.TestCase):
 
     def test_apply_high(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n73\t53\t72.60'),
+                   create=True) as msi_high_file:
+            msi_status.set_from_file(msi_high_file.return_value)
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
         self.assertEqual(msi_report.msi_status, MsiReport.MSI)
 
     def test_apply_low(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_low_eg.txt"))
-        rule = MsiStatusRule(msi_status)
-        msi_report = rule.apply()
-        self.assertEqual(msi_report.msi_status, MsiReport.MSS)
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n73\t3\t4.1'),
+                   create=True) as msi_low_file:
+            msi_status.set_from_file(msi_low_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, MsiReport.MSS)
 
     def test_apply_not_determined(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_not_determined_eg.txt"))
-        rule = MsiStatusRule(msi_status)
-        msi_report = rule.apply()
-        self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n45\t30\t66.66'),
+                   create=True) as msi_eb_file:
+            msi_status.set_from_file(msi_eb_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
 
 
 class TestExtractQCCalls(unittest.TestCase):
