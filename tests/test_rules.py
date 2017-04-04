@@ -1,4 +1,4 @@
-from mock import mock_open, patch, Mock, MagicMock
+from mock import mock_open, patch
 import unittest
 
 from reportgen.rules.alascca import AlasccaClassRule
@@ -6,6 +6,8 @@ from reportgen.rules.alascca import AlasccaClassRule
 from reportgen.rules.msi import MsiStatusRule
 
 from reportgen.rules.simple_somatic_mutations import SimpleSomaticMutationsRule
+
+from reportgen.rules.util import FeatureStatus, extract_qc_call
 
 from reportgen.rules.general import AlterationClassification, Gene, AlteredGene, Alteration, MSIStatus
 from reportgen.reporting.features import AlasccaClassReport, MsiReport
@@ -161,7 +163,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pten_not_enough(self):
@@ -170,7 +172,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         test_report = rule.apply()
         # ALASCCA class definitions changed => This is now Class B.
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift(self):
@@ -178,7 +180,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_frameshift_off(self):
@@ -187,7 +189,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         test_report = rule.apply()
         # ALASCCA class definitions changed => This is now Class B.
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_double_pten(self):
@@ -195,7 +197,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3r1_missense(self):
@@ -203,7 +205,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_b(self):
@@ -211,7 +213,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_B}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_B}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_single_pik3ca_class_a(self):
@@ -219,7 +221,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
     def test_apply_pik3ca_class_a_test2(self):
@@ -227,7 +229,7 @@ class TestAlasccaClassRule(unittest.TestCase):
         rule = AlasccaClassRule("reportgen/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx", input_symbol2gene)
         test_report = rule.apply()
         expected_output_dict = {
-            AlasccaClassReport.NAME: AlasccaClassReport.MUTN_CLASS_A}
+            AlasccaClassReport.ALASCCA_CLASS_FEATURENAME: AlasccaClassReport.MUTN_CLASS_A}
         self.assertDictEqual(test_report.to_dict(), expected_output_dict)
 
 
@@ -237,21 +239,57 @@ class TestMsiStatusRule(unittest.TestCase):
 
     def test_apply_high(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_high_eg.txt"))
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n73\t53\t72.60'),
+                   create=True) as msi_high_file:
+            msi_status.set_from_file(msi_high_file.return_value)
         rule = MsiStatusRule(msi_status)
         msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.MSI)
+        self.assertEqual(msi_report.msi_status, MsiReport.MSI)
 
     def test_apply_low(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_low_eg.txt"))
-        rule = MsiStatusRule(msi_status)
-        msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.MSS)
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n73\t3\t4.1'),
+                   create=True) as msi_low_file:
+            msi_status.set_from_file(msi_low_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, MsiReport.MSS)
 
     def test_apply_not_determined(self):
         msi_status = MSIStatus()
-        msi_status.set_from_file(open("tests/msi_not_determined_eg.txt"))
-        rule = MsiStatusRule(msi_status)
-        msi_report = rule.apply()
-        self.assertEqual(msi_report.get_status(), MsiReport.NOT_DETERMINED)
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n45\t30\t66.66'),
+                   create=True) as msi_eb_file:
+            msi_status.set_from_file(msi_eb_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
+
+    def test_apply_not_determined_intermediate_msi(self):
+        msi_status = MSIStatus()
+        with patch('reportgen.rules.general.open',
+                   mock_open(read_data=
+                             'Total_Number_of_Sites\tNumber_of_Somatic_Sites\t%\n100\t20\t20.00'),
+                   create=True) as msi_eb_file:
+            msi_status.set_from_file(msi_eb_file.return_value)
+            rule = MsiStatusRule(msi_status)
+            msi_report = rule.apply()
+            self.assertEqual(msi_report.msi_status, FeatureStatus.NOT_DETERMINED)
+
+
+class TestExtractQCCalls(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_extract_qc_ok(self):
+        with patch('reportgen.rules.util.open', mock_open(read_data='{"CALL":"OK"}'), create=True) as mo:
+            self.assertEquals(extract_qc_call(mo.return_value), "OK")
+
+    def test_extract_qc_none(self):
+        infile = None
+        self.assertEquals(extract_qc_call(infile), None)

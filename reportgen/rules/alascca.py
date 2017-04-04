@@ -1,5 +1,6 @@
 from reportgen.reporting.util import parse_mutation_table
 from reportgen.reporting.features import AlasccaClassReport
+from reportgen.rules.util import FeatureStatus
 
 
 class AlasccaClassRule:
@@ -42,15 +43,13 @@ class AlasccaClassRule:
 
             # Find all mutations matching this gene's rules:
             alterations = []
-            gene = None
-            if self._symbol2gene.has_key(symbol):
+            if symbol in self._symbol2gene.keys():
                 gene = self._symbol2gene[symbol]
                 alterations = gene.get_alterations()
 
             for alteration in alterations:
                 # Apply all rules to this alteration:
                 for classification in gene_classifications:
-                    flag = None
                     if classification.match(alteration):
                         flag = classification.get_output_flag()
                         assert flag_instances.has_key(flag)
@@ -65,11 +64,11 @@ class AlasccaClassRule:
         elif flag_instances[self.CLASS_B_2] >= 2:
             alasccaClass = AlasccaClassReport.MUTN_CLASS_B
         else:
-            alasccaClass = AlasccaClassReport.NO_MUTN
+            alasccaClass = FeatureStatus.NOT_MUTATED
 
         # FIXME/NOTE: Currently there is no way of setting it to "not
         # determined". We need to figure out how/when to define this
         # and then we will need to adapt this and other code accordingly.
 
-        report.set_class(alasccaClass)
+        report.pathway_class = alasccaClass
         return report
