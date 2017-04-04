@@ -1,4 +1,6 @@
-import json, re
+import json, re, sys
+
+from reportgen.rules.util import FeatureStatus
 
 import vcf
 
@@ -104,13 +106,8 @@ class MutationStatus:
     directly stated, but can be accessed via the contained Alteration
     objects, which must all refer to the same AlteredGene object.'''
 
-    MUT = "Mutated"
-    NO_MUT = "Not mutated"
-    NOT_DETERMINED = "Not determined"
-    VALID_STRINGS = [MUT, NO_MUT, NOT_DETERMINED]
-
     def __init__(self):
-        self._status = self.NO_MUT
+        self._status = FeatureStatus.NOT_MUTATED
         self._mutation_list = []
 
     def to_dict(self):
@@ -125,15 +122,18 @@ class MutationStatus:
             "alterations" : output_list
         }
 
-    def get_status(self):
-        return self._status
-
-    def get_mutation_list(self):
-        return self._mutation_list
+    def is_positive(self):
+        """
+        :return: True if mutation status is positive (mutated), false otherwise.
+        """
+        return self._status == FeatureStatus.MUTATED
 
     def add_mutation(self, mutation, flag):
-        self._status = self.MUT
+        self._status = FeatureStatus.MUTATED
         self._mutation_list.append((mutation, flag))
+
+    def to_EB(self):
+        self._status = FeatureStatus.NOT_DETERMINED
 
 
 class Gene:
@@ -318,7 +318,9 @@ class MSIStatus:
     def set_from_file(self, input_file):
         '''Extracts the relevant fields from the input file.'''
 
-        header_elems = input_file.readline().strip().split("\t")
+        input_line = input_file.readline()
+        header_elems = input_line.strip().split("\t")
+
         if not (header_elems[0] == "Total_Number_of_Sites"
                 and header_elems[1] == "Number_of_Somatic_Sites"
                 and header_elems[2] == "%"):
@@ -326,6 +328,7 @@ class MSIStatus:
 
         try:
             vals = map(lambda tok: float(tok), input_file.readline().split("\t"))
+
         except ValueError, e:
             raise ValueError("Invalid MSI data values.")
 

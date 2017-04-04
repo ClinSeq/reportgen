@@ -93,7 +93,7 @@ Tumörprov taget \VAR{metaJSON.tumor_sample_date}, remiss-ID \VAR{metaJSON.tumor
   \BLOCK{ set class_a_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Mutation class B" }
   \BLOCK{ set class_b_box = docFormat.checked }
-\BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "No mutation" }
+\BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Not mutated" }
   \BLOCK{ set alascca_no_mutations_box = docFormat.checked }
 \BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Not determined" }
   \BLOCK{ set alascca_not_determined_box = docFormat.checked }
@@ -222,6 +222,12 @@ Ej bedömbar & \includegraphics{\VAR{msi_not_determined_box}} \\
     \end{minipage}%
 
 \vspace{0.3cm}
+
+\BLOCK{ if genomicJSON.purity_report.purity == "FAIL" }
+  \textbf{OBSERVERA:} {\small Reducerad möjlighet att detektera tumörens mutationer samt MSI-H p.g.a. låg tumörcellshalt i aktuellt vävnadsprov.}
+
+  \vspace{0.3cm}
+\BLOCK{ endif }
 
 \textbf{Tolkning} \par
 {\small

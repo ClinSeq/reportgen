@@ -12,7 +12,11 @@ from optparse import OptionParser
 import reportgen.reporting.genomics
 import reportgen.reporting.metadata
 import reportgen.reporting.util
+
 from reportgen.rules.general import AlterationExtractor, MSIStatus
+from reportgen.rules.purity import PurityRule
+from reportgen.reporting.caveats import CoverageCaveat, PurityCaveat, ContaminationCaveat
+from reportgen.rules.util import extract_qc_call
 
 import reportgen.rules.alascca
 import reportgen.rules.msi
@@ -98,7 +102,8 @@ hard-coded.
                              options.db_config_file + "."
         sys.exit(1)
 
-    id2addresses = reportgen.reporting.util.parse_address_table(options.address_table_file)
+    address_table_file = open(options.address_table_file)
+    id2addresses = reportgen.reporting.util.parse_address_table(address_table_file)
 
     # FIXME: Casting the blood and tumor IDs to ints here. Not sure if they should be ints,
     # but even if they are, I'm not sure if the casting should occur here:
@@ -139,6 +144,14 @@ of this file's format.
     parser.add_option("--alasccaMutationRules", dest = "alascca_mutation_rules_file",
                       default = os.path.abspath(os.path.dirname(__file__) + "/assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx"),
                       help = "Rules for determining ALASCCA class status. Default=[%default]")
+    parser.add_option("--tumorCovJSON", dest = "tumor_cov_json", default=None,
+                      help = "JSON file specifying coverage call for tumor sample. Default=[%default]")
+    parser.add_option("--normalCovJSON", dest = "normal_cov_json", default=None,
+                      help = "JSON file specifying coverage call for normal sample. Default=[%default]")
+    parser.add_option("--purityJSON", dest = "purity_json", default=None,
+                      help = "JSON file specifying tumor purity call. Default=[%default]")
+    parser.add_option("--contaminationJSON", dest = "contam_json", default=None,
+                      help = "JSON file specifying tumor contamination call. Default=[%default]")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -185,15 +198,45 @@ of this file's format.
 
     # Extract rules from the input excel spreadsheets (zero or one spreadsheet
     # per rule object):
-    mutationsRule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
-                                                                                        symbol2altered_gene)
-    alasccaRule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
-                                                           symbol2altered_gene)
-    msiRule = reportgen.rules.msi.MsiStatusRule(msi_status)
+    mutations_rule = reportgen.rules.simple_somatic_mutations.SimpleSomaticMutationsRule(crc_mutations_spreadsheet,
+                                                                                         symbol2altered_gene)
+    alascca_rule = reportgen.rules.alascca.AlasccaClassRule(alascca_class_spreadsheet,
+                                                            symbol2altered_gene)
+    msi_rule = reportgen.rules.msi.MsiStatusRule(msi_status)
 
-    report_compiler = reportgen.reporting.genomics.ReportCompiler([mutationsRule, alasccaRule, msiRule])
+    rules = [mutations_rule, alascca_rule, msi_rule]
+
+    # Extract QC calls from JSON files specified as command line arguments:
+    purity_call = extract_qc_call(open(options.purity_json))
+    tumor_cov_call = extract_qc_call(open(options.tumor_cov_json))
+    normal_cov_call = extract_qc_call(open(options.normal_cov_json))
+    contam_call = extract_qc_call(open(options.contam_json))
+
+    # Generate rule from that input:
+    if purity_call is not None:
+        rules.append(PurityRule(purity_call))
+
+    report_compiler = reportgen.reporting.genomics.ReportCompiler(rules)
 
     report_compiler.extract_features()
+
+    # Extract coverage, purity and contamination information (if they were provided):
+    caveats = []
+
+    if purity_call is not None:
+        caveats.append(PurityCaveat(purity_call))
+
+    if tumor_cov_call is not None:
+        caveats.append(CoverageCaveat(tumor_cov_call))
+
+    if normal_cov_call is not None:
+        caveats.append(CoverageCaveat(normal_cov_call))
+
+    if contam_call is not None:
+        caveats.append(ContaminationCaveat(contam_call))
+
+    # Check the caveats and modify the report accordingly:
+    report_compiler.check_caveats(caveats)
 
     # Set output file according to options:
     json_output_file = open(options.output_file, 'w')
@@ -388,59 +431,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

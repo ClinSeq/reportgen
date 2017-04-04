@@ -3,14 +3,20 @@ language: python
 python:
   - "2.7"
 
+notifications:
+  email: false
+
 # command to install dependencies
 install:
   - pip install coveralls
+  - pip install pytest-cov
+  - pip install mock==2.0
   - pip install -r requirements.txt
+  - pip freeze | grep mock
 
 # command to run tests
 script:
-  - nosetests --with-coverage --cover-package=reportgen
+  - py.test tests -s --cov reportgen
 
 after_success:
     - coveralls
