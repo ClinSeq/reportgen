@@ -23,14 +23,14 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addr
 
     result = query1.all()
     if not len(result) == 1:
-        raise ValueError("Query does not yield a single unique entry: %d" % blood_sample_ID)
+        raise ValueError("Query does not yield a single unique entry: %d" % int(blood_sample_ID))
     blood_ref = result[0]
 
     query2 = session.query(AlasccaTissueReferral).filter(sqlalchemy.or_(AlasccaTissueReferral.barcode1 == tissue_sample_ID,
                                                         AlasccaTissueReferral.barcode2 == tissue_sample_ID))
     result = query2.all()
     if not len(result) == 1:
-        raise ValueError("Query does not yield a single unique entry: %d" % tissue_sample_ID)
+        raise ValueError("Query does not yield a single unique entry: %d" % int(tissue_sample_ID))
     tissue_ref = result[0]
 
     # Do a sanity check that the personnummer is the same from both the `
