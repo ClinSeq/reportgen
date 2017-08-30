@@ -134,6 +134,7 @@ class MutationStatus:
 
     def to_EB(self):
         self._status = FeatureStatus.NOT_DETERMINED
+        self._mutation_list = []
 
 
 class Gene:
