@@ -320,6 +320,8 @@ Outputs:
                       default = "/tmp",
                       help = "Folder for containing temporary files. " + \
                           "Default=[%default]")
+    parser.add_option("--alascca_only", action="store_true", dest="alascca_only", default=False,
+                      help = "Only include the alascca class results on the report, no other mutations or msi")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help = "Debug the program using pdb.")
     (options, args) = parser.parse_args()
@@ -389,7 +391,13 @@ Outputs:
                                                          "/assets/templates"))
     )
 
-    jinja_template = jinja_env.get_template("alascca.tex")
+    # Decide which template to use
+    # If the "--alascca_only" flag is set, use template for reporting of only alascca class,
+    # otherwise use the standard template
+    if (options.alascca_only):
+        jinja_template = jinja_env.get_template("alasccaOnly.tex")
+    else:
+        jinja_template = jinja_env.get_template("alascca.tex")
 
     try:
         alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
