@@ -1,0 +1,135 @@
+\documentclass[10pt]{article}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage[top=0.75cm,lmargin=1cm,rmargin=1cm,bottom=1cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{changepage}
+\usepackage{fancyhdr}
+\usepackage[many]{tcolorbox}
+\usepackage{colortbl}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{setspace}
+
+\setlength{\parindent}{0pt}
+
+
+\definecolor{grey}{rgb}{0.2, 0.2, 0.2}
+
+\definecolor{lightgrey}{rgb}{0.7, 0.7, 0.7}
+
+\definecolor{ratherlightgrey}{rgb}{0.9, 0.9, 0.9}
+
+\renewcommand*{\familydefault}{\sfdefault}
+\renewcommand{\sfdefault}{phv}
+
+\begin{document}
+
+%# Nesting the entire document body in a for loop, in order to generate
+%# a separate report for each return address:
+\BLOCK{ for address in metaJSON.return_addresses }
+
+\pagenumbering{gobble}
+
+\vspace{0cm}
+
+\begin{center}
+\huge{ClinSeq Analysrapport}
+\end{center}
+
+\vspace{-0.3cm}
+
+%# Reset row colors from previous page
+\rowcolors{1}{}{}
+\begin{tabular}[t]{  c  c  }
+  \BLOCK{ for logo in docFormat.logo_files }
+    \includegraphics[width=35mm]{\VAR{logo}}
+    \BLOCK{ if not loop.last } &
+    \BLOCK{ endif }
+  \BLOCK{ endfor }
+\end{tabular}
+
+\vspace{0cm}
+
+\rowcolors{1}{}{}
+\begin{tabular}{ l l }
+\multirow{2}{10.5cm}{\begin{tabular}{l}\\[-0.12cm]
+Personnummer \VAR{metaJSON.personnummer} \\
+Analys genomförd \VAR{reportDate}\\
+\end{tabular}} &
+\multirow{4}{7cm}{
+\begin{tabular}{l}\VAR{address.attn}\\
+\VAR{address.line1}\\
+\VAR{address.line2}\\
+\VAR{address.line3}\\
+\end{tabular}} \\
+ & \\
+ & \\
+ & \\
+\end{tabular}
+
+\vspace{1.3cm}
+
+\onehalfspacing
+{
+Blodprov taget \VAR{metaJSON.blood_sample_date}, remiss-ID \VAR{metaJSON.blood_referral_ID}, etikett \VAR{metaJSON.blood_sample_ID} \\
+Tumörprov taget \VAR{metaJSON.tumor_sample_date}, remiss-ID \VAR{metaJSON.tumor_referral_ID}, etikett \VAR{metaJSON.tumor_sample_ID} \\
+}
+\par
+\singlespacing
+
+\setlength{\fboxsep}{10pt}
+\setlength{\fboxrule}{3pt}
+
+\rowcolors{1}{ratherlightgrey}{}
+\fcolorbox{blue}{white}{%
+  \parbox{18.9cm}{%
+\centering
+{\Large Randomisering till ALASCCA-studien} \par
+\BLOCK{ set class_a_box = docFormat.unchecked }
+\BLOCK{ set class_b_box = docFormat.unchecked }
+\BLOCK{ set alascca_no_mutations_box = docFormat.unchecked }
+\BLOCK{ set alascca_not_determined_box = docFormat.unchecked }
+\BLOCK{ if genomicJSON.alascca_class_report.alascca_class == "Mutation class A" }
+  \BLOCK{ set class_a_box = docFormat.checked }
+\BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Mutation class B" }
+  \BLOCK{ set class_b_box = docFormat.checked }
+\BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Not mutated" }
+  \BLOCK{ set alascca_no_mutations_box = docFormat.checked }
+\BLOCK{ elif genomicJSON.alascca_class_report.alascca_class == "Not determined" }
+  \BLOCK{ set alascca_not_determined_box = docFormat.checked }
+\BLOCK{ endif }
+
+\vspace{0.2cm}
+\tcbox[left=0mm,right=-1mm,top=0mm,bottom=0mm,boxsep=0mm,
+       boxrule=0.4pt, colframe=grey, colback=white]
+{
+\begin{tabular}{l l}
+\includegraphics{\VAR{class_a_box}} & Mutationsklass A, patienten kan randomiseras \\
+\includegraphics{\VAR{class_b_box}} & Mutationsklass B, patienten kan randomiseras \\
+& \\
+\includegraphics{\VAR{alascca_no_mutations_box}} & Inga mutationer, patienten kan \emph{ej} randomiseras \\
+\includegraphics{\VAR{alascca_not_determined_box}} & Ej utförd/ej bedömbar, patienten kan \emph{ej} randomiseras \\
+\end{tabular}
+}
+}
+}
+
+\vspace{0.3cm}
+
+%# Since only alascca class is reported, only show the low purity warning if the purity is low and the alascca class is set to "Not determined".
+%# I.e. no mutation was found. If mutation found and class can be reported, don't show the warning.
+
+\BLOCK{ if (genomicJSON.purity_report.purity == "FAIL" and genomicJSON.alascca_class_report.alascca_class == "Not determined")}
+  \textbf{OBSERVERA:} {\small Reducerad möjlighet att detektera tumörens mutationer p.g.a. låg tumörcellshalt i aktuellt vävnadsprov.}
+
+  \vspace{0.3cm}
+\BLOCK{ endif }
+
+\newpage
+
+\BLOCK{ endfor }
+
+\end{document}
