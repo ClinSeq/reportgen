@@ -41,6 +41,8 @@
 
 \vspace{-0.3cm}
 
+%# Reset row colors from previous page
+\rowcolors{1}{}{}
 \begin{tabular}[t]{  c  c  }
   \BLOCK{ for logo in docFormat.logo_files }
     \includegraphics[width=35mm]{\VAR{logo}}
@@ -120,12 +122,13 @@ Tumörprov taget \VAR{metaJSON.tumor_sample_date}, remiss-ID \VAR{metaJSON.tumor
 %# Since only alascca class is reported, only show the low purity warning if the purity is low and the alascca class is set to "Not determined".
 %# I.e. no mutation was found. If mutation found and class can be reported, don't show the warning.
 
-\BLOCK{ if genomicJSON.purity_report.purity == "FAIL" & genomicJSON.alascca_class_report.alascca_class == "Not determined"}
+\BLOCK{ if (genomicJSON.purity_report.purity == "FAIL" and genomicJSON.alascca_class_report.alascca_class == "Not determined")}
   \textbf{OBSERVERA:} {\small Reducerad möjlighet att detektera tumörens mutationer p.g.a. låg tumörcellshalt i aktuellt vävnadsprov.}
 
   \vspace{0.3cm}
 \BLOCK{ endif }
 
+\newpage
 
 \BLOCK{ endfor }
 
