@@ -6,6 +6,25 @@ from referralmanager.cli.models.referrals import AlasccaBloodReferral, AlasccaTi
 
 from reportgen.reporting.util import get_addresses
 
+def query_database(sample_ID, referral_type, session):
+    '''Queries the given database wih the given referral type and sample ID.
+    If one and only one record is found, the data for it is returned.'''
+
+    # Find the barcode attributes for this referral type (different number of barcodes per referral depending on type)
+    referral_attributes = dir(referral_type)
+    barcode_attributes = filter(lambda x: "barcode" in x, referral_attributes)
+    
+    # Perform the query
+    query = session.query(referral_type).filter(sqlalchemy.or_(getattr(referral_type, barcode_attr) == sample_ID
+                                                               for barcode_attr in barcode_attributes))
+    result = query.all()
+    
+    # Check that there's one and only one record
+    if not len(result) == 1:
+        raise ValueError("Query does not yield a single unique entry: %d" % int(sample_ID))
+
+    return result[0]
+
 
 def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addresses):
     '''Returns a ReportMetadata object containing the metadata information to
@@ -16,22 +35,8 @@ def retrieve_report_metadata(blood_sample_ID, tissue_sample_ID, session, id2addr
     # Retrieve the relevant records from the tables clinseqalascca.bloodref and
     # clinseqalascca.tissueref, by issuing queries with the input database
     # connection...
-
-    query1 = session.query(AlasccaBloodReferral).filter(sqlalchemy.or_(AlasccaBloodReferral.barcode1 == blood_sample_ID,
-                                                        AlasccaBloodReferral.barcode2 == blood_sample_ID,
-                                                        AlasccaBloodReferral.barcode3 == blood_sample_ID))
-
-    result = query1.all()
-    if not len(result) == 1:
-        raise ValueError("Query does not yield a single unique entry: %d" % int(blood_sample_ID))
-    blood_ref = result[0]
-
-    query2 = session.query(AlasccaTissueReferral).filter(sqlalchemy.or_(AlasccaTissueReferral.barcode1 == tissue_sample_ID,
-                                                        AlasccaTissueReferral.barcode2 == tissue_sample_ID))
-    result = query2.all()
-    if not len(result) == 1:
-        raise ValueError("Query does not yield a single unique entry: %d" % int(tissue_sample_ID))
-    tissue_ref = result[0]
+    blood_ref = query_database(blood_sample_ID, AlasccaBloodReferral, session)
+    tissue_ref = query_database(tissue_sample_ID, AlasccaTissueReferral, session)
 
     # Do a sanity check that the personnummer is the same from both the `
     # and tumor ID. Exit and report an error if this is not the case:
