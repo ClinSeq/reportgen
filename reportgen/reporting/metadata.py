@@ -13,6 +13,8 @@ def query_database(sample_ID, referral_type, session):
     # Find the barcode attributes for this referral type (different number of barcodes per referral depending on type)
     referral_attributes = dir(referral_type)
     barcode_attributes = filter(lambda x: "barcode" in x, referral_attributes)
+    if len(barcode_attributes) == 0:
+        raise ValueError("Referral type %s has no barcode attributes" % referral_type.__class__.__name__)
     
     # Perform the query
     query = session.query(referral_type).filter(sqlalchemy.or_(getattr(referral_type, barcode_attr) == sample_ID
