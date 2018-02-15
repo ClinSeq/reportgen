@@ -378,8 +378,10 @@ Outputs:
     # otherwise use the standard template
     if (options.alascca_only):
         jinja_template = jinja_env.get_template("alasccaOnly.tex")
+        print >> sys.stdout, "Using template for reporting only alascca class"
     else:
         jinja_template = jinja_env.get_template("alascca.tex")
+        print >> sys.stdout, "Using template for reporting all variant types"
 
     try:
         alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
