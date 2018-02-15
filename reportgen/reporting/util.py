@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re, json, sys
 
 import openpyxl
 
 from reportgen.rules.general import AlterationClassification
+
+from referralmanager.cli.dbimport import create_tables, get_session
 
 
 def id_valid(id_string):
@@ -145,3 +147,14 @@ def parse_mutation_table(spreadsheet_filename):
 def format_personnummer(personnummer):
     assert re.match("^[0-9]{12}$", personnummer)
     return personnummer[2:8] + "-" + personnummer[8:]
+
+
+def create_sql_session(db_config_file):
+    '''Establish an sqlalchemy session connecting to the database'''
+    
+    cred_conf = json.load(open(db_config_file))
+    uri = cred_conf['dburi']
+    engine = create_tables(uri)
+    session = get_session(engine)
+    
+    return session

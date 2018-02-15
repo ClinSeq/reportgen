@@ -8,6 +8,54 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.id2addresses = {"101": None}
 
     @patch('reportgen.reporting.metadata.sqlalchemy')
+    def test_query_database_no_barcode_attributes(self, mock_sqlalchemy):
+        mock_sqlalchemy.or_ = Mock()
+
+        mock_referral_type = Mock()
+        mock_session = Mock()
+        mock_session.query = Mock()
+        mock_session.query().filter().all = Mock(side_effect=[["dummy"]])
+
+        self.assertRaises(ValueError, metadata.query_database, "03098121", mock_referral_type, mock_session)
+
+    @patch('reportgen.reporting.metadata.sqlalchemy')
+    def test_query_database_no_hit(self, mock_sqlalchemy):
+        mock_sqlalchemy.or_ = Mock()
+        
+        mock_referral_type = Mock()
+        mock_referral_type.barcode1 = "03098121"
+        mock_session = Mock()
+        mock_session.query = Mock()
+        mock_session.query().filter().all = Mock(side_effect=[[]])
+
+        self.assertRaises(ValueError, metadata.query_database, "03098121", mock_referral_type, mock_session)
+
+    @patch('reportgen.reporting.metadata.sqlalchemy')
+    def test_query_database_one_hit(self, mock_sqlalchemy):
+        mock_sqlalchemy.or_ = Mock()
+
+        mock_referral_type = Mock()
+        mock_referral_type.barcode1 = "03098121"
+        mock_session = Mock()
+        mock_session.query = Mock()
+        mock_session.query().filter().all = Mock(side_effect=[["dummy"]])
+        
+        output = metadata.query_database("03098121", mock_referral_type, mock_session)
+        self.assertEqual(output, "dummy")
+
+    @patch('reportgen.reporting.metadata.sqlalchemy')
+    def test_query_database_two_hit(self, mock_sqlalchemy):
+        mock_sqlalchemy.or_ = Mock()
+
+        mock_referral_type = Mock()
+        mock_referral_type.barcode1 = "03098121"
+        mock_session = Mock()
+        mock_session.query = Mock()
+        mock_session.query().filter().all = Mock(side_effect=[["dummy", "dummy2"]])
+
+        self.assertRaises(ValueError, metadata.query_database, "03098121", mock_referral_type, mock_session)
+
+    @patch('reportgen.reporting.metadata.sqlalchemy')
     def test_retrieve_report_metadata_missing_blood_ref(self, mock_sqlalchemy):
         mock_sqlalchemy.or_ = Mock()
 
@@ -18,7 +66,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertRaises(ValueError, metadata.retrieve_report_metadata, "03098121", "03098849", mock_session, self.id2addresses)
 
     @patch('reportgen.reporting.metadata.sqlalchemy')
-    def test_retrieve_report_metadata_missing_tumor_ref(self, mock_sqlalchemy):
+    def test_retrieve_report_metadata_double_tumor_ref(self, mock_sqlalchemy):
         mock_sqlalchemy.or_ = Mock()
 
         mock_session = Mock()

@@ -22,11 +22,6 @@ import reportgen.rules.alascca
 import reportgen.rules.msi
 import reportgen.rules.simple_somatic_mutations
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from referralmanager.cli.models.referrals import Base
-
 
 def compileMetadata():
     description = """usage: %prog [options] <bloodID> <tumorID>\n
@@ -87,21 +82,8 @@ hard-coded.
         sys.exit(1)
 
     # Establish an sqlalchemy session connecting to the KI biobank database:
-
-    config_dict = None
-    try:
-        cred_conf = json.load(open(options.db_config_file))
-        uri = cred_conf['dburi']
-        engine = create_engine(uri, echo=True)
-        Base.metadata.create_all(engine)
-
-        Session = sessionmaker(bind=engine)
-        session = Session()
-    except Exception, e:
-        print >> sys.stderr, "Could not load/parse JSON database config file, " + \
-                             options.db_config_file + "."
-        sys.exit(1)
-
+    session = reportgen.reporting.util.create_sql_session(options.db_config_file)
+    
     address_table_file = open(options.address_table_file)
     id2addresses = reportgen.reporting.util.parse_address_table(address_table_file)
 
@@ -396,8 +378,10 @@ Outputs:
     # otherwise use the standard template
     if (options.alascca_only):
         jinja_template = jinja_env.get_template("alasccaOnly.tex")
+        print >> sys.stdout, "Using template for reporting only alascca class"
     else:
         jinja_template = jinja_env.get_template("alascca.tex")
+        print >> sys.stdout, "Using template for reporting all variant types"
 
     try:
         alascca_report = reportgen.reporting.genomics.GenomicReport(report_json, meta_json, doc_format,
