@@ -1,4 +1,5 @@
 from mock import mock_open, patch, Mock, MagicMock
+from sqlalchemy.exc import ArgumentError
 import reportgen.reporting.util as util
 import unittest
 
@@ -144,6 +145,26 @@ class TestStandaloneFunctions(unittest.TestCase):
                      "line3": "100 00 Cityname"}]}
                 id2addresses = util.parse_address_table(test_file)
                 self.assertDictEqual(id2addresses, correct_output)
+    
+    
+    def test_create_sql_session_missing_json(self):
+        self.assertRaises(IOError, util.create_sql_session, "dummy.json")
+
+
+    @patch('reportgen.reporting.util.json')
+    @patch('__builtin__.open')
+    def test_create_sql_session_faulty_json_key(self, mock_open, mock_json):
+        mock_json.load = Mock(side_effect = [{"dummy_key": "dummy_value"}])
+        mock_open.return_value = None
+        self.assertRaises(KeyError, util.create_sql_session, "dummy.json")
+
+
+    @patch('reportgen.reporting.util.json')
+    @patch('__builtin__.open')
+    def test_create_sql_session_faulty_json_value(self, mock_open, mock_json):
+        mock_json.load = Mock(side_effect = [{"dburi": "dummy_value"}])
+        mock_open.return_value = None
+        self.assertRaises(ArgumentError, util.create_sql_session, "dummy.json")
 
 
 #class TestMisc(unittest.TestCase):
