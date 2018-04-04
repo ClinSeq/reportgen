@@ -14,7 +14,7 @@ setup(name='reportgen',
       package_data={'': ['assets/ALASCCA_MUTATION_TABLE_SPECIFIC.xlsx', 'assets/COLORECTAL_MUTATION_TABLE.xlsx',
                          'assets/ALASCCA_logo.png', 'assets/ki-logo_cmyk_5.png',
                          'assets/rsz_checked_checkbox.png', 'assets/rsz_unchecked_checkbox.png',
-                         'assets/templates/alascca.tex']},
+                         'assets/templates/alascca.tex', 'assets/templates/alasccaOnly.tex']},
       include_package_data=True,
       entry_points={
           'console_scripts': [
