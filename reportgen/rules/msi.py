@@ -8,7 +8,7 @@ class MsiStatusRule:
     # FIXME: At some point I need to make these thresholds settable
     # somewhere. Currently hard-coding them here.
     MIN_TOTAL_SITES = 50
-    PERCENT_MSI_LOW_THRESH = 5
+    PERCENT_MSI_LOW_THRESH = 15
     PERCENT_MSI_HIGH_THRESH = 30
 
     def __init__(self, msi_status):
